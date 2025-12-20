@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: 37 99 235;
+  /* Blue 600 */
+  --color-primary-fg: 255 255 255;
+}
+
+.dark {
+  --color-primary: 59 130 246;
+  /* Blue 500 - lighter for dark mode */
+}
+
+/* Accents */
+.theme-emerald {
+  --color-primary: 16 185 129;
+}
+
+/* Emerald 500 */
+.theme-rose {
+  --color-primary: 244 63 94;
+}
+
+/* Rose 500 */
+.theme-amber {
+  --color-primary: 245 158 11;
+}
+
+/* Amber 500 */
+.theme-violet {
+  --color-primary: 139 92 246;
+}
+
+/* Violet 500 */
+.theme-cyan {
+  --color-primary: 6 182 212;
+}
+
+/* Cyan 500 */

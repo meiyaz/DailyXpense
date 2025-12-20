@@ -1,0 +1,1381 @@
+[
+  {
+    "id": "exp_1766215327320_0_1766215327324_oq7m9881s",
+    "description": "Internet Bill",
+    "amount": 59.1,
+    "tag": "Health",
+    "date": "2025-12-20T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766215327320_1_1766215327324_69q3d92oz",
+    "description": "Uber to Work",
+    "amount": 26.32,
+    "tag": "Health",
+    "date": "2025-12-20T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766215327320_2_1766215327324_7f3wkxwd2",
+    "description": "Groceries",
+    "amount": 21.47,
+    "tag": "Health",
+    "date": "2025-12-20T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766215327320_3_1766215327324_9tb8m100d",
+    "description": "Movie Night",
+    "amount": 67.3,
+    "tag": "Bills",
+    "date": "2025-12-20T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766128927320_0_1766215327324_hdokk54vz",
+    "description": "Morning Coffee",
+    "amount": 81.96,
+    "tag": "Food",
+    "date": "2025-12-19T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766128927320_1_1766215327324_5pit6tf5p",
+    "description": "Netflix",
+    "amount": 61.43,
+    "tag": "Food",
+    "date": "2025-12-19T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766128927320_2_1766215327324_ypsrj5vxs",
+    "description": "Pharmacy",
+    "amount": 25.91,
+    "tag": "Travel",
+    "date": "2025-12-19T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766042527320_0_1766215327324_0751ni0bi",
+    "description": "Dinner Date",
+    "amount": 87.41,
+    "tag": "Health",
+    "date": "2025-12-18T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766042527320_1_1766215327324_oxdwc1ekv",
+    "description": "Internet Bill",
+    "amount": 58.68,
+    "tag": "Shopping",
+    "date": "2025-12-18T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766042527320_2_1766215327324_d2fqddc3y",
+    "description": "Spotify",
+    "amount": 77.55,
+    "tag": "Transport",
+    "date": "2025-12-18T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766042527320_3_1766215327324_2coze63dv",
+    "description": "Morning Coffee",
+    "amount": 29.07,
+    "tag": "Entertainment",
+    "date": "2025-12-18T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766042527320_4_1766215327324_erjw0p4gv",
+    "description": "Groceries",
+    "amount": 86.73,
+    "tag": "Food",
+    "date": "2025-12-18T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765956127320_0_1766215327324_nz48nylr6",
+    "description": "Morning Coffee",
+    "amount": 47.85,
+    "tag": "Transport",
+    "date": "2025-12-17T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765956127320_1_1766215327324_4sgldouxi",
+    "description": "Spotify",
+    "amount": 35.21,
+    "tag": "Tech",
+    "date": "2025-12-17T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765956127320_2_1766215327324_r9kd921je",
+    "description": "Gas Station",
+    "amount": 77.65,
+    "tag": "Entertainment",
+    "date": "2025-12-17T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765956127320_3_1766215327324_jf0u8zw9q",
+    "description": "Internet Bill",
+    "amount": 32.5,
+    "tag": "Health",
+    "date": "2025-12-17T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765869727320_0_1766215327324_hkj5di9bu",
+    "description": "Team Lunch",
+    "amount": 58.7,
+    "tag": "Tech",
+    "date": "2025-12-16T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765869727320_1_1766215327324_vyucyhrt3",
+    "description": "Flight Ticket",
+    "amount": 53.4,
+    "tag": "Shopping",
+    "date": "2025-12-16T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765869727320_2_1766215327324_xqbj1s66f",
+    "description": "Uber to Work",
+    "amount": 49,
+    "tag": "Tech",
+    "date": "2025-12-16T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765783327320_0_1766215327324_bgltf3s2v",
+    "description": "Amazon Order",
+    "amount": 32.18,
+    "tag": "Entertainment",
+    "date": "2025-12-15T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765783327320_1_1766215327324_w1y0bod6o",
+    "description": "Morning Coffee",
+    "amount": 71.63,
+    "tag": "Shopping",
+    "date": "2025-12-15T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765783327320_2_1766215327324_gw0l5b9ek",
+    "description": "Flight Ticket",
+    "amount": 65.91,
+    "tag": "Bills",
+    "date": "2025-12-15T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765696927320_0_1766215327324_sl4pru0jn",
+    "description": "Team Lunch",
+    "amount": 21.44,
+    "tag": "Transport",
+    "date": "2025-12-14T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765696927320_1_1766215327324_c6z4x7jxx",
+    "description": "Hotel Booking",
+    "amount": 28.96,
+    "tag": "Entertainment",
+    "date": "2025-12-14T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1765696927320_2_1766215327324_ozgvrkttv",
+    "description": "Gym Membership",
+    "amount": 59.71,
+    "tag": "Food",
+    "date": "2025-12-14T07:22:07.320Z"
+  },
+  {
+    "id": "exp_1766773800000_0_1766215327324_lk73aaz19",
+    "description": "Dinner Date",
+    "amount": 78.02,
+    "tag": "Tech",
+    "date": "2025-12-26T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1766082600000_0_1766215327324_y2lcuu3b5",
+    "description": "Uber to Work",
+    "amount": 19.69,
+    "tag": "Food",
+    "date": "2025-12-18T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1766082600000_0_1766215327324_49uxfd102",
+    "description": "Hotel Booking",
+    "amount": 35.38,
+    "tag": "Shopping",
+    "date": "2025-12-18T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1765045800000_0_1766215327324_yqv3c28vv",
+    "description": "Gas Station",
+    "amount": 15.08,
+    "tag": "Food",
+    "date": "2025-12-06T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1766514600000_0_1766215327324_8nmso1w25",
+    "description": "Gym Membership",
+    "amount": 46.65,
+    "tag": "Shopping",
+    "date": "2025-12-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1765737000000_0_1766215327324_ttuxatvyp",
+    "description": "Internet Bill",
+    "amount": 72.53,
+    "tag": "Entertainment",
+    "date": "2025-12-14T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1766601000000_0_1766215327324_xgvja77b2",
+    "description": "Team Lunch",
+    "amount": 79.08,
+    "tag": "Health",
+    "date": "2025-12-24T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1766169000000_0_1766215327324_fnufofrff",
+    "description": "Gas Station",
+    "amount": 89.87,
+    "tag": "Food",
+    "date": "2025-12-19T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1764786600000_0_1766215327324_pvbffs7t2",
+    "description": "Gym Membership",
+    "amount": 22.69,
+    "tag": "Shopping",
+    "date": "2025-12-03T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1764700200000_0_1766215327324_zeg3fu1t8",
+    "description": "Flight Ticket",
+    "amount": 23.96,
+    "tag": "Bills",
+    "date": "2025-12-02T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1765305000000_0_1766215327324_6npqzph62",
+    "description": "Internet Bill",
+    "amount": 81.23,
+    "tag": "Transport",
+    "date": "2025-12-09T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1765823400000_0_1766215327324_mtzapskho",
+    "description": "Groceries",
+    "amount": 45.02,
+    "tag": "Food",
+    "date": "2025-12-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1763749800000_0_1766215327324_k93tmh0s5",
+    "description": "Dinner Date",
+    "amount": 87.23,
+    "tag": "Bills",
+    "date": "2025-11-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1762367400000_0_1766215327324_mahau6ay9",
+    "description": "Pharmacy",
+    "amount": 66.39,
+    "tag": "Entertainment",
+    "date": "2025-11-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1763231400000_0_1766215327324_14gqqlolp",
+    "description": "Netflix",
+    "amount": 86.34,
+    "tag": "Shopping",
+    "date": "2025-11-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1763922600000_0_1766215327324_1nklztudk",
+    "description": "Flight Ticket",
+    "amount": 61.25,
+    "tag": "Shopping",
+    "date": "2025-11-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1762108200000_0_1766215327324_o3nbggdzz",
+    "description": "Hotel Booking",
+    "amount": 81.84,
+    "tag": "Transport",
+    "date": "2025-11-02T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1762367400000_0_1766215327324_hvrcasjsk",
+    "description": "Gym Membership",
+    "amount": 58.14,
+    "tag": "Health",
+    "date": "2025-11-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1762540200000_0_1766215327324_xf6oxjgh1",
+    "description": "Team Lunch",
+    "amount": 14.68,
+    "tag": "Food",
+    "date": "2025-11-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1762021800000_0_1766215327324_hy03dir1k",
+    "description": "Gym Membership",
+    "amount": 80.46,
+    "tag": "Entertainment",
+    "date": "2025-11-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1761935400000_0_1766215327324_qtaky6bpk",
+    "description": "Internet Bill",
+    "amount": 61.67,
+    "tag": "Transport",
+    "date": "2025-10-31T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1763317800000_0_1766215327324_400zvccdb",
+    "description": "Internet Bill",
+    "amount": 25.18,
+    "tag": "Tech",
+    "date": "2025-11-16T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1762713000000_0_1766215327324_0ja9396es",
+    "description": "Netflix",
+    "amount": 57.05,
+    "tag": "Transport",
+    "date": "2025-11-09T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1764181800000_0_1766215327324_vkl9f1297",
+    "description": "Concert",
+    "amount": 43.5,
+    "tag": "Shopping",
+    "date": "2025-11-26T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759861800000_0_1766215327324_nam6ydoil",
+    "description": "Pharmacy",
+    "amount": 27.59,
+    "tag": "Tech",
+    "date": "2025-10-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759602600000_0_1766215327324_1k4feyoln",
+    "description": "Movie Night",
+    "amount": 77.38,
+    "tag": "Bills",
+    "date": "2025-10-04T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759948200000_0_1766215327324_qaq9jlvbd",
+    "description": "Flight Ticket",
+    "amount": 57.1,
+    "tag": "Bills",
+    "date": "2025-10-08T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1760725800000_0_1766215327324_48rnb489q",
+    "description": "Concert",
+    "amount": 60.39,
+    "tag": "Travel",
+    "date": "2025-10-17T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1761330600000_0_1766215327324_cqkadkbsu",
+    "description": "Gas Station",
+    "amount": 66.54,
+    "tag": "Entertainment",
+    "date": "2025-10-24T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1760898600000_0_1766215327324_oclm1ozxj",
+    "description": "Team Lunch",
+    "amount": 83.67,
+    "tag": "Bills",
+    "date": "2025-10-19T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759257000000_0_1766215327324_uxg111uz4",
+    "description": "Team Lunch",
+    "amount": 79.87,
+    "tag": "Entertainment",
+    "date": "2025-09-30T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759516200000_0_1766215327324_kc93pkb2d",
+    "description": "Movie Night",
+    "amount": 29.3,
+    "tag": "Transport",
+    "date": "2025-10-03T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1761589800000_0_1766215327324_yjcmafwb1",
+    "description": "Netflix",
+    "amount": 69.67,
+    "tag": "Health",
+    "date": "2025-10-27T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1760207400000_0_1766215327324_hkt5j950t",
+    "description": "Morning Coffee",
+    "amount": 45.14,
+    "tag": "Food",
+    "date": "2025-10-11T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759861800000_0_1766215327324_wte5834f5",
+    "description": "Team Lunch",
+    "amount": 48.22,
+    "tag": "Tech",
+    "date": "2025-10-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759775400000_0_1766215327324_phxymyxu2",
+    "description": "Pharmacy",
+    "amount": 86.14,
+    "tag": "Shopping",
+    "date": "2025-10-06T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757615400000_0_1766215327324_a0rnmxdkv",
+    "description": "Spotify",
+    "amount": 85.03,
+    "tag": "Food",
+    "date": "2025-09-11T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757356200000_0_1766215327324_ovp7uzbh2",
+    "description": "Internet Bill",
+    "amount": 31.31,
+    "tag": "Entertainment",
+    "date": "2025-09-08T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757183400000_0_1766215327324_p6ytbz77u",
+    "description": "Hotel Booking",
+    "amount": 55.27,
+    "tag": "Shopping",
+    "date": "2025-09-06T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1756837800000_0_1766215327324_d4e1bk45b",
+    "description": "Gym Membership",
+    "amount": 10.32,
+    "tag": "Bills",
+    "date": "2025-09-02T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1758047400000_0_1766215327324_099nyq418",
+    "description": "Uber to Work",
+    "amount": 61.66,
+    "tag": "Tech",
+    "date": "2025-09-16T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757269800000_0_1766215327324_hg8q41xbo",
+    "description": "Concert",
+    "amount": 78.72,
+    "tag": "Shopping",
+    "date": "2025-09-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757097000000_0_1766215327324_oe6fm1nmi",
+    "description": "Movie Night",
+    "amount": 57.22,
+    "tag": "Food",
+    "date": "2025-09-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1758133800000_0_1766215327324_o5pxbhp53",
+    "description": "Gym Membership",
+    "amount": 81.93,
+    "tag": "Bills",
+    "date": "2025-09-17T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1758047400000_0_1766215327324_s5lzzwb3o",
+    "description": "Movie Night",
+    "amount": 67.59,
+    "tag": "Entertainment",
+    "date": "2025-09-16T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757183400000_0_1766215327324_l2y6c644c",
+    "description": "Groceries",
+    "amount": 48.8,
+    "tag": "Bills",
+    "date": "2025-09-06T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1756751400000_0_1766215327324_lgy0n9g0l",
+    "description": "Movie Night",
+    "amount": 34.81,
+    "tag": "Bills",
+    "date": "2025-09-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757788200000_0_1766215327324_sml29ps53",
+    "description": "Amazon Order",
+    "amount": 59.19,
+    "tag": "Shopping",
+    "date": "2025-09-13T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1755282600000_0_1766215327324_8yn5tbu2e",
+    "description": "Uber to Work",
+    "amount": 67.83,
+    "tag": "Tech",
+    "date": "2025-08-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1754418600000_0_1766215327324_hk1r6zl0e",
+    "description": "Morning Coffee",
+    "amount": 52.51,
+    "tag": "Health",
+    "date": "2025-08-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1755801000000_0_1766215327324_8wi5jwlwb",
+    "description": "Gym Membership",
+    "amount": 31.27,
+    "tag": "Travel",
+    "date": "2025-08-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1754159400000_0_1766215327324_6kz75hq6z",
+    "description": "Morning Coffee",
+    "amount": 88.02,
+    "tag": "Travel",
+    "date": "2025-08-02T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1754418600000_0_1766215327324_ths1mvc7b",
+    "description": "Team Lunch",
+    "amount": 86.48,
+    "tag": "Food",
+    "date": "2025-08-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1754591400000_0_1766215327324_mk1zlicxo",
+    "description": "Team Lunch",
+    "amount": 73.62,
+    "tag": "Entertainment",
+    "date": "2025-08-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1756146600000_0_1766215327324_9q06k9ar2",
+    "description": "Team Lunch",
+    "amount": 47.12,
+    "tag": "Bills",
+    "date": "2025-08-25T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1754591400000_0_1766215327324_uddyg068w",
+    "description": "Hotel Booking",
+    "amount": 82.22,
+    "tag": "Shopping",
+    "date": "2025-08-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1755023400000_0_1766215327324_6l6bi2qh6",
+    "description": "Uber to Work",
+    "amount": 71.47,
+    "tag": "Travel",
+    "date": "2025-08-12T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1755628200000_0_1766215327324_monxxvjjh",
+    "description": "Team Lunch",
+    "amount": 21.85,
+    "tag": "Travel",
+    "date": "2025-08-19T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1754332200000_0_1766215327324_wlvuj1s21",
+    "description": "Dinner Date",
+    "amount": 61.85,
+    "tag": "Transport",
+    "date": "2025-08-04T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1754332200000_0_1766215327324_p5b9gulbp",
+    "description": "Hotel Booking",
+    "amount": 31.16,
+    "tag": "Food",
+    "date": "2025-08-04T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1752431400000_0_1766215327324_o13rinn2j",
+    "description": "Gas Station",
+    "amount": 57.72,
+    "tag": "Entertainment",
+    "date": "2025-07-13T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1753295400000_0_1766215327324_0s7k6kp87",
+    "description": "Flight Ticket",
+    "amount": 33.69,
+    "tag": "Food",
+    "date": "2025-07-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1752085800000_0_1766215327324_ty7e61dmj",
+    "description": "Groceries",
+    "amount": 62.27,
+    "tag": "Entertainment",
+    "date": "2025-07-09T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1751394600000_0_1766215327324_14h6uf1ic",
+    "description": "Internet Bill",
+    "amount": 84.56,
+    "tag": "Travel",
+    "date": "2025-07-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1751740200000_0_1766215327324_o005mme2r",
+    "description": "Netflix",
+    "amount": 65.13,
+    "tag": "Food",
+    "date": "2025-07-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1752949800000_0_1766215327324_6nz1huib1",
+    "description": "Netflix",
+    "amount": 17.4,
+    "tag": "Transport",
+    "date": "2025-07-19T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1752690600000_0_1766215327324_iuj69iich",
+    "description": "Groceries",
+    "amount": 34.49,
+    "tag": "Food",
+    "date": "2025-07-16T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1751308200000_0_1766215327324_crnr61kb8",
+    "description": "Spotify",
+    "amount": 55.17,
+    "tag": "Food",
+    "date": "2025-06-30T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1753122600000_0_1766215327324_d4uvjd150",
+    "description": "Gas Station",
+    "amount": 51.38,
+    "tag": "Travel",
+    "date": "2025-07-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1751308200000_0_1766215327324_3ys0hvgef",
+    "description": "Gas Station",
+    "amount": 61.76,
+    "tag": "Transport",
+    "date": "2025-06-30T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1751308200000_0_1766215327324_tbacj1fvq",
+    "description": "Groceries",
+    "amount": 79.03,
+    "tag": "Entertainment",
+    "date": "2025-06-30T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1752345000000_0_1766215327324_i4bomtfr9",
+    "description": "Hotel Booking",
+    "amount": 47.52,
+    "tag": "Health",
+    "date": "2025-07-12T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1755801000000_0_1766215327324_bbbmlr4o0",
+    "description": "Gas Station",
+    "amount": 69.8,
+    "tag": "Tech",
+    "date": "2025-08-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1760380200000_0_1766215327324_muhpoh3ym",
+    "description": "Morning Coffee",
+    "amount": 24.15,
+    "tag": "Tech",
+    "date": "2025-10-13T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1763231400000_0_1766215327324_lw30yo705",
+    "description": "Uber to Work",
+    "amount": 76.73,
+    "tag": "Entertainment",
+    "date": "2025-11-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1761071400000_0_1766215327324_pgrblorym",
+    "description": "Spotify",
+    "amount": 53.88,
+    "tag": "Travel",
+    "date": "2025-10-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759516200000_0_1766215327324_zgtb60okz",
+    "description": "Netflix",
+    "amount": 33.89,
+    "tag": "Entertainment",
+    "date": "2025-10-03T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1747679400000_0_1766215327324_wi6fiu0k2",
+    "description": "Hotel Booking",
+    "amount": 87.91,
+    "tag": "Transport",
+    "date": "2025-05-19T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1752085800000_0_1766215327324_fi2xozx3m",
+    "description": "Groceries",
+    "amount": 37.06,
+    "tag": "Entertainment",
+    "date": "2025-07-09T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1758652200000_0_1766215327324_z969b84q7",
+    "description": "Hotel Booking",
+    "amount": 67.66,
+    "tag": "Entertainment",
+    "date": "2025-09-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1749493800000_0_1766215327324_dxshqjauh",
+    "description": "Gas Station",
+    "amount": 22.18,
+    "tag": "Transport",
+    "date": "2025-06-09T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1744396200000_0_1766215327324_ywmbe8ngo",
+    "description": "Pharmacy",
+    "amount": 47.6,
+    "tag": "Bills",
+    "date": "2025-04-11T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1740335400000_0_1766215327324_815pmtkk4",
+    "description": "Morning Coffee",
+    "amount": 53.28,
+    "tag": "Transport",
+    "date": "2025-02-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1740335400000_0_1766215327324_ml2qkf1y3",
+    "description": "Netflix",
+    "amount": 71.53,
+    "tag": "Tech",
+    "date": "2025-02-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1762367400000_0_1766215327324_7t92gpdn3",
+    "description": "Internet Bill",
+    "amount": 70.45,
+    "tag": "Shopping",
+    "date": "2025-11-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1756060200000_0_1766215327324_offfgz8vs",
+    "description": "Uber to Work",
+    "amount": 41.96,
+    "tag": "Food",
+    "date": "2025-08-24T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1738434600000_0_1766215327324_cl4g8ii55",
+    "description": "Netflix",
+    "amount": 22.61,
+    "tag": "Entertainment",
+    "date": "2025-02-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1753036200000_0_1766215327324_5qad5f8pp",
+    "description": "Netflix",
+    "amount": 74.37,
+    "tag": "Shopping",
+    "date": "2025-07-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1740162600000_0_1766215327324_wmrr8sjcw",
+    "description": "Gym Membership",
+    "amount": 19.37,
+    "tag": "Food",
+    "date": "2025-02-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1760985000000_0_1766215327324_jnsjs3gzd",
+    "description": "Groceries",
+    "amount": 71.95,
+    "tag": "Food",
+    "date": "2025-10-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1763145000000_0_1766215327324_hvj3oondc",
+    "description": "Amazon Order",
+    "amount": 45.29,
+    "tag": "Travel",
+    "date": "2025-11-14T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1750617000000_0_1766215327324_rnagbygre",
+    "description": "Pharmacy",
+    "amount": 87.82,
+    "tag": "Shopping",
+    "date": "2025-06-22T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759429800000_0_1766215327324_0gp1dlx11",
+    "description": "Dinner Date",
+    "amount": 57.31,
+    "tag": "Tech",
+    "date": "2025-10-02T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1748802600000_0_1766215327324_y3j8myg5w",
+    "description": "Internet Bill",
+    "amount": 53.34,
+    "tag": "Transport",
+    "date": "2025-06-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1752085800000_0_1766215327324_r7k1v6stw",
+    "description": "Hotel Booking",
+    "amount": 26.26,
+    "tag": "Tech",
+    "date": "2025-07-09T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1749580200000_0_1766215327324_25650timr",
+    "description": "Gym Membership",
+    "amount": 52.49,
+    "tag": "Shopping",
+    "date": "2025-06-10T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1755455400000_0_1766215327324_xj05h4mdo",
+    "description": "Groceries",
+    "amount": 42.26,
+    "tag": "Entertainment",
+    "date": "2025-08-17T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757097000000_0_1766215327324_w5fncrw8o",
+    "description": "Uber to Work",
+    "amount": 71.74,
+    "tag": "Entertainment",
+    "date": "2025-09-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1765391400000_0_1766215327324_xfn0gy2k8",
+    "description": "Morning Coffee",
+    "amount": 34.87,
+    "tag": "Food",
+    "date": "2025-12-10T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1751913000000_0_1766215327324_acp7hj5iy",
+    "description": "Movie Night",
+    "amount": 51.93,
+    "tag": "Entertainment",
+    "date": "2025-07-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757788200000_0_1766215327324_1sg8ke6xh",
+    "description": "Groceries",
+    "amount": 16.53,
+    "tag": "Tech",
+    "date": "2025-09-13T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757701800000_0_1766215327324_bg0jrlwuw",
+    "description": "Hotel Booking",
+    "amount": 84.78,
+    "tag": "Tech",
+    "date": "2025-09-12T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1751394600000_0_1766215327324_nrzgnakgn",
+    "description": "Flight Ticket",
+    "amount": 34.4,
+    "tag": "Shopping",
+    "date": "2025-07-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1757183400000_0_1766215327324_euap6d4fj",
+    "description": "Internet Bill",
+    "amount": 12.5,
+    "tag": "Travel",
+    "date": "2025-09-06T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1755455400000_0_1766215327324_hihk1y4rh",
+    "description": "Morning Coffee",
+    "amount": 38.83,
+    "tag": "Shopping",
+    "date": "2025-08-17T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1739557800000_0_1766215327324_1anwq4cfp",
+    "description": "Gas Station",
+    "amount": 82.71,
+    "tag": "Shopping",
+    "date": "2025-02-14T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1752172200000_0_1766215327324_zn0bfhax8",
+    "description": "Uber to Work",
+    "amount": 26.99,
+    "tag": "Travel",
+    "date": "2025-07-10T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1753295400000_0_1766215327324_z0wputovr",
+    "description": "Spotify",
+    "amount": 23.12,
+    "tag": "Travel",
+    "date": "2025-07-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1758393000000_0_1766215327324_icvi4ki56",
+    "description": "Pharmacy",
+    "amount": 53.15,
+    "tag": "Entertainment",
+    "date": "2025-09-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1737397800000_0_1766215327324_cfph7n00m",
+    "description": "Hotel Booking",
+    "amount": 72.67,
+    "tag": "Transport",
+    "date": "2025-01-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1740594600000_0_1766215327324_h33aue6th",
+    "description": "Spotify",
+    "amount": 37.84,
+    "tag": "Entertainment",
+    "date": "2025-02-26T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1750444200000_0_1766215327324_wnhovqkrl",
+    "description": "Team Lunch",
+    "amount": 59.08,
+    "tag": "Shopping",
+    "date": "2025-06-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1751481000000_0_1766215327324_g78eplbw9",
+    "description": "Morning Coffee",
+    "amount": 41.96,
+    "tag": "Health",
+    "date": "2025-07-02T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1739471400000_0_1766215327324_uexe73tsj",
+    "description": "Morning Coffee",
+    "amount": 36.77,
+    "tag": "Entertainment",
+    "date": "2025-02-13T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1760985000000_0_1766215327324_lz6y3anwf",
+    "description": "Morning Coffee",
+    "amount": 34.81,
+    "tag": "Tech",
+    "date": "2025-10-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1755801000000_0_1766215327324_y7x69a59i",
+    "description": "Internet Bill",
+    "amount": 63.99,
+    "tag": "Entertainment",
+    "date": "2025-08-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1758565800000_0_1766215327324_0p0ygyom0",
+    "description": "Gas Station",
+    "amount": 64.69,
+    "tag": "Shopping",
+    "date": "2025-09-22T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1736879400000_0_1766215327324_hfomwip2q",
+    "description": "Gym Membership",
+    "amount": 57.29,
+    "tag": "Travel",
+    "date": "2025-01-14T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1759343400000_0_1766215327324_h9ltd3n6i",
+    "description": "Dinner Date",
+    "amount": 41.7,
+    "tag": "Health",
+    "date": "2025-10-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1754591400000_0_1766215327324_p8boe4kxj",
+    "description": "Spotify",
+    "amount": 42.8,
+    "tag": "Travel",
+    "date": "2025-08-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1745692200000_0_1766215327324_mgksrlkcs",
+    "description": "Pharmacy",
+    "amount": 64.45,
+    "tag": "Travel",
+    "date": "2025-04-26T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1741199400000_0_1766215327324_r5zuiluh9",
+    "description": "Morning Coffee",
+    "amount": 15.5,
+    "tag": "Shopping",
+    "date": "2025-03-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1728757800000_0_1766215327324_9z8u5mllk",
+    "description": "Amazon Order",
+    "amount": 63.12,
+    "tag": "Food",
+    "date": "2024-10-12T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1733596200000_0_1766215327324_p9qwejt48",
+    "description": "Team Lunch",
+    "amount": 20.72,
+    "tag": "Entertainment",
+    "date": "2024-12-07T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1713119400000_0_1766215327324_6vkma47mw",
+    "description": "Gym Membership",
+    "amount": 34.95,
+    "tag": "Transport",
+    "date": "2024-04-14T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1706293800000_0_1766215327324_bj8np7tve",
+    "description": "Pharmacy",
+    "amount": 33.52,
+    "tag": "Food",
+    "date": "2024-01-26T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1719945000000_0_1766215327324_kxp2i2lps",
+    "description": "Concert",
+    "amount": 37.11,
+    "tag": "Transport",
+    "date": "2024-07-02T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1727202600000_0_1766215327324_2r1vfsc6f",
+    "description": "Amazon Order",
+    "amount": 18.09,
+    "tag": "Travel",
+    "date": "2024-09-24T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1728239400000_0_1766215327324_qy17l3x8n",
+    "description": "Movie Night",
+    "amount": 73.13,
+    "tag": "Food",
+    "date": "2024-10-06T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1724178600000_0_1766215327324_11itvoyy1",
+    "description": "Spotify",
+    "amount": 49.46,
+    "tag": "Health",
+    "date": "2024-08-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1720204200000_0_1766215327324_f60a9x0w9",
+    "description": "Dinner Date",
+    "amount": 39.32,
+    "tag": "Health",
+    "date": "2024-07-05T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1732213800000_0_1766215327324_4bqywq0kd",
+    "description": "Concert",
+    "amount": 55.84,
+    "tag": "Transport",
+    "date": "2024-11-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1729017000000_0_1766215327324_bmok0eecl",
+    "description": "Morning Coffee",
+    "amount": 61.21,
+    "tag": "Health",
+    "date": "2024-10-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1720895400000_0_1766215327324_jgrh0p17x",
+    "description": "Internet Bill",
+    "amount": 76.47,
+    "tag": "Transport",
+    "date": "2024-07-13T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1707589800000_0_1766215327324_5pwo1pehn",
+    "description": "Morning Coffee",
+    "amount": 66.36,
+    "tag": "Transport",
+    "date": "2024-02-10T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1732559400000_0_1766215327324_owre62rau",
+    "description": "Movie Night",
+    "amount": 89.74,
+    "tag": "Tech",
+    "date": "2024-11-25T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1708021800000_0_1766215327324_z411j6at2",
+    "description": "Uber to Work",
+    "amount": 47.67,
+    "tag": "Food",
+    "date": "2024-02-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1723660200000_0_1766215327324_w8znng6zk",
+    "description": "Uber to Work",
+    "amount": 86.99,
+    "tag": "Transport",
+    "date": "2024-08-14T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1704911400000_0_1766215327324_ehuvf5yr9",
+    "description": "Hotel Booking",
+    "amount": 43.85,
+    "tag": "Health",
+    "date": "2024-01-10T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1709317800000_0_1766215327324_gw5pf8ot1",
+    "description": "Morning Coffee",
+    "amount": 49.97,
+    "tag": "Tech",
+    "date": "2024-03-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1714588200000_0_1766215327324_x4pecm2cs",
+    "description": "Morning Coffee",
+    "amount": 21.85,
+    "tag": "Bills",
+    "date": "2024-05-01T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1704997800000_0_1766215327324_jm1p8itj9",
+    "description": "Hotel Booking",
+    "amount": 60.94,
+    "tag": "Entertainment",
+    "date": "2024-01-11T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1729708200000_0_1766215327324_7y431wxf8",
+    "description": "Gas Station",
+    "amount": 35.88,
+    "tag": "Travel",
+    "date": "2024-10-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1734287400000_0_1766215327324_0ygyhh1tv",
+    "description": "Pharmacy",
+    "amount": 56.67,
+    "tag": "Health",
+    "date": "2024-12-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1730917800000_0_1766215327324_08xfmulax",
+    "description": "Groceries",
+    "amount": 78.37,
+    "tag": "Transport",
+    "date": "2024-11-06T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1710527400000_0_1766215327324_5lu4cau6p",
+    "description": "Gym Membership",
+    "amount": 15.54,
+    "tag": "Entertainment",
+    "date": "2024-03-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1704997800000_0_1766215327324_n6ch52ldk",
+    "description": "Team Lunch",
+    "amount": 38.62,
+    "tag": "Shopping",
+    "date": "2024-01-11T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1718994600000_0_1766215327324_qwfl6tbt5",
+    "description": "Groceries",
+    "amount": 27.86,
+    "tag": "Bills",
+    "date": "2024-06-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1726770600000_0_1766215327324_pih8i49eh",
+    "description": "Internet Bill",
+    "amount": 50.34,
+    "tag": "Entertainment",
+    "date": "2024-09-19T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1730399400000_0_1766215327324_fna6wr4xk",
+    "description": "Concert",
+    "amount": 75.35,
+    "tag": "Transport",
+    "date": "2024-10-31T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1708453800000_0_1766215327324_epe1dlwoo",
+    "description": "Team Lunch",
+    "amount": 81.93,
+    "tag": "Bills",
+    "date": "2024-02-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1728066600000_0_1766215327324_xvbrxiew1",
+    "description": "Morning Coffee",
+    "amount": 29.44,
+    "tag": "Health",
+    "date": "2024-10-04T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1734460200000_0_1766215327324_t993ohsa9",
+    "description": "Uber to Work",
+    "amount": 15.71,
+    "tag": "Entertainment",
+    "date": "2024-12-17T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1719167400000_0_1766215327324_t4j7cn4qg",
+    "description": "Concert",
+    "amount": 84.75,
+    "tag": "Food",
+    "date": "2024-06-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1723573800000_0_1766215327324_y0pfcv2gw",
+    "description": "Flight Ticket",
+    "amount": 75.31,
+    "tag": "Tech",
+    "date": "2024-08-13T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1719167400000_0_1766215327324_qbqgy87hc",
+    "description": "Dinner Date",
+    "amount": 25.02,
+    "tag": "Health",
+    "date": "2024-06-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1706034600000_0_1766215327324_uzaw9tu63",
+    "description": "Concert",
+    "amount": 65.52,
+    "tag": "Entertainment",
+    "date": "2024-01-23T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1723746600000_0_1766215327324_zavvnjzeq",
+    "description": "Uber to Work",
+    "amount": 51.25,
+    "tag": "Health",
+    "date": "2024-08-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1721500200000_0_1766215327324_4qg264wyb",
+    "description": "Gym Membership",
+    "amount": 73.57,
+    "tag": "Tech",
+    "date": "2024-07-20T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1711305000000_0_1766215327324_4858dps4o",
+    "description": "Dinner Date",
+    "amount": 44.4,
+    "tag": "Bills",
+    "date": "2024-03-24T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1705343400000_0_1766215327324_bji1q37vh",
+    "description": "Morning Coffee",
+    "amount": 36.68,
+    "tag": "Entertainment",
+    "date": "2024-01-15T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1712082600000_0_1766215327324_hya3priok",
+    "description": "Concert",
+    "amount": 70.91,
+    "tag": "Tech",
+    "date": "2024-04-02T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1715538600000_0_1766215327324_872wcsdu5",
+    "description": "Movie Night",
+    "amount": 41.93,
+    "tag": "Travel",
+    "date": "2024-05-12T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1710354600000_0_1766215327324_13t2njlce",
+    "description": "Groceries",
+    "amount": 53.44,
+    "tag": "Health",
+    "date": "2024-03-13T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1709490600000_0_1766215327324_8lkd4bvzg",
+    "description": "Uber to Work",
+    "amount": 20.03,
+    "tag": "Transport",
+    "date": "2024-03-03T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1724524200000_0_1766215327324_g6u7spbh5",
+    "description": "Concert",
+    "amount": 46.55,
+    "tag": "Bills",
+    "date": "2024-08-24T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1722105000000_0_1766215327324_p3u2isieq",
+    "description": "Gym Membership",
+    "amount": 56.5,
+    "tag": "Entertainment",
+    "date": "2024-07-27T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1713551400000_0_1766215327324_7hqmngdi3",
+    "description": "Gym Membership",
+    "amount": 41.56,
+    "tag": "Entertainment",
+    "date": "2024-04-19T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1731349800000_0_1766215327324_baiczt32r",
+    "description": "Concert",
+    "amount": 41.77,
+    "tag": "Shopping",
+    "date": "2024-11-11T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1713378600000_0_1766215327324_329xjy31r",
+    "description": "Netflix",
+    "amount": 71.95,
+    "tag": "Food",
+    "date": "2024-04-17T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1729535400000_0_1766215327324_nyi3aigt3",
+    "description": "Uber to Work",
+    "amount": 29.88,
+    "tag": "Bills",
+    "date": "2024-10-21T18:30:00.000Z"
+  },
+  {
+    "id": "exp_1712341800000_0_1766215327324_38d465o5m",
+    "description": "Hotel Booking",
+    "amount": 79.94,
+    "tag": "Entertainment",
+    "date": "2024-04-05T18:30:00.000Z"
+  }
+]
