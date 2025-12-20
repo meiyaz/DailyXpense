@@ -309,7 +309,7 @@ export default function Settings() {
     const isIcon = (str: string) => AVAILABLE_ICONS.includes(str) || PROFILE_ICONS.includes(str) || str.includes("-") || str === "pricetag";
 
     return (
-        <View className="flex-1 bg-white dark:bg-black">
+        <View className="flex-1 bg-gray-50 dark:bg-black">
             <Stack.Screen options={{
                 title: "Settings",
                 headerBackTitle: "Home",
@@ -325,7 +325,7 @@ export default function Settings() {
                                 router.replace('/');
                             }
                         }}
-                        className="mr-4 active:opacity-50"
+                        className="active:opacity-50 pl-2"
                     >
                         <Ionicons name="arrow-back" size={24} color={isDark ? 'white' : 'black'} />
                     </Pressable>
