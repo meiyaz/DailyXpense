@@ -1,21 +1,13 @@
-const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require("nativewind/metro");
+const { getDefaultConfig } = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
+const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-config.resolver.resolveRequest = (context, moduleName, platform) => {
-    if (platform === 'web') {
-        if (moduleName === './components/AnimatedThreeDBar' && context.originModulePath.includes('gifted-charts-core')) {
-            const ctx = { ...context, resolveRequest: null };
-            return context.resolveRequest(ctx, moduleName + '/index.js', platform);
-        }
-    }
-    return context.resolveRequest(context, moduleName, platform);
-};
-
+// Force resolution of invariant
 config.resolver.extraNodeModules = {
-    ...config.resolver.extraNodeModules,
-    'react-native-linear-gradient': require('path').resolve(__dirname, 'components/LinearGradientShim.js'),
+    ...(config.resolver.extraNodeModules || {}),
+    invariant: path.resolve(__dirname, 'node_modules/invariant'),
 };
 
-module.exports = withNativeWind(config, { input: "./global.css" });
+module.exports = withNativeWind(config, { input: path.resolve(__dirname, 'global.css') });

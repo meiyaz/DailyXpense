@@ -1,13 +1,12 @@
-import { View, Text, ScrollView, Pressable, useWindowDimensions, FlatList } from "react-native";
-import { Stack } from "expo-router";
+import { View, Text, ScrollView, Pressable, useWindowDimensions, StyleSheet, TouchableOpacity } from "react-native";
 import { useState, useMemo } from "react";
 import { useExpenses, Expense } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
+import { formatAmount } from "../lib/format";
+import { useColorScheme } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 
 type Tab = "daily" | "monthly" | "annual";
-
-import { useColorScheme } from "react-native";
 
 export default function Dashboard() {
     const { expenses } = useExpenses();
@@ -16,9 +15,7 @@ export default function Dashboard() {
     const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
     const [activeTab, setActiveTab] = useState<Tab>("daily");
 
-    // Use state to track the selected stack index for tooltip
-    const [selectedStackIndex, setSelectedStackIndex] = useState<number | null>(null);
-
+    // Chart Data Logic (Expenses Only)
     const chartData = useMemo(() => {
         const now = new Date();
         const data: any[] = [];
@@ -34,38 +31,33 @@ export default function Dashboard() {
             periodStart = new Date(now.getFullYear() - 1, 0, 1);
         }
 
-        // 2. Filter Expenses
-        const rangeExpenses = expenses.filter(e => new Date(e.date) >= periodStart);
+        // 2. Filter Expenses (Type = Expense only for Chart)
+        const rangeExpenses = expenses.filter(e =>
+            new Date(e.date) >= periodStart && e.type !== 'income'
+        );
 
-        // 3. Identify Top 4 Categories with Deterministic Sort
+        // 3. Identify Top 4 Categories
         const tagCounts: Record<string, number> = {};
         rangeExpenses.forEach(e => {
             const t = e.category || "Uncategorized";
             tagCounts[t] = (tagCounts[t] || 0) + e.amount;
         });
 
-        // Sort by count desc, then alphabetically asc for stability
         const sortedTags = Object.entries(tagCounts)
             .sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]))
             .map(entry => entry[0]);
 
         const topCategories = sortedTags.slice(0, 4);
         const legend = [...topCategories];
-        if (sortedTags.length > 4) {
-            legend.push("Others");
-        }
+        if (sortedTags.length > 4) legend.push("Others");
 
-        // Helper to get color for a tag
         const getColor = (tag: string) => {
             if (tag === "Others") return "#9ca3af";
             const cat = categories.find(c => c.name === tag);
             return cat ? cat.color : "#9ca3af";
         };
 
-        // 4. Build Stack Helper
         const buildStacks = (subset: Expense[]) => {
-            if (subset.length === 0) return [{ value: 0, color: 'transparent', frontColor: 'transparent' }];
-
             const bucketAmounts: Record<string, number> = {};
             legend.forEach(l => bucketAmounts[l] = 0);
 
@@ -78,28 +70,22 @@ export default function Dashboard() {
             const stacks: any[] = [];
             legend.forEach((tag) => {
                 const val = bucketAmounts[tag];
-                if (val > 0) {
-                    const color = getColor(tag);
-                    stacks.push({
-                        value: val,
-                        color: color,
-                        frontColor: color,
-                        name: tag
-                    });
-                }
+                stacks.push({
+                    value: val,
+                    color: getColor(tag),
+                    name: tag,
+                    marginBottom: val > 0 ? 1 : 0,
+                });
             });
-
-            return stacks.length > 0 ? stacks : [{ value: 0, color: 'transparent', frontColor: 'transparent', name: '' }];
+            return stacks;
         };
 
-        // 5. Generate Data Buckets
         if (activeTab === "daily") {
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(now);
                 d.setDate(d.getDate() - i);
                 const dStr = d.toDateString();
                 const dayExpenses = rangeExpenses.filter(e => new Date(e.date).toDateString() === dStr);
-
                 data.push({
                     label: d.toLocaleDateString('en-US', { weekday: 'short' }),
                     stacks: buildStacks(dayExpenses)
@@ -114,7 +100,6 @@ export default function Dashboard() {
                     const ed = new Date(e.date);
                     return ed.getMonth() === m && ed.getFullYear() === y;
                 });
-
                 data.push({
                     label: d.toLocaleString('default', { month: 'short' }),
                     stacks: buildStacks(monthExpenses)
@@ -123,29 +108,59 @@ export default function Dashboard() {
         } else {
             const currentYear = now.getFullYear();
             const lastYear = currentYear - 1;
-
             const lastYearExpenses = rangeExpenses.filter(e => new Date(e.date).getFullYear() === lastYear);
             data.push({ label: lastYear.toString(), stacks: buildStacks(lastYearExpenses) });
-
             const currentYearExpenses = rangeExpenses.filter(e => new Date(e.date).getFullYear() === currentYear);
             data.push({ label: currentYear.toString(), stacks: buildStacks(currentYearExpenses) });
         }
 
-        // Return legend items with their colors
-        const legendData = legend.map(tag => ({
-            name: tag,
-            color: getColor(tag)
-        }));
-
+        const legendData = legend.map(tag => ({ name: tag, color: getColor(tag) }));
         return { data, legend: legendData };
     }, [expenses, activeTab, categories]);
 
+    // Financials Calculation (Income vs Expense)
+    const financials = useMemo(() => {
+        const now = new Date();
+        let periodStart = new Date(now);
+
+        if (activeTab === "daily") {
+            periodStart.setDate(periodStart.getDate() - 6);
+            periodStart.setHours(0, 0, 0, 0);
+        } else if (activeTab === "monthly") {
+            periodStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+        } else {
+            periodStart = new Date(now.getFullYear() - 1, 0, 1);
+        }
+
+        const periodExpenses = expenses.filter(e => new Date(e.date) >= periodStart);
+
+        const income = periodExpenses
+            .filter(e => e.type === 'income')
+            .reduce((sum, e) => sum + e.amount, 0);
+
+        const expense = periodExpenses
+            .filter(e => e.type !== 'income')
+            .reduce((sum, e) => sum + e.amount, 0);
+
+        return {
+            income,
+            expense,
+            net: income - expense
+        };
+    }, [expenses, activeTab]);
+
+    const { width: windowWidth } = useWindowDimensions();
+    const chartWidth = Math.min(windowWidth - 48, 600);
+
+    // Top Categories Logic (Expenses Only)
     const spendingByTag = useMemo(() => {
         const tags: Record<string, number> = {};
-        expenses.forEach(e => {
-            const t = e.category || "Uncategorized";
-            tags[t] = (tags[t] || 0) + e.amount;
-        });
+        expenses
+            .filter(e => e.type !== 'income') // Explicitly exclude income
+            .forEach(e => {
+                const t = e.category || "Uncategorized";
+                tags[t] = (tags[t] || 0) + e.amount;
+            });
         return Object.entries(tags)
             .sort((a, b) => b[1] - a[1]) // Sort desc
             .slice(0, 5)
@@ -155,59 +170,200 @@ export default function Dashboard() {
             });
     }, [expenses, categories]);
 
-    // Calculate total from stacks
-    const totalSpending = chartData.data.reduce((sum: number, item: any) => {
-        const stackSum = item.stacks ? item.stacks.reduce((s: number, st: any) => s + st.value, 0) : 0;
-        return sum + stackSum;
-    }, 0);
-
-    const { width: windowWidth } = useWindowDimensions();
-    // Cap width at a reasonable max for desktop (e.g. 600px - padding) or use full width - padding
-    const chartWidth = Math.min(windowWidth - 48, 600);
+    const styles = StyleSheet.create({
+        // ... existing styles ...
+        container: {
+            flex: 1,
+            backgroundColor: isDark ? '#000000' : '#f9fafb',
+        },
+        contentContainer: {
+            padding: 16,
+            alignItems: 'center',
+        },
+        tabContainer: {
+            flexDirection: 'row',
+            backgroundColor: isDark ? '#1f2937' : '#e5e7eb',
+            borderRadius: 12,
+            marginBottom: 24,
+            width: '100%',
+            maxWidth: 600,
+            padding: 4,
+        },
+        tab: {
+            flex: 1,
+            paddingVertical: 10,
+            alignItems: 'center',
+            borderRadius: 8,
+        },
+        activeTab: {
+            backgroundColor: isDark ? '#1f2937' : '#ffffff',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.1,
+            shadowRadius: 2,
+            elevation: 2,
+        },
+        tabText: {
+            fontSize: 14,
+            fontWeight: '600',
+            textTransform: 'capitalize',
+            color: isDark ? '#9ca3af' : '#6b7280',
+        },
+        activeTabText: {
+            color: isDark ? '#ffffff' : '#111827',
+        },
+        totalLabel: {
+            fontSize: 12,
+            fontWeight: '500',
+            textTransform: 'uppercase',
+            letterSpacing: 1,
+            color: isDark ? '#9ca3af' : '#6b7280',
+            marginBottom: 4,
+        },
+        totalAmount: {
+            fontSize: 36,
+            fontWeight: '800',
+            color: isDark ? '#ffffff' : '#111827',
+        },
+        chartCard: {
+            alignItems: 'center',
+            backgroundColor: isDark ? '#111827' : '#ffffff',
+            borderRadius: 16,
+            marginBottom: 24,
+            width: '100%',
+            maxWidth: 600,
+            paddingVertical: 16,
+            borderWidth: 1,
+            borderColor: isDark ? '#1f2937' : '#f3f4f6',
+            overflow: 'hidden',
+        },
+        placeholderContainer: {
+            height: 220,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        placeholderText: {
+            color: '#6b7280',
+        },
+        legendContainer: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            marginTop: 16,
+            paddingHorizontal: 8,
+            gap: 12,
+        },
+        legendItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        legendDot: {
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            marginRight: 6,
+        },
+        legendText: {
+            fontSize: 12,
+            fontWeight: '500',
+            color: isDark ? '#9ca3af' : '#4b5563',
+        },
+        sectionTitle: {
+            fontSize: 18,
+            fontWeight: '700',
+            color: isDark ? '#f3f4f6' : '#1f2937',
+            marginBottom: 12,
+            paddingHorizontal: 4,
+        },
+        listCard: {
+            backgroundColor: isDark ? '#111827' : '#ffffff',
+            borderRadius: 16,
+            width: '100%',
+            borderWidth: 1,
+            borderColor: isDark ? '#1f2937' : '#f3f4f6',
+            overflow: 'hidden',
+        },
+        listItem: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: 16,
+        },
+        listItemBorder: {
+            borderBottomWidth: 1,
+            borderBottomColor: isDark ? '#1f2937' : '#f9fafb',
+        },
+        categoryIcon: {
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 12,
+            opacity: 0.9,
+        },
+        categoryIconText: {
+            color: '#ffffff',
+            fontWeight: '700',
+        },
+        categoryName: {
+            fontWeight: '600',
+            color: isDark ? '#d1d5db' : '#374151',
+        },
+        categoryAmount: {
+            fontWeight: '700',
+            color: isDark ? '#ffffff' : '#111827',
+        }
+    });
 
     return (
-        <ScrollView className="flex-1 bg-gray-50 dark:bg-black">
-            <Stack.Screen options={{
-                title: "Dashboard",
-                headerBackTitle: "Home",
-                headerShadowVisible: false,
-                headerStyle: { backgroundColor: isDark ? '#000000' : '#f9fafb' },
-                headerTintColor: isDark ? 'white' : 'black',
-            }} />
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            {/* Tabs */}
+            <View style={styles.tabContainer}>
+                {(["daily", "monthly", "annual"] as Tab[]).map((tab) => (
+                    <TouchableOpacity
+                        key={tab}
+                        onPress={() => setActiveTab(tab)}
+                        style={[styles.tab, activeTab === tab && styles.activeTab]}
+                    >
+                        <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                            {tab}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
 
-            <View className="p-4 items-center">
-                {/* Tabs */}
-                <View className="flex-row bg-gray-200 dark:bg-gray-800 p-1 rounded-xl mb-6 w-full max-w-[600px]">
-                    {(["daily", "monthly", "annual"] as Tab[]).map((tab) => (
-                        <Pressable
-                            key={tab}
-                            onPress={() => {
-                                setActiveTab(tab);
-                                setSelectedStackIndex(null); // Reset selection
-                            }}
-                            className={`flex-1 py-2 items-center rounded-lg ${activeTab === tab ? "bg-white dark:bg-gray-800 shadow-sm" : ""
-                                }`}
-                        >
-                            <Text className={`capitalize font-semibold text-sm ${activeTab === tab ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"
-                                }`}>
-                                {tab}
-                            </Text>
-                        </Pressable>
-                    ))}
+            {/* Total Card */}
+            <View style={{ alignItems: 'center', marginBottom: 24, paddingHorizontal: 16 }}>
+                {/* Net Balance */}
+                <Text style={styles.totalLabel}>
+                    Net {activeTab} Balance
+                </Text>
+                <Text style={{ fontSize: 32, fontWeight: '800', color: financials.net >= 0 ? (isDark ? '#4ade80' : '#16a34a') : (isDark ? '#f87171' : '#dc2626') }}>
+                    {currency}{formatAmount(financials.net)}
+                </Text>
+
+                {/* Grid for Income / Expense */}
+                <View style={{ flexDirection: 'row', gap: 24, marginTop: 16 }}>
+                    <View style={{ alignItems: 'center' }}>
+                        <Text style={{ fontSize: 10, textTransform: 'uppercase', color: '#6b7280', fontWeight: '600' }}>Income</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#4ade80' : '#16a34a' }}>
+                            +{currency}{formatAmount(financials.income)}
+                        </Text>
+                    </View>
+                    <View style={{ width: 1, backgroundColor: isDark ? '#374151' : '#e5e7eb' }} />
+                    <View style={{ alignItems: 'center' }}>
+                        <Text style={{ fontSize: 10, textTransform: 'uppercase', color: '#6b7280', fontWeight: '600' }}>Expense</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#f87171' : '#dc2626' }}>
+                            -{currency}{formatAmount(financials.expense)}
+                        </Text>
+                    </View>
                 </View>
+            </View>
 
-                {/* Total Card */}
-                <View className="items-center mb-8">
-                    <Text className="text-gray-500 dark:text-gray-400 font-medium mb-1 uppercase text-xs tracking-wider">
-                        Total Spending
-                    </Text>
-                    <Text className="text-4xl font-extrabold text-gray-900 dark:text-white">
-                        {currency}{totalSpending.toFixed(2)}
-                    </Text>
-                </View>
-
-                {/* Stacked Bar Chart */}
-                <View className="items-center bg-white dark:bg-gray-900 rounded-2xl shadow-sm mb-6 border border-gray-100 dark:border-gray-800 overflow-hidden pt-4 pb-4 w-full max-w-[600px]">
+            {/* Chart */}
+            <View style={styles.chartCard}>
+                {financials.expense > 0 ? (
                     <BarChart
                         key={activeTab}
                         width={chartWidth}
@@ -224,83 +380,23 @@ export default function Dashboard() {
                         rulesColor="#f3f4f6"
                         rulesType="solid"
                         isAnimated
-                        // Interaction
-                        onPress={(item: any, index: number) => {
-                            setSelectedStackIndex(index);
-                        }}
-                        renderTooltip={(item: any, index: number) => {
-                            return (
-                                <View style={{
-                                    backgroundColor: '#1f2937',
-                                    padding: 8,
-                                    borderRadius: 6,
-                                    position: 'absolute',
-                                    top: -40,
-                                    left: -20,
-                                    shadowColor: "#000",
-                                    shadowOffset: { width: 0, height: 2 },
-                                    shadowOpacity: 0.25,
-                                    shadowRadius: 3.84,
-                                    elevation: 5,
-                                    zIndex: 1000,
-                                }}>
-                                    <View>
-                                        {(item.stacks || []).slice().reverse().map((s: any, i: number) => {
-                                            if (s.value === 0) return null;
-                                            return (
-                                                <View key={i} className="flex-row items-center mb-1">
-                                                    <View style={{ width: 8, height: 8, backgroundColor: s.color, borderRadius: 4, marginRight: 6 }} />
-                                                    <Text className="text-white text-xs font-medium mr-2">{s.name}:</Text>
-                                                    <Text className="text-white text-xs font-bold">{currency}{s.value.toFixed(2)}</Text>
-                                                </View>
-                                            );
-                                        })}
-                                    </View>
-                                </View>
-                            );
-                        }}
                     />
-
-                    {/* Custom Legend */}
-                    <View className="flex-row flex-wrap justify-center pb-2 px-2 gap-3 mt-4">
-                        {chartData.legend.map((item) => (
-                            <View key={item.name} className="flex-row items-center">
-                                <View
-                                    style={{ backgroundColor: item.color }}
-                                    className="w-3 h-3 rounded-full mr-1.5"
-                                />
-                                <Text className="text-xs text-gray-600 dark:text-gray-400 font-medium">{item.name}</Text>
-                            </View>
-                        ))}
+                ) : (
+                    <View style={styles.placeholderContainer}>
+                        <Text style={styles.placeholderText}>No expenses in this period</Text>
                     </View>
+                )}
+
+                {/* Legend */}
+                <View style={styles.legendContainer}>
+                    {chartData.legend.map((item) => (
+                        <View key={item.name} style={styles.legendItem}>
+                            <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                            <Text style={styles.legendText}>{item.name}</Text>
+                        </View>
+                    ))}
                 </View>
-
-                {/* Top Tags */}
-                <View className="w-full max-w-[600px]">
-                    <Text className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-3 px-1">Top Categories</Text>
-                    <View className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                        {spendingByTag.map((item, index) => (
-                            <View key={item.tag} className={`flex-row justify-between items-center p-4 ${index !== spendingByTag.length - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''}`}>
-                                <View className="flex-row items-center">
-                                    <View style={{ backgroundColor: item.color }} className="w-8 h-8 rounded-full items-center justify-center mr-3 opacity-90">
-                                        <Text className="text-white font-bold">{item.tag.charAt(0)}</Text>
-                                    </View>
-                                    <Text className="font-semibold text-gray-700 dark:text-gray-300">{item.tag}</Text>
-                                </View>
-                                <Text className="font-bold text-gray-900 dark:text-white">{currency}{item.amount.toFixed(2)}</Text>
-                            </View>
-                        ))}
-                        {spendingByTag.length === 0 && (
-                            <View className="p-6 items-center">
-                                <Text className="text-gray-400">No data available</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
-
-
-
             </View>
-        </ScrollView >
+        </ScrollView>
     );
 }

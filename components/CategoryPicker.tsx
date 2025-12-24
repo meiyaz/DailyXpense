@@ -10,6 +10,7 @@ interface CategoryPickerProps {
     onSelect: (categoryName: string) => void;
     selectedCategory?: string;
     customCategories?: any[]; // Allow external sort override
+    type?: 'expense' | 'income'; // Pass current transaction type
 }
 
 const AVAILABLE_ICONS = [
@@ -24,7 +25,7 @@ const AVAILABLE_ICONS = [
     "trophy", "wallet", "watch", "wine"
 ];
 
-export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, customCategories }: CategoryPickerProps) {
+export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, customCategories, type = 'expense' }: CategoryPickerProps) {
     const { categories: defaultCategories, addCategory } = useSettings();
     const { expenses } = useExpenses();
     const [isAdding, setIsAdding] = useState(false);
@@ -33,13 +34,16 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
     const [newCategoryName, setNewCategoryName] = useState("");
     const [selectedIcon, setSelectedIcon] = useState("pricetag");
 
-    // Sort categories by recent usage (last 15 expenses)
-    const sortedCategories = useMemo(() => {
-        // 1. Get recent 15 expenses
+    // Sort and filter categories by type and recent usage
+    const filteredAndSortedCategories = useMemo(() => {
+        // 1. Filter by type
+        const typeFiltered = defaultCategories.filter(cat => cat.type === type);
+
+        // 2. Get recent 15 expenses
         const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         const recent15 = sortedExpenses.slice(0, 15);
 
-        // 2. Count usage
+        // 3. Count usage (only for relevant categories)
         const counts: Record<string, number> = {};
         recent15.forEach(e => {
             if (e.category) {
@@ -47,16 +51,16 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
             }
         });
 
-        // 3. Sort categories
-        return [...defaultCategories].sort((a, b) => {
+        // 4. Sort
+        return [...typeFiltered].sort((a, b) => {
             const countA = counts[a.name] || 0;
             const countB = counts[b.name] || 0;
             if (countB !== countA) return countB - countA;
             return 0;
         });
-    }, [expenses, defaultCategories]);
+    }, [expenses, defaultCategories, type]);
 
-    const displayCategories = customCategories || sortedCategories;
+    const displayCategories = customCategories || filteredAndSortedCategories;
 
     const handleAddCategory = () => {
         if (!newCategoryName.trim()) {
@@ -68,7 +72,7 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
         const colors = ["#EF4444", "#F59E0B", "#10B981", "#8B5CF6", "#6366F1", "#EC4899", "#3B82F6", "#14B8A6"];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-        addCategory(newCategoryName.trim(), randomColor, selectedIcon);
+        addCategory(newCategoryName.trim(), randomColor, selectedIcon, type);
         onSelect(newCategoryName.trim());
         resetForm();
         onClose();

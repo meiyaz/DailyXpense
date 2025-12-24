@@ -1,8 +1,7 @@
-import { View, Text, FlatList, Pressable, ScrollView, TextInput } from "react-native";
-import { Link, useRouter, useRootNavigationState } from "expo-router";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert } from "react-native";
+import { Link } from "expo-router";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
-import { useAuth } from "../store/AuthContext";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { ExpenseListItem } from "../components/ExpenseListItem";
 import { AddExpense } from "../components/AddExpense";
@@ -13,12 +12,39 @@ import ExportModal from "../components/ExportModal";
 
 export default function Home() {
     const { expenses } = useExpenses();
-    const { name, categories } = useSettings();
+    const { name, categories, updateSettings } = useSettings();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [isFilterExpanded, setIsFilterExpanded] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
+    const [isNicknameModalVisible, setIsNicknameModalVisible] = useState(false);
+    const [newNickname, setNewNickname] = useState("");
+    const [tourStep, setTourStep] = useState(0);
+    const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Show modal if name is empty (First time user)
+        if (!name || name.trim() === "") {
+            setIsNicknameModalVisible(true);
+            setTourStep(0);
+        }
+    }, []); // Run once on mount (or we trust name check logic) - Actually better to check on focus or specific load.
+    // Ideally: if name is missing, start tour. Logic:
+    useEffect(() => {
+        if ((!name || name.trim() === "") && !isNicknameModalVisible) {
+            setIsNicknameModalVisible(true);
+        }
+    }, [name]);
+
+    const handleSaveNickname = () => {
+        if (!newNickname.trim()) {
+            Alert.alert("Required", "Please enter a nickname.");
+            return;
+        }
+        updateSettings({ name: newNickname.trim() });
+        setIsNicknameModalVisible(false);
+    };
 
     // Auth Protection
     useProtectedRoute();
@@ -94,6 +120,103 @@ export default function Home() {
                 visible={showExportModal}
                 onClose={() => setShowExportModal(false)}
             />
+
+            {/* Welcome Tour Modal */}
+            <Modal
+                visible={isNicknameModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => { }}
+            >
+                <View className="flex-1 justify-center items-center bg-black/80 px-4">
+                    <View className="bg-white p-8 rounded-3xl w-full max-w-xs items-center shadow-xl">
+
+                        {/* Step 0: Welcome Intro */}
+                        {tourStep === 0 && (
+                            <>
+                                <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center mb-6">
+                                    <Ionicons name="sparkles" size={40} color="#2563EB" />
+                                </View>
+                                <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Welcome aboard!</Text>
+                                <Text className="text-gray-500 mb-8 text-center leading-6">
+                                    I'm your new finance assistant. Let's get you set up in seconds.
+                                </Text>
+                                <Pressable
+                                    onPress={() => setTourStep(1)}
+                                    className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
+                                >
+                                    <Text className="font-bold text-white text-lg">Let's Go</Text>
+                                </Pressable>
+                            </>
+                        )}
+
+                        {/* Step 1: Nickname */}
+                        {tourStep === 1 && (
+                            <>
+                                <View className="w-full">
+                                    <View className="items-center mb-6">
+                                        <View className="w-16 h-16 bg-purple-100 rounded-full items-center justify-center mb-4">
+                                            <Ionicons name="person" size={30} color="#9333ea" />
+                                        </View>
+                                        <Text className="text-xl font-bold text-gray-900 mb-2 text-center">First things first</Text>
+                                        <Text className="text-gray-500 text-center">What should we call you?</Text>
+                                    </View>
+
+                                    <TextInput
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg mb-6 text-gray-900 text-center font-bold"
+                                        placeholder="Your Nickname"
+                                        value={newNickname}
+                                        onChangeText={setNewNickname}
+                                        autoFocus
+                                    />
+                                    <Pressable
+                                        onPress={() => {
+                                            if (newNickname.trim().length > 0) {
+                                                updateSettings({ name: newNickname.trim() });
+                                                setTourStep(2);
+                                            } else {
+                                                Alert.alert("Please enter a name");
+                                            }
+                                        }}
+                                        className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
+                                    >
+                                        <Text className="font-bold text-white text-lg">Next</Text>
+                                    </Pressable>
+                                </View>
+                            </>
+                        )}
+
+                        {/* Step 2: Pro Tip */}
+                        {tourStep === 2 && (
+                            <>
+                                <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-6">
+                                    <Ionicons name="add" size={40} color="#059669" />
+                                </View>
+                                <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Quick Tip</Text>
+                                <Text className="text-gray-500 mb-8 text-center leading-6">
+                                    Tap the <Text className="font-bold text-blue-600">+</Text> button at the bottom anytime to track a new expense instantly.
+                                </Text>
+                                <Pressable
+                                    onPress={() => setIsNicknameModalVisible(false)}
+                                    className="w-full bg-gray-900 p-4 rounded-xl items-center active:bg-gray-800 shadow-lg"
+                                >
+                                    <Text className="font-bold text-white text-lg">Got it!</Text>
+                                </Pressable>
+                            </>
+                        )}
+
+                        {/* Pagination Dots */}
+                        <View className="flex-row gap-2 mt-8">
+                            {[0, 1, 2].map(step => (
+                                <View
+                                    key={step}
+                                    className={`h-2 rounded-full transition-all duration-300 ${tourStep === step ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'}`}
+                                />
+                            ))}
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             <View className="mb-4 px-4">
                 {/* Search Bar + Filter Toggle */}
@@ -197,10 +320,14 @@ export default function Home() {
 
                     sortedExpenses.forEach(expense => {
                         const dateObj = new Date(expense.date);
+                        const currentYear = new Date().getFullYear();
+                        const isDifferentYear = dateObj.getFullYear() !== currentYear;
+
                         const dateKey = dateObj.toLocaleDateString('en-US', {
                             weekday: 'short',
                             month: 'short',
-                            day: 'numeric'
+                            day: 'numeric',
+                            year: isDifferentYear ? 'numeric' : undefined
                         });
                         // Check for Today/Yesterday
                         const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -223,6 +350,9 @@ export default function Home() {
                                         key={expense.id}
                                         expense={expense}
                                         isLast={index === items.length - 1}
+                                        isEditing={editingExpenseId === expense.id}
+                                        onEditStart={() => setEditingExpenseId(expense.id)}
+                                        onEditEnd={() => setEditingExpenseId(null)}
                                     />
                                 ))}
                             </View>

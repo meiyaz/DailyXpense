@@ -1,68 +1,143 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter, useSegments, Slot } from "expo-router";
+import { supabase } from "../lib/supabase";
+import { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import { Platform } from 'react-native';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
 
-export interface User {
-    id: string;
-    name: string;
-    email: string;
-}
+// Handle deep links for OAuth (Native)
+WebBrowser.maybeCompleteAuthSession();
 
 interface AuthContextType {
-    user: User | null;
+    user: SupabaseUser | null;
+    session: Session | null;
     isAuthenticated: boolean;
-    signIn: (provider: "google" | "apple" | "email", email?: string) => void;
-    signOut: () => void;
+    isLoading: boolean;
+    sendOtp: (email: string) => Promise<{ error: any }>;
+    verifyOtp: (email: string, token: string) => Promise<{ error: any; session: Session | null }>;
+    signInWithGoogle: () => Promise<{ error: any }>;
+    signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const STORAGE_KEY = "auth_data";
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const segments = useSegments();
-    const router = useRouter();
+    const [user, setUser] = useState<SupabaseUser | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        loadAuth();
+        // STEP 1: Initialize Auth State (Check for active session)
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setIsLoading(false);
+        });
+
+        // STEP 2: Listen for Live Auth Changes (Login/Logout/Session updates)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setIsLoading(false);
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
-    const loadAuth = async () => {
+    const sendOtp = async (email: string) => {
+        // Removed emailRedirectTo to force Supabase to send a code instead of a magic link.
+        // This relies on the "Magic Link" or "Signup" template in Supabase containing {{ .Token }}.
+        const { error } = await supabase.auth.signInWithOtp({
+            email,
+            // options: { emailRedirectTo: ... } // Commented out to force Code flow
+        });
+        return { error };
+    };
+
+    const verifyOtp = async (email: string, token: string) => {
+        // STEP 3: Handle Multi-step Verification (Email -> Signup Fallback)
+
+        // Try 'email' (Magic Link/OTP) first
+        const { data, error: emailError } = await supabase.auth.verifyOtp({
+            email,
+            token,
+            type: 'email',
+        });
+
+        if (!emailError && data.session) {
+            return { error: null, session: data.session };
+        }
+
+
+        // Try 'signup' fallback
+        const { data: signupData, error: signupError } = await supabase.auth.verifyOtp({
+            email,
+            token,
+            type: 'signup',
+        });
+
+        if (!signupError && signupData.session) {
+            return { error: null, session: signupData.session };
+        }
+
+
+        // Analyze errors to return the most helpful one
+        const isSignupRelevant = emailError?.message?.includes("not found") || emailError?.message?.includes("Signups not allowed");
+
+        if (isSignupRelevant) {
+            return { error: signupError || emailError, session: null };
+        }
+        return { error: emailError || signupError, session: null };
+    };
+
+    const signInWithGoogle = async () => {
         try {
-            const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
-            if (jsonValue != null) {
-                setUser(JSON.parse(jsonValue));
+            // "dailyxpense://" for native, "http://localhost:8081" (or hosted url) for web
+            const redirectUrl = makeRedirectUri({
+                scheme: 'dailyxpense',
+                path: 'auth/callback',
+            });
+
+
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: redirectUrl,
+                    skipBrowserRedirect: false,
+                },
+            });
+
+            if (error) return { error };
+
+            if (Platform.OS !== 'web' && data.url) {
+                const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+                if (result.type !== 'success') {
+                    return { error: { message: "Sign in canceled" } };
+                }
             }
-        } catch (e) {
-            console.error("Failed to load auth", e);
+
+            return { error: null };
+        } catch (e: any) {
+            console.error("Google Signin Error", e);
+            return { error: e };
         }
     };
 
-    const signIn = (provider: "google" | "apple" | "email", email?: string) => {
-        // Dummy user data
-        const dummyUser: User = {
-            id: "123",
-            name: email ? email.split('@')[0] : "Demo User",
-            email: email || "user@example.com",
-        };
-        setUser(dummyUser);
-        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dummyUser));
-        router.replace("/");
-    };
 
-    const signOut = () => {
-        setUser(null);
-        AsyncStorage.removeItem(STORAGE_KEY);
-        router.replace("/login");
+    const signOut = async () => {
+        await supabase.auth.signOut();
     };
 
     return (
         <AuthContext.Provider
             value={{
                 user,
+                session,
                 isAuthenticated: !!user,
-                signIn,
+                isLoading,
+                sendOtp,
+                verifyOtp,
+                signInWithGoogle,
                 signOut,
             }}
         >

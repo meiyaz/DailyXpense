@@ -1,20 +1,26 @@
-import { View, Text, TextInput, Pressable, Platform, Alert, Animated, KeyboardAvoidingView, Modal } from "react-native";
+import { View, Text, TextInput, Pressable, Platform, Alert, Animated, KeyboardAvoidingView, Modal, useColorScheme } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
 import { Ionicons } from "@expo/vector-icons";
 import { CategoryPicker } from "./CategoryPicker";
 import { DatePicker } from "./ui/DatePicker";
+import { predictCategory } from "../services/CategoryPredictor";
 
 export function AddExpense() {
     const { addExpense, expenses } = useExpenses();
-    const { currency, categories, updateSettings } = useSettings();
+    const { currency, categories, updateSettings, theme, maxAmount } = useSettings();
+    const systemScheme = useColorScheme();
+    const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
 
     // Inputs
     const [description, setDescription] = useState("");
     const [amount, setAmount] = useState("");
     const [date, setDate] = useState(new Date());
     const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+    const [type, setType] = useState<'expense' | 'income'>('expense');
+
+    // UI State
 
     // UI State
     const [isExpanded, setIsExpanded] = useState(false);
@@ -22,13 +28,17 @@ export function AddExpense() {
 
     // MRU Logic
     const getMRUCategories = () => {
+        // Filter categories by selected type
+        const typeCategories = categories.filter(c => (c.type || 'expense') === type);
+
+        // Calculate frequency from expenses
         const recentExpenses = expenses.slice(0, 15);
         const frequency: Record<string, number> = {};
         recentExpenses.forEach(e => {
             frequency[e.category] = (frequency[e.category] || 0) + 1;
         });
 
-        return [...categories].sort((a, b) => {
+        return [...typeCategories].sort((a, b) => {
             const freqA = frequency[a.name] || 0;
             const freqB = frequency[b.name] || 0;
             return freqB - freqA;
@@ -44,9 +54,44 @@ export function AddExpense() {
         }
     }, [isExpanded]);
 
+    // AI Category Prediction
+    useEffect(() => {
+        if (!description.trim()) return;
+
+        // Debounce prediction
+        const timer = setTimeout(() => {
+            const predicted = predictCategory(description, categories, expenses);
+            if (predicted) {
+                // Visualize the "AI" suggestion by auto-selecting it
+                // We could also show a "Suggested" badge, but auto-select is smoother for now
+                // Only auto-select if user hasn't manually changed it WHILE typing this specific word? 
+                // For simplicity, just update it.
+                setSelectedCategory(predicted);
+            }
+        }, 500); // 500ms delay
+
+        return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
+    }, [description, categories, expenses]);
+
+    // Reset category when type changes
+    useEffect(() => {
+        const typeCats = getMRUCategories();
+        if (typeCats.length > 0) {
+            setSelectedCategory(typeCats[0].name);
+        } else {
+            setSelectedCategory(undefined);
+        }
+    }, [type]); // Dependency on 'type'
+
     const handleAmountChange = (text: string) => {
-        if (/^\d*\.?\d{0,2}$/.test(text)) {
-            setAmount(text);
+        // Allow any number of digits in the input as long as it's below the maxAmount
+        // and has at most 2 decimal places.
+        if (/^\d*(?:\.\d{0,2})?$/.test(text)) {
+            const val = parseFloat(text);
+            if (isNaN(val) || val <= maxAmount) {
+                setAmount(text);
+            }
         }
     };
 
@@ -60,12 +105,14 @@ export function AddExpense() {
             description: description.trim(),
             amount: parseFloat(amount),
             date: date.toISOString(),
-            category: selectedCategory
+            category: selectedCategory,
+            type: type
         });
 
         // Reset
         setDescription("");
         setAmount("");
+        setType('expense');
         setDate(new Date());
         setIsExpanded(false);
     };
@@ -115,12 +162,52 @@ export function AddExpense() {
                     >
                         <Pressable onPress={e => e.stopPropagation()}>
                             <View className="bg-white dark:bg-gray-900 rounded-t-3xl p-5 shadow-xl border-t border-blue-50 dark:border-gray-800">
-                                {/* Header: Close Button */}
-                                <View className="flex-row justify-between items-center mb-4">
-                                    <Text className="text-lg font-bold text-gray-800 dark:text-white">Add Expense</Text>
-                                    <Pressable onPress={() => setIsExpanded(false)} className="p-2 bg-gray-50 dark:bg-gray-800 rounded-full">
-                                        <Ionicons name="close" size={20} color="#9ca3af" />
-                                    </Pressable>
+                                {/* Header: Close Button and Type Toggle */}
+                                <View className="mb-4">
+                                    <View className="flex-row justify-between items-center mb-4">
+                                        <Text className="text-lg font-bold text-gray-800 dark:text-white">New Transaction</Text>
+                                        <Pressable onPress={() => setIsExpanded(false)} className="p-2 bg-gray-50 dark:bg-gray-800 rounded-full">
+                                            <Ionicons name="close" size={20} color="#9ca3af" />
+                                        </Pressable>
+                                    </View>
+
+                                    {/* Type Toggle */}
+                                    <View style={{ flexDirection: 'row', backgroundColor: isDark ? '#1f2937' : '#f3f4f6', padding: 4, borderRadius: 12 }}>
+                                        <Pressable
+                                            onPress={() => setType('expense')}
+                                            style={{
+                                                flex: 1,
+                                                paddingVertical: 8,
+                                                alignItems: 'center',
+                                                borderRadius: 8,
+                                                backgroundColor: type === 'expense' ? (isDark ? '#374151' : '#ffffff') : 'transparent',
+                                                shadowColor: '#000',
+                                                shadowOffset: { width: 0, height: 1 },
+                                                shadowOpacity: type === 'expense' ? 0.1 : 0,
+                                                shadowRadius: 2,
+                                                elevation: type === 'expense' ? 2 : 0,
+                                            }}
+                                        >
+                                            <Text style={{ fontWeight: '600', color: type === 'expense' ? '#ef4444' : '#6b7280' }}>Expense</Text>
+                                        </Pressable>
+                                        <Pressable
+                                            onPress={() => setType('income')}
+                                            style={{
+                                                flex: 1,
+                                                paddingVertical: 8,
+                                                alignItems: 'center',
+                                                borderRadius: 8,
+                                                backgroundColor: type === 'income' ? (isDark ? '#374151' : '#ffffff') : 'transparent',
+                                                shadowColor: '#000',
+                                                shadowOffset: { width: 0, height: 1 },
+                                                shadowOpacity: type === 'income' ? 0.1 : 0,
+                                                shadowRadius: 2,
+                                                elevation: type === 'income' ? 2 : 0,
+                                            }}
+                                        >
+                                            <Text style={{ fontWeight: '600', color: type === 'income' ? '#22c55e' : '#6b7280' }}>Income</Text>
+                                        </Pressable>
+                                    </View>
                                 </View>
 
                                 {/* ROW 1: Description */}
@@ -141,18 +228,29 @@ export function AddExpense() {
                                     </View>
 
                                     {/* Amount */}
-                                    <View className="flex-1 flex-row items-center justify-end bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2">
-                                        <Text className="font-bold mr-1 text-lg text-gray-400 dark:text-gray-500">
-                                            {currency}
-                                        </Text>
-                                        <TextInput
-                                            className="font-bold text-xl text-gray-900 dark:text-white min-w-[60px] text-right p-0"
-                                            value={amount}
-                                            onChangeText={handleAmountChange}
-                                            keyboardType="numeric"
-                                            placeholder="0.00"
-                                            placeholderTextColor="#9ca3af"
-                                        />
+                                    <View className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
+                                        <View className="flex-row items-center justify-end px-3 py-2">
+                                            <Text className="font-bold mr-1 text-lg text-gray-400 dark:text-gray-500">
+                                                {currency}
+                                            </Text>
+                                            <TextInput
+                                                className="font-bold text-xl text-gray-900 dark:text-white min-w-[60px] text-right p-0"
+                                                value={amount}
+                                                onChangeText={handleAmountChange}
+                                                keyboardType="numeric"
+                                                placeholder="0.00"
+                                                placeholderTextColor="#9ca3af"
+                                            />
+                                        </View>
+                                        <View className="h-1 bg-gray-200 dark:bg-gray-700 w-full">
+                                            <View
+                                                style={{
+                                                    width: `${Math.min((parseFloat(amount) || 0) / maxAmount * 100, 100)}%`,
+                                                    backgroundColor: (parseFloat(amount) || 0) > maxAmount * 0.9 ? '#ef4444' : '#3b82f6',
+                                                    height: '100%'
+                                                }}
+                                            />
+                                        </View>
                                     </View>
                                 </View>
 
@@ -174,7 +272,14 @@ export function AddExpense() {
 
                                     <Pressable
                                         onPress={handleSubmit}
-                                        className="flex-row items-center px-5 py-2.5 rounded-xl bg-blue-600"
+                                        style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            paddingHorizontal: 20,
+                                            paddingVertical: 10,
+                                            borderRadius: 12,
+                                            backgroundColor: type === 'income' ? '#16a34a' : '#2563eb', // green-600 vs blue-600
+                                        }}
                                     >
                                         <Text className="text-white font-bold text-sm mr-2">SAVE</Text>
                                         <Ionicons name="checkmark" size={18} color="white" />
@@ -193,6 +298,7 @@ export function AddExpense() {
                     onSelect={setSelectedCategory}
                     selectedCategory={selectedCategory}
                     customCategories={sortedCategories}
+                    type={type}
                 />
             </Modal>
         </>

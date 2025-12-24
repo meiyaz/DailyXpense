@@ -29,7 +29,6 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                         backgroundColor: 'rgba(0,0,0,0.6)',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        // Ensure it sits on top of everything in the Portal
                         zIndex: 9999
                     }}
                 >
@@ -43,7 +42,6 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                             width: '90%',
                             maxWidth: 350,
                             maxHeight: '90%',
-                            // Ensure the content itself is visible
                             zIndex: 10000
                         }}
                         onPress={(e) => e.stopPropagation()}
@@ -51,31 +49,49 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                         <Text className="text-lg font-bold text-center mb-6 text-gray-800 dark:text-white" style={{ marginBottom: 24, textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: theme === 'dark' ? 'white' : '#1f2937' }}>Set Reminder Time</Text>
 
                         <View className="flex-row justify-center items-center mb-6 h-40">
-                            {/* Hours */}
-                            <View className="h-full w-20 overflow-hidden mx-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            {/* Hours (1-12) */}
+                            <View className="h-full w-16 overflow-hidden mx-1 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 60 }}>
-                                    {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map((h) => (
-                                        <Pressable
-                                            key={h}
-                                            onPress={() => {
-                                                const newDate = new Date(date);
-                                                newDate.setHours(parseInt(h));
-                                                onChange({ type: 'set', nativeEvent: {} } as any, newDate);
-                                            }}
-                                            className={`h-10 items-center justify-center ${date.getHours() === parseInt(h) ? 'bg-blue-100 dark:bg-blue-900/40' : ''}`}
-                                        >
-                                            <Text className={`text-lg font-bold ${date.getHours() === parseInt(h) ? 'text-primary' : 'text-gray-400'}`}>
-                                                {h}
-                                            </Text>
-                                        </Pressable>
-                                    ))}
+                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => {
+                                        const currentH24 = date.getHours();
+                                        const currentH12 = currentH24 % 12 || 12;
+                                        const isSelected = currentH12 === h;
+                                        return (
+                                            <Pressable
+                                                key={h}
+                                                onPress={() => {
+                                                    const newDate = new Date(date);
+                                                    const isPM = currentH24 >= 12;
+                                                    let newH24 = h;
+                                                    if (isPM && h !== 12) newH24 = h + 12;
+                                                    if (!isPM && h === 12) newH24 = 0;
+
+                                                    // Maintain AM/PM but change hour relative to it? 
+                                                    // Simpler: Just swap the hour part keeping AM/PM constant unless user switches AM/PM
+                                                    if (isPM) {
+                                                        newH24 = (h === 12) ? 12 : h + 12;
+                                                    } else {
+                                                        newH24 = (h === 12) ? 0 : h;
+                                                    }
+
+                                                    newDate.setHours(newH24);
+                                                    onChange({ type: 'set', nativeEvent: {} } as any, newDate);
+                                                }}
+                                                className={`h-10 items-center justify-center ${isSelected ? 'bg-blue-100 dark:bg-blue-900/40' : ''}`}
+                                            >
+                                                <Text className={`text-lg font-bold ${isSelected ? 'text-primary' : 'text-gray-400'}`}>
+                                                    {h}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })}
                                 </ScrollView>
                             </View>
 
                             <Text className="text-2xl font-bold text-gray-800 dark:text-white">:</Text>
 
                             {/* Minutes */}
-                            <View className="h-full w-20 overflow-hidden mx-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <View className="h-full w-16 overflow-hidden mx-1 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 60 }}>
                                     {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')).map((m) => (
                                         <Pressable
@@ -92,6 +108,36 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                                             </Text>
                                         </Pressable>
                                     ))}
+                                </ScrollView>
+                            </View>
+
+                            {/* AM/PM */}
+                            <View className="h-full w-16 overflow-hidden mx-1 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 60 }}>
+                                    {['AM', 'PM'].map((period) => {
+                                        const isPM = date.getHours() >= 12;
+                                        const isSelected = (period === 'PM' && isPM) || (period === 'AM' && !isPM);
+                                        return (
+                                            <Pressable
+                                                key={period}
+                                                onPress={() => {
+                                                    const newDate = new Date(date);
+                                                    const currentH = newDate.getHours();
+                                                    if (period === 'AM' && currentH >= 12) {
+                                                        newDate.setHours(currentH - 12);
+                                                    } else if (period === 'PM' && currentH < 12) {
+                                                        newDate.setHours(currentH + 12);
+                                                    }
+                                                    onChange({ type: 'set', nativeEvent: {} } as any, newDate);
+                                                }}
+                                                className={`h-10 items-center justify-center ${isSelected ? 'bg-blue-100 dark:bg-blue-900/40' : ''}`}
+                                            >
+                                                <Text className={`text-lg font-bold ${isSelected ? 'text-primary' : 'text-gray-400'}`}>
+                                                    {period}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })}
                                 </ScrollView>
                             </View>
                         </View>
@@ -123,6 +169,7 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                 value={date}
                 mode="time"
                 display="default"
+                is24Hour={false}
                 onChange={onChange}
             />
         );

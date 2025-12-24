@@ -5,13 +5,13 @@ import { useAuth } from '../store/AuthContext';
 export function useProtectedRoute() {
     const segments = useSegments();
     const router = useRouter();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
     const rootNavigationState = useRootNavigationState();
 
     useEffect(() => {
         const isNavigationReady = rootNavigationState?.key;
 
-        if (!isNavigationReady) return;
+        if (!isNavigationReady || isLoading) return;
 
         // Use setTimeout to push navigation to next tick, avoiding "navigate before mount" error
         const timer = setTimeout(() => {
@@ -25,5 +25,5 @@ export function useProtectedRoute() {
         }, 0);
 
         return () => clearTimeout(timer);
-    }, [isAuthenticated, segments, rootNavigationState?.key]);
+    }, [isAuthenticated, isLoading, segments, rootNavigationState?.key]);
 }

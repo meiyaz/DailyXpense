@@ -7,6 +7,7 @@ import { shareAsync } from "expo-sharing";
 import { printToFileAsync } from "expo-print";
 import { Linking } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { formatAmount } from "../lib/format";
 
 interface ExportModalProps {
     visible: boolean;
@@ -18,7 +19,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
     const { currency } = useSettings();
 
     const [exportFilter, setExportFilter] = useState<'all' | 'date' | 'month' | 'year'>('date');
-    const [exportFormat, setExportFormat] = useState<'pdf' | 'whatsapp'>('pdf');
+    const [exportFormat, setExportFormat] = useState<'pdf' | 'whatsapp'>('whatsapp');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -43,7 +44,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                     <h1>Expense Report</h1>
                     <div class="summary">
                         <p><strong>Date:</strong> ${selectedDate.toLocaleDateString()}</p>
-                        <p><strong>Total Expenses:</strong> ${currency} ${totalAmount}</p>
+                        <p><strong>Total Expenses:</strong> ${currency} ${formatAmount(parseFloat(totalAmount))}</p>
                     </div>
                     <table>
                         <tr>
@@ -57,7 +58,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                                 <td>${new Date(item.date).toLocaleDateString()}</td>
                                 <td>${item.category}</td>
                                 <td>${item.description}</td>
-                                <td>${currency} ${item.amount}</td>
+                                <td>${currency} ${formatAmount(item.amount)}</td>
                             </tr>
                         `).join('')}
                     </table>
@@ -94,10 +95,10 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
             }
 
             if (exportFormat === 'whatsapp') {
-                const total = filtered.reduce((sum, e) => sum + e.amount, 0).toFixed(2);
+                const total = formatAmount(filtered.reduce((sum, e) => sum + e.amount, 0));
                 let message = `*Expense Report*\nDate: ${selectedDate.toLocaleDateString()}\nTotal: ${currency} ${total}\n\n*Details:*\n`;
                 filtered.forEach(e => {
-                    message += `- ${e.category}: ${currency}${e.amount} (${e.description})\n`;
+                    message += `- ${e.category}: ${currency}${formatAmount(e.amount)} (${e.description})\n`;
                 });
 
                 const url = `whatsapp://send?text=${encodeURIComponent(message)}`;

@@ -1,146 +1,249 @@
-import { View, Text, Pressable, Image, TextInput } from "react-native";
+import { View, Text, Pressable, TextInput, ActivityIndicator, Alert, ImageBackground, Keyboard } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../store/AuthContext";
-import { Stack, useRouter } from "expo-router";
-import { useProtectedRoute } from "../hooks/useProtectedRoute";
+import { Stack } from "expo-router";
 
 export default function Login() {
-    const { signIn } = useAuth();
-    const [mode, setMode] = useState<"initial" | "email" | "otp">("initial");
+    const { sendOtp, verifyOtp, signInWithGoogle } = useAuth();
+    const [mode, setMode] = useState<"landing" | "email" | "otp">("landing");
     const [email, setEmail] = useState("");
-
-
-    const router = useRouter();
     const [otp, setOtp] = useState("");
-    useProtectedRoute();
+    const [loading, setLoading] = useState(false);
+    const [resendTimer, setResendTimer] = useState(0);
 
-    const handleSendOtp = () => {
-        if (!email.includes("@")) {
-            alert("Please enter a valid email");
+    useEffect(() => {
+        if (resendTimer === 0) return;
+
+        const interval = setInterval(() => {
+            setResendTimer((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [resendTimer === 0]);
+
+    const handleSendOtp = async (isResend = false) => {
+        const cleanEmail = email.trim().toLowerCase();
+        Keyboard.dismiss();
+
+        if (!cleanEmail.includes("@")) {
+            Alert.alert("Error", "Please enter a valid email");
             return;
         }
-        // Mock sending OTP
-        console.log("OTP sent to", email);
-        alert("OTP sent! (Use 123456)");
-        setMode("otp");
-    };
 
-    const handleVerifyOtp = () => {
-        if (otp === "123456") {
-            signIn("email", email);
-        } else {
-            alert("Invalid OTP");
+        if (resendTimer > 0 && !isResend) {
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { error } = await sendOtp(cleanEmail);
+            if (error) {
+                Alert.alert("Error", error.message);
+            } else {
+                if (!isResend) setMode("otp");
+                setResendTimer(30);
+            }
+        } catch (e: any) {
+            Alert.alert("Error", e.message);
+        } finally {
+            setLoading(false);
         }
     };
 
-    if (mode === "otp") {
-        return (
-            <View className="flex-1 bg-white items-center justify-center p-6">
-                <Stack.Screen options={{ headerShown: false }} />
-                <View className="w-full max-w-sm">
-                    <Pressable onPress={() => setMode("email")} className="mb-8 self-start">
+    const handleVerifyOtp = async () => {
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanOtp = otp.trim();
+
+        if (cleanOtp.length !== 6) {
+            Alert.alert("Error", "Please enter the 6-digit code");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { error } = await verifyOtp(cleanEmail, cleanOtp);
+            if (error) {
+                Alert.alert("Verification Failed", error.message || JSON.stringify(error));
+            }
+        } catch (e: any) {
+            Alert.alert("Error", e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        try {
+            const { error } = await signInWithGoogle();
+            if (error) Alert.alert("Google Sign-In Failed", error.message);
+        } catch (e: any) {
+            Alert.alert("Error", e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <ImageBackground
+            source={require('../assets/images/ledger_bg.png')}
+            className="flex-1 items-center justify-center p-6"
+            resizeMode="cover"
+        >
+            <Stack.Screen options={{ headerShown: false }} />
+
+            {/* OTP Mode */}
+            {mode === "otp" && (
+                <Animated.View
+                    entering={FadeIn.duration(300)}
+                    exiting={FadeOut.duration(200)}
+                    className="w-full max-w-sm bg-white/90 p-6 rounded-3xl shadow-xl backdrop-blur-xl"
+                >
+                    <Pressable onPress={() => setMode("email")} className="mb-6 self-start">
                         <Ionicons name="arrow-back" size={24} color="#374151" />
                     </Pressable>
 
-                    <Text className="text-2xl font-bold text-gray-900 mb-2">Enter Verification Code</Text>
-                    <Text className="text-gray-500 mb-8">We sent a 6-digit code to {email}</Text>
+                    <Text className="text-2xl font-bold text-gray-900 mb-2">Check your email</Text>
+                    <Text className="text-gray-500 mb-8">We've sent a code to <Text className="font-bold text-gray-800">{email}</Text>.</Text>
 
-                    <TextInput
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-xl font-bold tracking-widest text-center mb-6"
-                        placeholder="000000"
-                        keyboardType="number-pad"
-                        maxLength={6}
-                        value={otp}
-                        onChangeText={setOtp}
-                        autoFocus
-                    />
+                    <View>
+                        <Text className="text-gray-700 font-medium mb-2 ml-1">Confirmation Code</Text>
+                        <View className="flex-row justify-between mb-2 relative h-14">
+                            {[0, 1, 2, 3, 4, 5].map((i) => (
+                                <View
+                                    key={i}
+                                    className={`w-12 h-14 border rounded-xl items-center justify-center bg-gray-50 ${otp.length === i ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                                >
+                                    <Text className="text-xl font-bold text-gray-900">
+                                        {otp[i] || ""}
+                                    </Text>
+                                </View>
+                            ))}
+                            <TextInput
+                                className="absolute inset-0 opacity-0 w-full h-full"
+                                keyboardType="number-pad"
+                                maxLength={6}
+                                value={otp}
+                                onChangeText={setOtp}
+                                autoFocus
+                                textContentType="oneTimeCode"
+                                autoComplete="sms-otp"
+                            />
+                        </View>
+                    </View>
 
                     <Pressable
                         onPress={handleVerifyOtp}
-                        className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700"
+                        disabled={loading}
+                        className={`w-full bg-blue-600 p-4 rounded-xl items-center mt-6 active:bg-blue-700 ${loading ? 'opacity-70' : ''}`}
                     >
-                        <Text className="font-bold text-white text-lg">Verify</Text>
+                        {loading ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text className="font-bold text-white text-lg">Verify Code</Text>
+                        )}
                     </Pressable>
-                </View>
-            </View>
-        );
-    }
 
-    if (mode === "email") {
-        return (
-            <View className="flex-1 bg-white items-center justify-center p-6">
-                <Stack.Screen options={{ headerShown: false }} />
-                <View className="w-full max-w-sm">
-                    <Pressable onPress={() => setMode("initial")} className="mb-8 self-start">
+                    <View className="mt-6 items-center">
+                        {resendTimer > 0 ? (
+                            <Text className="text-gray-600 font-medium">Resend code in {resendTimer}s</Text>
+                        ) : (
+                            <Pressable onPress={() => handleSendOtp(true)} disabled={loading}>
+                                <Text className="text-blue-600 font-medium text-lg">Resend Code</Text>
+                            </Pressable>
+                        )}
+                    </View>
+                </Animated.View>
+            )}
+
+            {/* Email Mode */}
+            {mode === "email" && (
+                <Animated.View
+                    entering={FadeIn.duration(300)}
+                    exiting={FadeOut.duration(200)}
+                    className="w-full max-w-sm bg-white/90 p-6 rounded-3xl shadow-xl backdrop-blur-xl"
+                >
+                    <Pressable onPress={() => setMode("landing")} className="mb-6 self-start">
                         <Ionicons name="arrow-back" size={24} color="#374151" />
                     </Pressable>
 
                     <Text className="text-2xl font-bold text-gray-900 mb-2">What's your email?</Text>
-                    <Text className="text-gray-500 mb-8">We'll verify it with a code.</Text>
+                    <Text className="text-gray-500 mb-8">We'll send you a magic link to sign in.</Text>
 
-                    <TextInput
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg text-gray-900 mb-6"
-                        placeholder="name@example.com"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        value={email}
-                        onChangeText={setEmail}
-                        autoFocus
-                    />
+                    <View>
+                        <Text className="text-gray-700 font-medium mb-1 ml-1">Email</Text>
+                        <TextInput
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-base text-gray-900"
+                            placeholder="name@example.com"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            value={email}
+                            onChangeText={setEmail}
+                            autoFocus
+                            onSubmitEditing={() => handleSendOtp(false)}
+                            returnKeyType="go"
+                        />
+                    </View>
 
                     <Pressable
-                        onPress={handleSendOtp}
-                        className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700"
+                        onPress={() => handleSendOtp(false)}
+                        disabled={loading}
+                        className={`w-full bg-blue-600 p-4 rounded-xl items-center mt-6 active:bg-blue-700 ${loading ? 'opacity-70' : ''}`}
                     >
-                        <Text className="font-bold text-white text-lg">Continue</Text>
+                        {loading ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text className="font-bold text-white text-lg">Send Code</Text>
+                        )}
                     </Pressable>
-                </View>
-            </View>
-        );
-    }
+                </Animated.View>
+            )}
 
-    return (
-        <View className="flex-1 bg-white items-center justify-center p-6">
-            <Stack.Screen options={{ headerShown: false }} />
-
-            <View className="mb-12 items-center">
-                <View className="w-20 h-20 bg-blue-600 rounded-3xl items-center justify-center mb-4 shadow-lg shadow-blue-200">
-                    <Ionicons name="wallet-outline" size={40} color="white" />
-                </View>
-                <Text className="text-3xl font-bold text-gray-800">DailyXpense</Text>
-                <Text className="text-gray-500 mt-2 text-center">Track your spending, master your budget.</Text>
-            </View>
-
-            <View className="w-full gap-4">
-                {/* Email Button */}
-                <Pressable
-                    onPress={() => setMode("email")}
-                    className="flex-row items-center justify-center bg-blue-600 p-4 rounded-xl active:bg-blue-700 mb-2"
+            {/* Landing Mode */}
+            {mode === "landing" && (
+                <Animated.View
+                    entering={FadeIn.duration(300)}
+                    exiting={FadeOut.duration(200)}
+                    className="w-full max-w-sm items-center"
                 >
-                    <Ionicons name="mail" size={24} color="white" />
-                    <Text className="font-semibold text-white ml-3 text-lg">Continue with Email</Text>
-                </Pressable>
+                    <View className="mb-12 items-center bg-white/80 p-6 rounded-3xl shadow-sm backdrop-blur-md w-full">
+                        <View className="w-20 h-20 bg-blue-600 rounded-3xl items-center justify-center mb-4 shadow-lg shadow-blue-200">
+                            <Ionicons name="wallet-outline" size={40} color="white" />
+                        </View>
+                        <Text className="text-3xl font-bold text-gray-800">DailyXpense</Text>
+                        <Text className="text-gray-500 mt-2 text-center">Track your spending, master your budget.</Text>
+                    </View>
 
-                {/* Google Button */}
-                <Pressable
-                    onPress={() => signIn("google")}
-                    className="flex-row items-center justify-center bg-white border border-gray-300 p-4 rounded-xl active:bg-gray-50"
-                >
-                    <Ionicons name="logo-google" size={24} color="#DB4437" />
-                    <Text className="font-semibold text-gray-700 ml-3 text-lg">Continue with Google</Text>
-                </Pressable>
+                    <View className="w-full max-w-sm gap-4">
+                        <Pressable
+                            onPress={() => Alert.alert("Coming Soon", "Google Sign-In is currently under development.")}
+                            className="w-full bg-white border border-gray-200 p-4 rounded-xl flex-row items-center justify-center active:bg-gray-50 shadow-sm opacity-60"
+                        >
+                            <Ionicons name="logo-google" size={20} color="#DB4437" style={{ marginRight: 12 }} />
+                            <Text className="font-bold text-gray-500 text-lg">Sign in with Google (Coming Soon)</Text>
+                        </Pressable>
 
+                        <Pressable
+                            onPress={() => setMode("email")}
+                            className="w-full bg-gray-100 p-4 rounded-xl flex-row items-center justify-center active:bg-gray-200"
+                        >
+                            <Ionicons name="mail-outline" size={20} color="#374151" style={{ marginRight: 12 }} />
+                            <Text className="font-bold text-gray-700 text-lg">Continue with Email</Text>
+                        </Pressable>
+                    </View>
 
-                {/* Terms Text */}
-                <Text className="text-xs text-center text-gray-400 mt-2 px-8">
-                    By continuing, you agree to our Terms of Service and Privacy Policy.
-                </Text>
-            </View>
-
-            <View className="absolute bottom-8 items-center w-full">
-                <Text className="text-xs text-center text-gray-400">Developed with ❤️ by Mei</Text>
-            </View>
-        </View>
+                    <View className="absolute -bottom-20 items-center w-full">
+                        <Text className="text-xs text-center text-gray-400">Developed with ❤️ by Mei</Text>
+                    </View>
+                </Animated.View>
+            )}
+        </ImageBackground>
     );
 }

@@ -1,13 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColorScheme } from "nativewind";
-import { useColorScheme as useRNColorScheme } from "react-native";
+import { useColorScheme as useRNColorScheme, Platform } from "react-native";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "./AuthContext";
+import { db } from "../db/client";
+import { settings as settingsSchema } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 export interface Category {
     id: string;
     name: string;
     color: string;
     icon: string; // Ionicons name
+    type?: 'expense' | 'income'; // Defaults to 'expense'
 }
 
 interface SettingsContextType {
@@ -23,6 +29,7 @@ interface SettingsContextType {
     theme: 'system' | 'light' | 'dark' | 'custom';
     accentColor: 'emerald' | 'rose' | 'amber' | 'violet' | 'cyan';
     lastSyncTime: number | null;
+    maxAmount: number;
     updateSettings: (settings: Partial<{
         currency: string;
         name: string;
@@ -35,23 +42,29 @@ interface SettingsContextType {
         theme: 'system' | 'light' | 'dark' | 'custom';
         accentColor: 'emerald' | 'rose' | 'amber' | 'violet' | 'cyan';
         lastSyncTime: number | null;
+        maxAmount: number;
     }>) => void;
-    addCategory: (name: string, color: string, icon: string) => void;
-    updateCategory: (id: string, name: string, color: string, icon: string) => void;
+    addCategory: (name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
+    updateCategory: (id: string, name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
     deleteCategory: (id: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 const DEFAULT_CATEGORIES: Category[] = [
-    { id: "1", name: "Food", color: "#EF4444", icon: "fast-food" },
-    { id: "2", name: "Transport", color: "#F59E0B", icon: "car" },
-    { id: "3", name: "Shopping", color: "#10B981", icon: "cart" },
-    { id: "4", name: "Entertainment", color: "#8B5CF6", icon: "game-controller" },
-    { id: "5", name: "Bills", color: "#6366F1", icon: "receipt" },
-    { id: "6", name: "Health", color: "#EC4899", icon: "medkit" },
-    { id: "7", name: "Tech", color: "#3B82F6", icon: "hardware-chip" },
-    { id: "8", name: "Travel", color: "#14B8A6", icon: "airplane" },
+    { id: "1", name: "Food", color: "#EF4444", icon: "fast-food", type: 'expense' },
+    { id: "2", name: "Transport", color: "#F59E0B", icon: "car", type: 'expense' },
+    { id: "3", name: "Shopping", color: "#10B981", icon: "cart", type: 'expense' },
+    { id: "4", name: "Entertainment", color: "#8B5CF6", icon: "game-controller", type: 'expense' },
+    { id: "5", name: "Bills", color: "#6366F1", icon: "receipt", type: 'expense' },
+    { id: "6", name: "Health", color: "#EC4899", icon: "medkit", type: 'expense' },
+    { id: "7", name: "Tech", color: "#3B82F6", icon: "hardware-chip", type: 'expense' },
+    { id: "8", name: "Travel", color: "#14B8A6", icon: "airplane", type: 'expense' },
+    // Income Categories
+    { id: "9", name: "Salary", color: "#10B981", icon: "cash", type: 'income' },
+    { id: "10", name: "Freelance", color: "#3B82F6", icon: "laptop", type: 'income' },
+    { id: "11", name: "Installation", color: "#F59E0B", icon: "construct", type: 'income' },
+    { id: "12", name: "Service", color: "#8B5CF6", icon: "build", type: 'income' },
 ];
 
 const SETTINGS_KEY = "@daily_xpense_settings_v1"; // Bump version
@@ -59,6 +72,9 @@ const SETTINGS_KEY = "@daily_xpense_settings_v1"; // Bump version
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const { setColorScheme } = useColorScheme();
     const systemScheme = useRNColorScheme();
+    const { user } = useAuth();
+    const userId = user?.id || "offline_user";
+
     const [currency, setCurrency] = useState("₹");
     const [name, setName] = useState("");
     const [avatar, setAvatar] = useState("👤");
@@ -71,10 +87,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<'system' | 'light' | 'dark' | 'custom'>('system');
     const [accentColor, setAccentColor] = useState<'emerald' | 'rose' | 'amber' | 'violet' | 'cyan'>('emerald');
     const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
+    const [maxAmount, setMaxAmount] = useState(1000000); // Default 10L
 
     useEffect(() => {
-        loadSettings();
-    }, []);
+        if (userId) loadSettings();
+    }, [userId]);
 
     // Effect to sync NativeWind with system theme when in 'system' mode
     useEffect(() => {
@@ -85,39 +102,190 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
     const loadSettings = async () => {
         try {
-            const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
-            if (savedSettings) {
-                const parsed = JSON.parse(savedSettings);
-                setCurrency(parsed.currency || "₹");
-                setName(parsed.name || "");
-                setAvatar(parsed.avatar || "👤");
-                setBudget(parsed.budget || 0);
-                setNotificationsEnabled(parsed.notificationsEnabled || false);
-                setReminderTime(parsed.reminderTime || "20:00");
-                setAppLockEnabled(parsed.appLockEnabled || false);
-                setSecurityPin(parsed.securityPin || null);
+            let loadedSettings: any = null;
 
-                const loadedTheme = parsed.theme || 'system';
-                setTheme(loadedTheme);
-                setAccentColor(parsed.accentColor || 'emerald');
-                // Sync with NativeWind
-                if (loadedTheme !== 'system') {
-                    setColorScheme(loadedTheme === 'custom' ? 'light' : loadedTheme);
-                } else {
-                    // The useEffect above will handle system sync
+            // 1. Load from Local DB (Native only) or Web (Supabase only initially)
+            if (Platform.OS === 'web') {
+                const { data } = await supabase.from('settings').select('*').eq('user_id', userId).single();
+                if (data) loadedSettings = data;
+            } else {
+                // Native: Load from SQLite (Cache)
+                const result = await db.query.settings.findFirst({
+                    where: eq(settingsSchema.userId, userId)
+                });
+                if (result) {
+                    loadedSettings = result;
+                    applySettings(loadedSettings); // Render fast with cache
                 }
 
-                setLastSyncTime(parsed.lastSyncTime || null);
+                // Native: Fetch from Supabase (Sync Down)
+                const { data: cloudData } = await supabase.from('settings').select('*').eq('user_id', userId).single();
+                if (cloudData) {
+                    // Cloud data found, updating local...
+                    loadedSettings = cloudData;
+                    // Update cache
+                    await saveToLocalDb(cloudData);
+                }
+            }
 
-                const loadedCats = parsed.categories || DEFAULT_CATEGORIES;
-                const validatedCats = loadedCats.map((c: any) => ({
-                    ...c,
-                    icon: c.icon || "pricetag"
-                }));
-                setCategories(validatedCats);
+            // 2. Fallback to AsyncStorage (Migration)
+            if (!loadedSettings) {
+                const savedAsync = await AsyncStorage.getItem(SETTINGS_KEY);
+                if (savedAsync) {
+                    loadedSettings = JSON.parse(savedAsync);
+                    saveSettingsToDb(loadedSettings);
+                }
+            }
+
+            if (loadedSettings) {
+                applySettings(loadedSettings);
             }
         } catch (e) {
             console.error("Failed to load settings", e);
+        }
+    };
+
+    const applySettings = (s: any) => {
+        // Parse DB fields (snake_case from Supabase/SQLite usually, but Drizzle mapping might help)
+        setCurrency(s.currency || "₹");
+        setName(s.name || "");
+        setAvatar(s.avatar || "👤");
+        setBudget(s.budget || 0);
+        setMaxAmount(s.maxAmount ?? s.max_amount ?? 1000000);
+
+        // Handle booleans (SQLite stores 0/1, Supabase bool)
+        const notif = s.notificationsEnabled ?? s.notifications_enabled;
+        setNotificationsEnabled(notif === true || notif === 1);
+
+        const reminder = s.reminderTime ?? s.reminder_time;
+        setReminderTime(reminder || "20:00");
+
+        const alock = s.appLockEnabled ?? s.app_lock_enabled;
+        setAppLockEnabled(alock === true || alock === 1);
+
+        const pin = s.securityPin ?? s.security_pin;
+        setSecurityPin(pin || null);
+
+        const themeVal = s.theme || 'system';
+        setTheme(themeVal);
+
+        const accent = s.accentColor ?? s.accent_color;
+        setAccentColor(accent || 'emerald');
+
+        const catsRaw = s.categories;
+        let loadedCats = DEFAULT_CATEGORIES;
+        if (typeof catsRaw === 'string') {
+            try { loadedCats = JSON.parse(catsRaw); } catch (e) { }
+        } else if (Array.isArray(catsRaw)) {
+            loadedCats = catsRaw;
+        }
+
+        const validIncomeNames = ["Salary", "Freelance", "Installation", "Service"];
+        const validatedCats = loadedCats.map((c: any) => {
+            // Smart migration: If type is missing, check if it's a known income category
+            let resolvedType = c.type;
+            if (!resolvedType) {
+                if (validIncomeNames.includes(c.name)) {
+                    resolvedType = 'income';
+                } else {
+                    resolvedType = 'expense';
+                }
+            }
+            return {
+                ...c,
+                icon: c.icon || "pricetag",
+                type: resolvedType
+            };
+        });
+        setCategories(validatedCats);
+
+        setLastSyncTime(s.lastSyncTime ?? s.last_sync_time ?? Date.now());
+    };
+
+    const saveToLocalDb = async (payload: any) => {
+        const now = new Date();
+        // Upsert to SQLite
+        // sqlite doesn't have UPSERT in generic SQL easily without syntax check, 
+        // but Drizzle insert().onConflictDoUpdate() works
+        try {
+            await db.insert(settingsSchema).values({
+                ...payload,
+                userId: userId, // Fix: Explicitly map userId for Drizzle
+                updatedAt: now,
+                notificationsEnabled: payload.notifications_enabled, // map back to camel for Drizzle
+                reminderTime: payload.reminder_time,
+                appLockEnabled: payload.app_lock_enabled,
+                securityPin: payload.security_pin,
+                accentColor: payload.accent_color,
+                categories: payload.categories,
+                maxAmount: payload.max_amount,
+                deleted: false
+            }).onConflictDoUpdate({
+                target: settingsSchema.id,
+                set: {
+                    userId: userId, // Fix: Explicitly map userId for Drizzle
+                    currency: payload.currency,
+                    name: payload.name,
+                    avatar: payload.avatar,
+                    budget: payload.budget,
+                    notificationsEnabled: payload.notifications_enabled,
+                    reminderTime: payload.reminder_time,
+                    appLockEnabled: payload.app_lock_enabled,
+                    securityPin: payload.security_pin,
+                    theme: payload.theme,
+                    accentColor: payload.accent_color,
+                    categories: payload.categories,
+                    maxAmount: payload.max_amount,
+                    updatedAt: now,
+                    syncStatus: 'PENDING'
+                }
+            });
+        } catch (e) {
+            console.error("Failed to save to local DB", e);
+        }
+    };
+
+    const saveSettingsToDb = async (merged: any) => {
+        const now = new Date();
+        const isWeb = Platform.OS === 'web';
+
+        // Prepare Payload (Snake Case for DBs)
+        const payload = {
+            id: userId, // Ensure one row per user
+            user_id: userId,
+            currency: merged.currency,
+            name: merged.name,
+            avatar: merged.avatar,
+            budget: merged.budget,
+            notifications_enabled: merged.notificationsEnabled,
+            reminder_time: merged.reminderTime,
+            app_lock_enabled: merged.appLockEnabled,
+            security_pin: merged.securityPin,
+            theme: merged.theme,
+            accent_color: merged.accentColor,
+            categories: JSON.stringify(merged.categories),
+            max_amount: merged.maxAmount,
+            updated_at: now.toISOString(),
+            sync_status: 'PENDING'
+        };
+
+        try {
+            // 1. Sync to Supabase (All Platforms)
+            // Fire and forget or await? Await to ensure we know if it fails.
+            const { error } = await supabase.from('settings').upsert(payload);
+
+            if (error) {
+                console.error("Supabase settings sync error", error);
+            } else {
+                // Synced to Cloud
+            }
+
+            // 2. Save to Local DB (Native Only)
+            if (!isWeb) {
+                await saveToLocalDb(payload);
+            }
+        } catch (e) {
+            console.error("Failed to save settings to DB", e);
         }
     };
 
@@ -126,10 +294,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             const merged = {
                 currency, name, avatar, categories,
                 budget, notificationsEnabled, reminderTime,
-                appLockEnabled, securityPin, theme, accentColor, lastSyncTime,
+                appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount,
                 ...newSettings
             };
+            // 1. Save Local (Fast)
             await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+
+            // 2. Persist to DB (Async)
+            saveSettingsToDb(merged);
+
         } catch (e) {
             console.error("Failed to save settings", e);
         }
@@ -155,21 +328,21 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
         if (updates.accentColor !== undefined) setAccentColor(updates.accentColor);
 
-        if (updates.lastSyncTime !== undefined) setLastSyncTime(updates.lastSyncTime);
+        if (updates.maxAmount !== undefined) setMaxAmount(updates.maxAmount);
 
         saveSettings(updates);
     };
 
-    const addCategory = (name: string, color: string, icon: string) => {
-        const newCat = { id: Date.now().toString(), name, color, icon };
+    const addCategory = (name: string, color: string, icon: string, type: 'expense' | 'income' = 'expense') => {
+        const newCat: Category = { id: Date.now().toString(), name, color, icon, type };
         const updated = [...categories, newCat];
         setCategories(updated);
         saveSettings({ categories: updated });
     };
 
-    const updateCategory = (id: string, name: string, color: string, icon: string) => {
+    const updateCategory = (id: string, name: string, color: string, icon: string, type: 'expense' | 'income' = 'expense') => {
         const updated = categories.map(c =>
-            c.id === id ? { ...c, name, color, icon } : c
+            c.id === id ? { ...c, name, color, icon, type } : c
         );
         setCategories(updated);
         saveSettings({ categories: updated });
@@ -186,7 +359,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         <SettingsContext.Provider value={{
             currency, name, avatar, categories,
             budget, notificationsEnabled, reminderTime,
-            appLockEnabled, securityPin, theme, accentColor, lastSyncTime,
+            appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount,
             updateSettings, addCategory, updateCategory, deleteCategory
         }}>
             {children}

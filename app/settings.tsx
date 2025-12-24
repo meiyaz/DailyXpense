@@ -47,10 +47,11 @@ export default function Settings() {
         addCategory,
         updateCategory,
         deleteCategory,
-        lastSyncTime
+        lastSyncTime,
+        maxAmount
     } = useSettings();
-    const { expenses, generateSampleData } = useExpenses();
-    const { signOut } = useAuth();
+    const { expenses } = useExpenses();
+    const { signOut, user } = useAuth();
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
 
@@ -65,6 +66,7 @@ export default function Settings() {
     const [editingCategory, setEditingCategory] = useState<any>(null); // Store category being edited
     const [newCategoryName, setNewCategoryName] = useState("");
     const [newCategoryIcon, setNewCategoryIcon] = useState("pricetag");
+    const [newCategoryType, setNewCategoryType] = useState<'expense' | 'income'>('expense');
 
     // Export State
     const [showExportModal, setShowExportModal] = useState(false);
@@ -73,6 +75,9 @@ export default function Settings() {
 
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [tempPickerDate, setTempPickerDate] = useState(new Date());
+
+    const [showMaxAmountModal, setShowMaxAmountModal] = useState(false);
+    const [tempMaxAmount, setTempMaxAmount] = useState("");
 
     const getDateFromTimeStr = (timeStr: string) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
@@ -118,9 +123,7 @@ export default function Settings() {
             });
 
             registerForPushNotificationsAsync();
-        } catch (e) {
-            console.log("Notifications module not available");
-        }
+        } catch (e) { /* Notification setup failed */ }
     }, []);
 
     useEffect(() => {
@@ -137,7 +140,6 @@ export default function Settings() {
             const Notifications = require('expo-notifications');
             await Notifications.cancelAllScheduledNotificationsAsync();
         } catch (e) {
-            console.log("Error canceling notifications:", e);
         }
     }
 
@@ -152,7 +154,7 @@ export default function Settings() {
                 // We can't easily "schedule" a daily background job on simple web without Service Worker.
                 // Best we can do is show a "Reminder Set" toast or just log it.
                 // For now, we avoid the crash.
-                console.log("Web Reminder scheduled (simulated) for", timeStr);
+                // Web Reminder scheduled (simulated)
             }
             return;
         }
@@ -171,7 +173,7 @@ export default function Settings() {
                     type: Notifications.SchedulableTriggerInputTypes.DAILY
                 },
             });
-        } catch (e) { console.log("Notification scheduling failed", e); }
+        } catch (e) { /* silent fail */ }
     }
 
     async function registerForPushNotificationsAsync() {
@@ -180,7 +182,7 @@ export default function Settings() {
             if ("Notification" in window) {
                 const permission = await Notification.requestPermission();
                 if (permission !== "granted") {
-                    console.log("Web Notification permission denied");
+                    // Web Notification permission denied
                     return;
                 }
             }
@@ -211,14 +213,14 @@ export default function Settings() {
                     finalStatus = status;
                 }
                 if (finalStatus !== 'granted') {
-                    console.log("Notification permission not granted");
+                    // Notification permission not granted
                     return;
                 }
 
                 // CRITICAL FIX: Do NOT try to get push token in Expo Go on Android
                 // This is what causes the crash. We stop here.
                 if (Platform.OS === 'android' && isExpoGo) {
-                    console.log("Skipping Push Token generation in Expo Go Android to prevent crash.");
+                    // Skipping Push Token generation in Expo Go Android
                     return;
                 }
 
@@ -228,7 +230,7 @@ export default function Settings() {
                 // If we were in a real build, we would get the token here:
                 // const token = await Notifications.getExpoPushTokenAsync(...);
             }
-        } catch (e) { console.log("Notification registration failed", e); }
+        } catch (e) { /* Notification registration failed */ }
     }
 
 
@@ -237,6 +239,7 @@ export default function Settings() {
         setEditingCategory(null);
         setNewCategoryName("");
         setNewCategoryIcon("pricetag");
+        setNewCategoryType("expense"); // Default for new
         setShowCategoryCreator(true);
     };
 
@@ -244,6 +247,7 @@ export default function Settings() {
         setEditingCategory(cat);
         setNewCategoryName(cat.name);
         setNewCategoryIcon(cat.icon);
+        setNewCategoryType(cat.type || 'expense');
         setShowCategoryCreator(true);
     };
 
@@ -253,12 +257,12 @@ export default function Settings() {
         if (editingCategory) {
             // Update existing
             // Keep original color for now, or randomize if we wanted to change it (but better to keep consistency)
-            updateCategory(editingCategory.id, newCategoryName.trim(), editingCategory.color, newCategoryIcon);
+            updateCategory(editingCategory.id, newCategoryName.trim(), editingCategory.color, newCategoryIcon, newCategoryType);
         } else {
-            // Create new
+            // Create new - Default to 'expense' for now, or add UI later
             const colors = ["#EF4444", "#F59E0B", "#10B981", "#8B5CF6", "#6366F1", "#EC4899", "#3B82F6", "#14B8A6"];
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            addCategory(newCategoryName.trim(), randomColor, newCategoryIcon);
+            addCategory(newCategoryName.trim(), randomColor, newCategoryIcon, newCategoryType);
         }
 
         setShowCategoryCreator(false);
@@ -307,6 +311,48 @@ export default function Settings() {
 
     // Helper to determine if avatar is an icon or emoji
     const isIcon = (str: string) => AVAILABLE_ICONS.includes(str) || PROFILE_ICONS.includes(str) || str.includes("-") || str === "pricetag";
+
+    const handleToggleNotifications = async (value: boolean) => {
+        if (Platform.OS === 'web') {
+            if (value) Alert.alert("Coming Soon", "Web notifications are currently under development.");
+            updateSettings({ notificationsEnabled: false });
+            return;
+        }
+
+        if (value) {
+            // User wants to enable
+            try {
+                const Notifications = require('expo-notifications');
+                const { status } = await Notifications.getPermissionsAsync();
+                let finalStatus = status;
+
+                if (status !== 'granted') {
+                    const { status: newStatus } = await Notifications.requestPermissionsAsync();
+                    finalStatus = newStatus;
+                }
+
+                if (finalStatus === 'granted') {
+                    // Permission granted, enable notifications
+                    // Ensure time is set to default 8:00 PM if missing
+                    if (!reminderTime) {
+                        updateSettings({ notificationsEnabled: true, reminderTime: "20:00" });
+                    } else {
+                        updateSettings({ notificationsEnabled: true });
+                    }
+                } else {
+                    // Permission denied, force disable
+                    Alert.alert("Permission Required", "Please enable notifications in your device settings to receive reminders.");
+                    updateSettings({ notificationsEnabled: false });
+                }
+            } catch (e) {
+                // Error checking permissions
+                updateSettings({ notificationsEnabled: false });
+            }
+        } else {
+            // User wants to disable
+            updateSettings({ notificationsEnabled: false });
+        }
+    };
 
     return (
         <View className="flex-1 bg-gray-50 dark:bg-black">
@@ -372,6 +418,9 @@ export default function Settings() {
                                 <Ionicons name="pencil-outline" size={16} color="#9ca3af" />
                             </Pressable>
                         )}
+                        {user?.email && (
+                            <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">{user.email}</Text>
+                        )}
                     </View>
 
                     {/* Categories: Minimalist Tag Cloud */}
@@ -400,9 +449,9 @@ export default function Settings() {
                         </View>
                     </View>
 
-                    {/* Preferences Group */}
+                    {/* STEP 2: Display Interactive Sections (Preferences & Security) */}
                     <View className="mb-6">
-                        <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Preferences</Text>
+                        <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">App Settings</Text>
                         <View className="bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800">
                             {/* Currency */}
                             <Pressable
@@ -421,13 +470,9 @@ export default function Settings() {
                                 </View>
                             </Pressable>
 
-                            {/* Monthly Budget */}
-                            {/* Monthly Budget */}
-                            <Pressable
-                                onPress={() => {
-                                    Alert.alert("Coming Soon", "This feature is currently under development.");
-                                }}
-                                className="flex-row items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 active:bg-gray-100 dark:active:bg-gray-800"
+                            {/* Monthly Budget (Coming Soon) */}
+                            <View
+                                className="flex-row items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 opacity-60"
                             >
                                 <View className="flex-row items-center">
                                     <View className="w-7 h-7 bg-white dark:bg-gray-800 rounded-full items-center justify-center mr-3">
@@ -437,11 +482,85 @@ export default function Settings() {
                                 </View>
                                 <View className="flex-row items-center">
                                     <Text className="text-xs text-gray-400 mr-1">Coming Soon</Text>
-                                    <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
                                 </View>
+                            </View>
+
+                            {/* Theme - Options Selector */}
+                            <Pressable
+                                onPress={() => setShowThemePicker(true)}
+                                className="flex-row items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 active:bg-gray-100 dark:active:bg-gray-800"
+                            >
+                                <View className="flex-row items-center">
+                                    <View className="w-7 h-7 bg-white dark:bg-gray-800 rounded-full items-center justify-center mr-3">
+                                        <Ionicons name="moon-outline" size={14} color={isDark ? '#9ca3af' : '#1F2937'} />
+                                    </View>
+                                    <View>
+                                        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme</Text>
+                                        <Text className="text-[10px] text-gray-400 capitalize">{theme}</Text>
+                                    </View>
+                                </View>
+                                <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
                             </Pressable>
 
+                            {/* Max Transaction Amount */}
+                            <Pressable
+                                onPress={() => {
+                                    setTempMaxAmount(maxAmount.toString());
+                                    setShowMaxAmountModal(true);
+                                }}
+                                className="flex-row items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 active:bg-gray-100 dark:active:bg-gray-800"
+                            >
+                                <View className="flex-row items-center">
+                                    <View className="w-7 h-7 bg-white dark:bg-gray-800 rounded-full items-center justify-center mr-3">
+                                        <Ionicons name="shield-checkmark-outline" size={14} color="#10B981" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Transaction Limit</Text>
+                                        <Text className="text-[10px] text-gray-400">{currency}{maxAmount.toLocaleString()}</Text>
+                                    </View>
+                                </View>
+                                <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
+                            </Pressable>
 
+                            {/* Sync Data */}
+                            <Pressable
+                                onPress={() => {
+                                    setIsSyncing(true);
+                                    setTimeout(() => {
+                                        setIsSyncing(false);
+                                        updateSettings({ lastSyncTime: Date.now() });
+                                        Alert.alert("Sync Complete", "Your data has been successfully synced to the cloud.");
+                                    }, 2000);
+                                }}
+                                disabled={isSyncing}
+                                className="flex-row items-center justify-between p-3 active:bg-gray-100 dark:active:bg-gray-800"
+                            >
+                                <View className="flex-row items-center">
+                                    <View className="w-7 h-7 bg-white dark:bg-gray-800 rounded-full items-center justify-center mr-3">
+                                        <Ionicons name="cloud-upload-outline" size={14} color="#2563eb" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Sync Cloud</Text>
+                                        {lastSyncTime && (
+                                            <Text className="text-[10px] text-gray-400">
+                                                Synced {new Date(lastSyncTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </Text>
+                                        )}
+                                    </View>
+                                </View>
+                                {isSyncing ? (
+                                    <Text className="text-xs text-gray-400 italic">Syncing...</Text>
+                                ) : (
+                                    <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
+                                )}
+                            </Pressable>
+                        </View>
+                    </View>
+
+                    {/* Security & Notifications Group */}
+                    <View className="mb-6">
+                        <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Security & Notifications</Text>
+                        <View className="bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800">
                             {/* Daily Reminders */}
                             <Pressable
                                 onPress={() => {
@@ -469,10 +588,19 @@ export default function Settings() {
                                 </View>
 
                                 <View className="flex-row items-center gap-3">
-                                    {notificationsEnabled && <Text className="text-xs text-gray-400">{reminderTime}</Text>}
+                                    {notificationsEnabled && (
+                                        <Text className="text-xs text-gray-400">
+                                            {(() => {
+                                                const [h, m] = reminderTime.split(':').map(Number);
+                                                const ampm = h >= 12 ? 'PM' : 'AM';
+                                                const h12 = h % 12 || 12;
+                                                return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+                                            })()}
+                                        </Text>
+                                    )}
                                     <Switch
                                         value={notificationsEnabled}
-                                        onValueChange={(val) => updateSettings({ notificationsEnabled: val })}
+                                        onValueChange={handleToggleNotifications}
                                         trackColor={{ false: "#d1d5db", true: "#3b82f6" }}
                                         thumbColor={"white"}
                                     />
@@ -484,16 +612,13 @@ export default function Settings() {
                                 onPress={async () => {
                                     if ((Platform.OS as string) === 'web') {
                                         if (appLockEnabled) {
-                                            // If already enabled, clicking row should disable it
                                             updateSettings({ appLockEnabled: false, securityPin: null });
                                         } else {
-                                            // If disabled, start setup
                                             setIsSettingNewPin(true);
                                             setTempPin("");
                                             setShowPinModal(true);
                                         }
                                     } else {
-                                        // Native: Toggle via biometric
                                         if (!appLockEnabled) {
                                             const result = await LocalAuthentication.authenticateAsync({
                                                 promptMessage: 'Authenticate to enable App Lock',
@@ -506,7 +631,7 @@ export default function Settings() {
                                         }
                                     }
                                 }}
-                                className="flex-row items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 active:bg-gray-100 dark:active:bg-gray-800"
+                                className="flex-row items-center justify-between p-3 active:bg-gray-100 dark:active:bg-gray-800"
                             >
                                 <View className="flex-row items-center">
                                     <View className="w-7 h-7 bg-white dark:bg-gray-800 rounded-full items-center justify-center mr-3">
@@ -527,7 +652,6 @@ export default function Settings() {
                                     onValueChange={async (val) => {
                                         if ((Platform.OS as string) === 'web') {
                                             if (val) {
-                                                // Enable: Require PIN setup
                                                 if (!securityPin) {
                                                     setIsSettingNewPin(true);
                                                     setTempPin("");
@@ -536,11 +660,9 @@ export default function Settings() {
                                                     updateSettings({ appLockEnabled: true });
                                                 }
                                             } else {
-                                                // Disable: Turn off and clear PIN to avoid confusion
                                                 updateSettings({ appLockEnabled: false, securityPin: null });
                                             }
                                         } else {
-                                            // Native Toggle
                                             if (val) {
                                                 const result = await LocalAuthentication.authenticateAsync({
                                                     promptMessage: 'Authenticate to enable App Lock',
@@ -557,102 +679,119 @@ export default function Settings() {
                                     thumbColor={"white"}
                                 />
                             </Pressable>
-
-                            {/* Theme - Options Selector */}
-                            <Pressable
-                                onPress={() => setShowThemePicker(true)}
-                                className="flex-row items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 active:bg-gray-100 dark:active:bg-gray-800"
-                            >
-                                <View className="flex-row items-center">
-                                    <View className="w-7 h-7 bg-white dark:bg-gray-800 rounded-full items-center justify-center mr-3">
-                                        <Ionicons name="moon-outline" size={14} color={isDark ? '#9ca3af' : '#1F2937'} />
-                                    </View>
-                                    <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme</Text>
-                                </View>
-                                <View className="flex-row items-center">
-                                    <Text className="text-xs text-gray-400 mr-1 capitalize">{theme}</Text>
-                                    <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
-                                </View>
-                            </Pressable>
-
-                            {/* Sync Data */}
-                            <Pressable
-                                onPress={() => {
-                                    setIsSyncing(true);
-                                    setTimeout(() => {
-                                        setIsSyncing(false);
-                                        updateSettings({ lastSyncTime: Date.now() });
-                                        Alert.alert("Sync Complete", "Your data has been successfully synced to the cloud.");
-                                    }, 2000);
-                                }}
-                                disabled={isSyncing}
-                                className="flex-row items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 active:bg-gray-100 dark:active:bg-gray-800"
-                            >
-                                <View className="flex-row items-center">
-                                    <View className="w-7 h-7 bg-white dark:bg-gray-800 rounded-full items-center justify-center mr-3">
-                                        <Ionicons name="cloud-upload-outline" size={14} color="#2563eb" />
-                                    </View>
-                                    <View>
-                                        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Sync Data</Text>
-                                        {lastSyncTime && (
-                                            <Text className="text-[10px] text-gray-400">
-                                                Last synced: {new Date(lastSyncTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </Text>
-                                        )}
-                                    </View>
-                                </View>
-                                {isSyncing ? (
-                                    <Text className="text-xs text-gray-400 italic">Syncing...</Text>
-                                ) : (
-                                    <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
-                                )}
-                            </Pressable>
-
-                            {/* Reset Data */}
-                            <Pressable
-                                onPress={() => {
-                                    Alert.alert("Reset Data", "Are you sure? This will clear everything.", [
-                                        { text: "Cancel", style: "cancel" },
-                                        { text: "Reset Everything", style: "destructive", onPress: generateSampleData }
-                                    ]);
-                                }}
-                                className="flex-row items-center justify-between p-3 active:bg-gray-100 dark:active:bg-gray-800"
-                            >
-                                <View className="flex-row items-center">
-                                    <View className="w-7 h-7 bg-red-50 dark:bg-red-900/30 rounded-full items-center justify-center mr-3">
-                                        <Ionicons name="refresh" size={14} color="#ef4444" />
-                                    </View>
-                                    <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Reset App Data</Text>
-                                </View>
-                            </Pressable>
                         </View>
                     </View>
 
-                    {/* Data Management Section */}
+                    {/* STEP 3: Premium & Data Management (Save & Sync features) */}
                     <View className="mb-6">
-                        <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Data Management</Text>
-                        <View className="bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800">
+                        <View className="flex-row items-center justify-between mb-2">
+                            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Premium Features</Text>
+                            <View className="bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
+                                <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">PRO</Text>
+                            </View>
+                        </View>
+                        <View className="bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden border border-amber-100 dark:border-amber-900/20">
+                            {/* Export Data */}
                             <Pressable
                                 onPress={() => setShowExportModal(true)}
-                                className="flex-row items-center justify-between p-3 active:bg-gray-100 dark:active:bg-gray-800"
+                                className="flex-row items-center justify-between p-3 border-b border-amber-50 dark:border-amber-900/10 active:bg-amber-50 dark:active:bg-amber-900/10"
                             >
                                 <View className="flex-row items-center">
-                                    <View className="w-7 h-7 bg-green-50 dark:bg-green-900/30 rounded-full items-center justify-center mr-3">
-                                        <Ionicons name="download-outline" size={14} color="#10b981" />
+                                    <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
+                                        <Ionicons name="share-social-outline" size={14} color="#f59e0b" />
                                     </View>
-                                    <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Export Data</Text>
+                                    <View>
+                                        <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Export Data</Text>
+                                        <Text className="text-[10px] text-gray-400">PDF, Excel & WhatsApp sharing</Text>
+                                    </View>
                                 </View>
-                                <Ionicons name="chevron-forward" size={16} color="#d1d5db" />
+                                <View className="flex-row items-center">
+                                    <Text className="text-[10px] font-bold text-amber-600 dark:text-amber-400 mr-1">Active</Text>
+                                    <Ionicons name="chevron-forward" size={16} color="#f59e0b" />
+                                </View>
                             </Pressable>
+
+                            {/* AI Smart Insights (Coming Soon) */}
+                            <View
+                                className="flex-row items-center justify-between p-3 border-b border-amber-50 dark:border-amber-900/10 opacity-60"
+                            >
+                                <View className="flex-row items-center">
+                                    <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
+                                        <Ionicons name="analytics-outline" size={14} color="#f59e0b" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">AI Smart Insights</Text>
+                                        <Text className="text-[10px] text-gray-400">Advanced spending analysis & trends</Text>
+                                    </View>
+                                </View>
+                                <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
+                                    <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">SOON</Text>
+                                </View>
+                            </View>
+
+                            {/* Advanced Categories (Coming Soon) */}
+                            <View
+                                className="flex-row items-center justify-between p-3 border-b border-amber-50 dark:border-amber-900/10 opacity-60"
+                            >
+                                <View className="flex-row items-center">
+                                    <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
+                                        <Ionicons name="grid-outline" size={14} color="#f59e0b" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Advanced Categories</Text>
+                                        <Text className="text-[10px] text-gray-400">Custom icons & unlimited groups</Text>
+                                    </View>
+                                </View>
+                                <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
+                                    <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">SOON</Text>
+                                </View>
+                            </View>
+
+                            {/* Cloud Sync Pro (Coming Soon) */}
+                            <View
+                                className="flex-row items-center justify-between p-3 border-b border-amber-50 dark:border-amber-900/10 opacity-60"
+                            >
+                                <View className="flex-row items-center">
+                                    <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
+                                        <Ionicons name="sync-outline" size={14} color="#f59e0b" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Cloud Sync Pro</Text>
+                                        <Text className="text-[10px] text-gray-400">Real-time sync across all devices</Text>
+                                    </View>
+                                </View>
+                                <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
+                                    <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">SOON</Text>
+                                </View>
+                            </View>
+
+                            {/* Auto Backup (Coming Soon) */}
+                            <View
+                                className="flex-row items-center justify-between p-3 opacity-60"
+                            >
+                                <View className="flex-row items-center">
+                                    <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
+                                        <Ionicons name="cloud-done-outline" size={14} color="#f59e0b" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Auto-Cloud Backup</Text>
+                                        <Text className="text-[10px] text-gray-400">Scheduled secure backups</Text>
+                                    </View>
+                                </View>
+                                <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
+                                    <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">SOON</Text>
+                                </View>
+                            </View>
                         </View>
                     </View>
 
                     {/* Log Out Button */}
                     <Pressable
                         onPress={signOut}
-                        className="flex-row items-center justify-center p-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl active:bg-gray-50 dark:active:bg-gray-800 mb-10"
+                        className="flex-row items-center justify-center p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl active:bg-red-100 dark:active:bg-red-900/20 mb-6"
                     >
-                        <Text className="text-gray-900 dark:text-white font-bold text-xs">Log Out</Text>
+                        <Ionicons name="log-out-outline" size={14} color="#ef4444" style={{ marginRight: 6 }} />
+                        <Text className="text-red-600 dark:text-red-400 font-bold text-xs">Log Out from Account</Text>
                     </Pressable>
 
                     <Text className="text-center text-xs text-gray-400 pb-10 mt-auto">Developed with ❤️ by Mei</Text>
@@ -661,11 +800,12 @@ export default function Settings() {
             </ScrollView>
 
             {/* Modals Logic - Moved outside ScrollView for better Web compatibility */}
-            <Modal
+            < Modal
                 animationType="fade"
                 transparent={true}
                 visible={showAvatarPicker}
-                onRequestClose={() => setShowAvatarPicker(false)}
+                onRequestClose={() => setShowAvatarPicker(false)
+                }
             >
                 <Pressable className="flex-1 bg-black/60 justify-center items-center" onPress={() => setShowAvatarPicker(false)}>
                     <View className="bg-white dark:bg-gray-900 p-6 rounded-3xl w-[80%] shadow-2xl">
@@ -698,7 +838,7 @@ export default function Settings() {
                         </Pressable>
                     </View>
                 </Pressable>
-            </Modal>
+            </Modal >
 
             <Modal
                 animationType="slide"
@@ -760,6 +900,22 @@ export default function Settings() {
                                 placeholderTextColor="#9ca3af"
                                 autoFocus
                             />
+
+                            <Text className="text-xs font-bold text-gray-400 mb-2 uppercase">Type</Text>
+                            <View className="flex-row gap-3 mb-6">
+                                <Pressable
+                                    onPress={() => setNewCategoryType('expense')}
+                                    className={`flex-1 py-3 items-center rounded-xl border ${newCategoryType === 'expense' ? 'bg-red-50 border-red-500' : 'bg-gray-50 dark:bg-gray-800 border-transparent'}`}
+                                >
+                                    <Text className={`font-bold ${newCategoryType === 'expense' ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>Expense</Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={() => setNewCategoryType('income')}
+                                    className={`flex-1 py-3 items-center rounded-xl border ${newCategoryType === 'income' ? 'bg-green-50 border-green-500' : 'bg-gray-50 dark:bg-gray-800 border-transparent'}`}
+                                >
+                                    <Text className={`font-bold ${newCategoryType === 'income' ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`}>Income</Text>
+                                </Pressable>
+                            </View>
 
                             <Text className="text-xs font-bold text-gray-400 mb-2 uppercase">Icon</Text>
                             <View className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-2xl p-2 mb-6">
@@ -968,6 +1124,94 @@ export default function Settings() {
                                 className="flex-1 bg-primary p-3 rounded-xl items-center"
                             >
                                 <Text className="font-bold text-white">Set PIN</Text>
+                            </Pressable>
+                        </View>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={showMaxAmountModal}
+                onRequestClose={() => setShowMaxAmountModal(false)}
+            >
+                <Pressable className="flex-1 bg-black/60 justify-center items-center p-4" onPress={() => setShowMaxAmountModal(false)}>
+                    <Pressable className="bg-white dark:bg-gray-900 p-6 rounded-3xl w-full max-w-sm shadow-2xl" onPress={(e) => e.stopPropagation()}>
+                        <Text className="text-lg font-bold text-center mb-2 text-gray-800 dark:text-white">Transaction Limit</Text>
+                        <Text className="text-sm text-gray-500 dark:text-gray-400 text-center mb-8">Set the maximum allowed amount for a single entry.</Text>
+
+                        <View className="items-center justify-center mb-8">
+                            <View className="flex-row items-baseline">
+                                <Text className="text-3xl font-bold text-gray-400 mr-2">{currency}</Text>
+                                <Text className="text-5xl font-bold text-gray-900 dark:text-white text-center">
+                                    {parseInt(tempMaxAmount || '0').toLocaleString()}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Quick Selection Grid */}
+                        <View className="flex-row flex-wrap justify-center gap-3 mb-8">
+                            {[1000, 10000, 50000, 100000, 500000, 1000000].map((limit) => (
+                                <Pressable
+                                    key={limit}
+                                    onPress={() => setTempMaxAmount(limit.toString())}
+                                    className={`w-[29%] aspect-square rounded-2xl border-2 items-center justify-center ${tempMaxAmount === limit.toString() ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-500/30' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'} active:scale-95 transition-transform`}
+                                >
+                                    <View className={`w-8 h-8 rounded-full mb-1 items-center justify-center ${tempMaxAmount === limit.toString() ? 'bg-white/20' : 'bg-gray-50 dark:bg-gray-700'}`}>
+                                        <Text className={`text-[10px] font-bold ${tempMaxAmount === limit.toString() ? 'text-white' : 'text-gray-400'}`}>
+                                            {limit >= 100000 ? (limit / 100000) + 'L' : (limit / 1000) + 'k'}
+                                        </Text>
+                                    </View>
+                                    <Text className={`font-bold text-[10px] ${tempMaxAmount === limit.toString() ? 'text-white' : 'text-gray-500'}`}>{currency}{limit.toLocaleString()}</Text>
+                                </Pressable>
+                            ))}
+                        </View>
+
+                        {/* Interactive Scale Indicator */}
+                        <View className="mb-8 px-2">
+                            <Text className="text-[10px] font-bold text-gray-400 mb-3 uppercase text-center tracking-widest">Selected Scale</Text>
+                            <View className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full w-full overflow-hidden border border-gray-200 dark:border-gray-700">
+                                <View
+                                    style={{
+                                        width: `${Math.min((parseInt(tempMaxAmount || '0') / 1000000) * 100, 100)}%`,
+                                        backgroundColor: '#3b82f6',
+                                        height: '100%'
+                                    }}
+                                />
+                            </View>
+                            <View className="flex-row justify-between mt-2">
+                                <View>
+                                    <Text className="text-[8px] font-bold text-gray-400 uppercase">Minimum</Text>
+                                    <Text className="text-[10px] font-bold text-gray-600 dark:text-gray-300">₹100</Text>
+                                </View>
+                                <View className="items-end">
+                                    <Text className="text-[8px] font-bold text-gray-400 uppercase">Maximum</Text>
+                                    <Text className="text-[10px] font-bold text-gray-600 dark:text-gray-300">10 Lakhs+</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        <View className="flex-row gap-3">
+                            <Pressable
+                                onPress={() => setShowMaxAmountModal(false)}
+                                className="flex-1 bg-gray-100 dark:bg-gray-800 p-4 rounded-xl items-center"
+                            >
+                                <Text className="font-bold text-gray-600 dark:text-gray-300">Cancel</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={() => {
+                                    const val = parseInt(tempMaxAmount || '0', 10);
+                                    if (val < 100) {
+                                        Alert.alert("Limit Too Low", "Minimum limit must be at least 100.");
+                                        return;
+                                    }
+                                    updateSettings({ maxAmount: val });
+                                    setShowMaxAmountModal(false);
+                                }}
+                                className="flex-1 bg-primary p-4 rounded-xl items-center"
+                            >
+                                <Text className="font-bold text-white">Save Limit</Text>
                             </Pressable>
                         </View>
                     </Pressable>
