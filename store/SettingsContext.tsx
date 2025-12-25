@@ -173,9 +173,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setReminderTime(reminder || "20:00");
 
         const alock = s.appLockEnabled ?? s.app_lock_enabled;
-        const isEnbaled = alock === true || alock === 1;
-        setAppLockEnabled(isEnbaled);
-        if (!isEnbaled) setIsAppUnlocked(true);
+        const isEnabled = alock === true || alock === 1;
+        setAppLockEnabled(isEnabled);
+        if (!isEnabled) setIsAppUnlocked(true);
 
         const pin = s.securityPin ?? s.security_pin;
         setSecurityPin(pin || null);
