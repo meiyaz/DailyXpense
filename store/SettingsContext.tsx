@@ -32,6 +32,8 @@ interface SettingsContextType {
     maxAmount: number;
     isPremium: boolean;
     isLoading: boolean;
+    isAppUnlocked: boolean;
+    setIsAppUnlocked: (unlocked: boolean) => void;
     updateSettings: (settings: Partial<{
         currency: string;
         name: string;
@@ -93,6 +95,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const [maxAmount, setMaxAmount] = useState(1000000); // Default 10L
     const [isPremium, setIsPremium] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAppUnlocked, setIsAppUnlocked] = useState(false);
 
     useEffect(() => {
         if (userId) loadSettings();
@@ -170,7 +173,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setReminderTime(reminder || "20:00");
 
         const alock = s.appLockEnabled ?? s.app_lock_enabled;
-        setAppLockEnabled(alock === true || alock === 1);
+        const isEnbaled = alock === true || alock === 1;
+        setAppLockEnabled(isEnbaled);
+        if (!isEnbaled) setIsAppUnlocked(true);
 
         const pin = s.securityPin ?? s.security_pin;
         setSecurityPin(pin || null);
@@ -373,8 +378,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             currency, name, avatar, categories,
             budget, notificationsEnabled, reminderTime,
             appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount, isPremium,
-            isLoading,
-            updateSettings, addCategory, updateCategory, deleteCategory
+            isLoading, isAppUnlocked,
+            updateSettings, addCategory, updateCategory, deleteCategory, setIsAppUnlocked
         }}>
             {children}
         </SettingsContext.Provider>

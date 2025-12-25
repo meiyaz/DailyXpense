@@ -8,33 +8,43 @@ import { SettingsProvider, useSettings } from "../store/SettingsContext";
 import { AuthProvider, useAuth } from "../store/AuthContext";
 import { migrateDb } from "../db/client";
 
+import LockScreen from "../components/LockScreen";
+
 function RootStack() {
-    const { theme, accentColor } = useSettings();
+    const { theme, accentColor, appLockEnabled, isAppUnlocked, isLoading: settingsLoading } = useSettings();
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
 
     // Auth Protection
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
     const segments = useSegments();
     const router = useRouter();
     const navigationState = useRootNavigationState();
 
+    const isLoading = authLoading || settingsLoading;
+
     useEffect(() => {
         if (isLoading || !navigationState?.key) return;
+
+        // If app is locked, we don't redirect to login yet, LockScreen handles it
+        if (appLockEnabled && !isAppUnlocked) return;
 
         const inAuthGroup = segments[0] === 'login';
 
         if (!isAuthenticated && !inAuthGroup) {
-            // Redirect to login if not authenticated and trying to access protected route
             router.replace('/login');
         } else if (isAuthenticated && inAuthGroup) {
-            // Redirect to home if authenticated and trying to access login
             router.replace('/');
         }
-    }, [isAuthenticated, isLoading, segments]);
+    }, [isAuthenticated, isLoading, segments, appLockEnabled, isAppUnlocked]);
 
     if (isLoading) {
         return <View style={{ flex: 1, backgroundColor: isDark ? 'black' : 'white' }} />;
+    }
+
+    // INTERCEPT: App Lock
+    if (appLockEnabled && !isAppUnlocked) {
+        return <LockScreen />;
     }
 
     return (

@@ -729,6 +729,22 @@ export default function Settings() {
                                     thumbColor={"white"}
                                 />
                             </Pressable>
+
+                            {/* Reset PIN (Coming Soon) */}
+                            <Pressable
+                                onPress={() => Alert.alert("Coming Soon", "PIN recovery options will be available in a future update.")}
+                                className="flex-row items-center justify-between p-3 border-t border-gray-100 dark:border-gray-800 active:bg-gray-100 dark:active:bg-gray-800"
+                            >
+                                <View className="flex-row items-center">
+                                    <View className="w-7 h-7 bg-white dark:bg-gray-800 rounded-full items-center justify-center mr-3">
+                                        <Ionicons name="key-outline" size={14} color="#9ca3af" />
+                                    </View>
+                                    <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Reset Security PIN</Text>
+                                </View>
+                                <View className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
+                                    <Text className="text-[8px] font-bold text-gray-500 uppercase">SOON</Text>
+                                </View>
+                            </Pressable>
                         </View>
                     </View>
 
