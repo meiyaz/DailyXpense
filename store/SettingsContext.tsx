@@ -30,6 +30,8 @@ interface SettingsContextType {
     accentColor: 'emerald' | 'rose' | 'amber' | 'violet' | 'cyan';
     lastSyncTime: number | null;
     maxAmount: number;
+    isPremium: boolean;
+    isLoading: boolean;
     updateSettings: (settings: Partial<{
         currency: string;
         name: string;
@@ -43,6 +45,7 @@ interface SettingsContextType {
         accentColor: 'emerald' | 'rose' | 'amber' | 'violet' | 'cyan';
         lastSyncTime: number | null;
         maxAmount: number;
+        isPremium: boolean;
     }>) => void;
     addCategory: (name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
     updateCategory: (id: string, name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
@@ -88,6 +91,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const [accentColor, setAccentColor] = useState<'emerald' | 'rose' | 'amber' | 'violet' | 'cyan'>('emerald');
     const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
     const [maxAmount, setMaxAmount] = useState(1000000); // Default 10L
+    const [isPremium, setIsPremium] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (userId) loadSettings();
@@ -142,6 +147,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             }
         } catch (e) {
             console.error("Failed to load settings", e);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -152,6 +159,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setAvatar(s.avatar || "👤");
         setBudget(s.budget || 0);
         setMaxAmount(s.maxAmount ?? s.max_amount ?? 1000000);
+        const premium = s.isPremium ?? s.is_premium;
+        setIsPremium(premium === true || premium === 1);
 
         // Handle booleans (SQLite stores 0/1, Supabase bool)
         const notif = s.notificationsEnabled ?? s.notifications_enabled;
@@ -219,6 +228,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                 accentColor: payload.accent_color,
                 categories: payload.categories,
                 maxAmount: payload.max_amount,
+                isPremium: payload.is_premium,
                 deleted: false
             }).onConflictDoUpdate({
                 target: settingsSchema.id,
@@ -236,6 +246,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                     accentColor: payload.accent_color,
                     categories: payload.categories,
                     maxAmount: payload.max_amount,
+                    isPremium: payload.is_premium,
                     updatedAt: now,
                     syncStatus: 'PENDING'
                 }
@@ -265,6 +276,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             accent_color: merged.accentColor,
             categories: JSON.stringify(merged.categories),
             max_amount: merged.maxAmount,
+            is_premium: merged.isPremium,
             updated_at: now.toISOString(),
             sync_status: 'PENDING'
         };
@@ -294,7 +306,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             const merged = {
                 currency, name, avatar, categories,
                 budget, notificationsEnabled, reminderTime,
-                appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount,
+                appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount, isPremium,
                 ...newSettings
             };
             // 1. Save Local (Fast)
@@ -329,6 +341,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (updates.accentColor !== undefined) setAccentColor(updates.accentColor);
 
         if (updates.maxAmount !== undefined) setMaxAmount(updates.maxAmount);
+        if (updates.isPremium !== undefined) setIsPremium(updates.isPremium);
 
         saveSettings(updates);
     };
@@ -359,7 +372,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         <SettingsContext.Provider value={{
             currency, name, avatar, categories,
             budget, notificationsEnabled, reminderTime,
-            appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount,
+            appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount, isPremium,
+            isLoading,
             updateSettings, addCategory, updateCategory, deleteCategory
         }}>
             {children}

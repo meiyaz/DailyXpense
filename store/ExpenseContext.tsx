@@ -69,14 +69,27 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
 
                 if (error) throw error;
 
-                const mappedExpenses = (data || []).map((e: any) => ({
-                    id: e.id,
-                    description: e.description,
-                    amount: e.amount,
-                    date: e.date, // Already ISO string from Supabase
-                    category: e.category,
-                    type: e.type || 'expense', // Default to expense
-                }));
+                const mappedExpenses = (data || []).map((e: any) => {
+                    // Smart Migration: Infer type from category if missing or default
+                    let resolvedType = e.type;
+                    if (!resolvedType || resolvedType === 'expense') {
+                        const cat = categories.find(c => c.name === e.category);
+                        if (cat && cat.type === 'income') {
+                            resolvedType = 'income';
+                        } else {
+                            resolvedType = 'expense';
+                        }
+                    }
+
+                    return {
+                        id: e.id,
+                        description: e.description,
+                        amount: e.amount,
+                        date: e.date,
+                        category: e.category,
+                        type: resolvedType as 'expense' | 'income',
+                    };
+                });
                 setExpenses(mappedExpenses);
                 return;
             }
@@ -91,14 +104,27 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
             });
 
             // Map DB result (Date objects) to UI format (ISO strings)
-            const mappedExpenses: Expense[] = result.map((e: any) => ({
-                id: e.id,
-                description: e.description,
-                amount: e.amount,
-                date: e.date.toISOString(),
-                category: e.category,
-                type: e.type || 'expense', // Default
-            }));
+            const mappedExpenses: Expense[] = result.map((e: any) => {
+                // Smart Migration: Infer type from category if missing or default
+                let resolvedType = e.type;
+                if (!resolvedType || resolvedType === 'expense') {
+                    const cat = categories.find(c => c.name === e.category);
+                    if (cat && cat.type === 'income') {
+                        resolvedType = 'income';
+                    } else {
+                        resolvedType = 'expense';
+                    }
+                }
+
+                return {
+                    id: e.id,
+                    description: e.description,
+                    amount: e.amount,
+                    date: e.date.toISOString(),
+                    category: e.category,
+                    type: resolvedType as 'expense' | 'income',
+                };
+            });
 
             setExpenses(mappedExpenses);
         } catch (e: any) {

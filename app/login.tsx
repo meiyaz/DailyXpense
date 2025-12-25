@@ -12,28 +12,34 @@ export default function Login() {
     const [otp, setOtp] = useState("");
     const [loading, setLoading] = useState(false);
     const [resendTimer, setResendTimer] = useState(0);
+    const [emailError, setEmailError] = useState("");
+    const [sendSuccess, setSendSuccess] = useState(false);
+    const { isAuthenticated } = useAuth();
 
     useEffect(() => {
-        if (resendTimer === 0) return;
+        if (resendTimer <= 0) return;
 
         const interval = setInterval(() => {
-            setResendTimer((prev) => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    return 0;
-                }
-                return prev - 1;
-            });
+            setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
         }, 1000);
         return () => clearInterval(interval);
-    }, [resendTimer === 0]);
+    }, [resendTimer > 0]);
+
+    // Clear timer when user authenticates
+    useEffect(() => {
+        if (isAuthenticated) {
+            setResendTimer(0);
+        }
+    }, [isAuthenticated]);
 
     const handleSendOtp = async (isResend = false) => {
         const cleanEmail = email.trim().toLowerCase();
         Keyboard.dismiss();
+        setEmailError("");
+        setSendSuccess(false);
 
-        if (!cleanEmail.includes("@")) {
-            Alert.alert("Error", "Please enter a valid email");
+        if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {
+            setEmailError("Please enter a valid email address");
             return;
         }
 
@@ -45,9 +51,15 @@ export default function Login() {
         try {
             const { error } = await sendOtp(cleanEmail);
             if (error) {
-                Alert.alert("Error", error.message);
+                setEmailError(error.message);
             } else {
-                if (!isResend) setMode("otp");
+                setSendSuccess(true);
+                if (!isResend) {
+                    setTimeout(() => {
+                        setMode("otp");
+                        setSendSuccess(false);
+                    }, 1500);
+                }
                 setResendTimer(30);
             }
         } catch (e: any) {
@@ -106,7 +118,10 @@ export default function Login() {
                     exiting={FadeOut.duration(200)}
                     className="w-full max-w-sm bg-white/90 p-6 rounded-3xl shadow-xl backdrop-blur-xl"
                 >
-                    <Pressable onPress={() => setMode("email")} className="mb-6 self-start">
+                    <Pressable onPress={() => {
+                        setMode("email");
+                        setResendTimer(0);
+                    }} className="mb-6 self-start">
                         <Ionicons name="arrow-back" size={24} color="#374151" />
                     </Pressable>
 
@@ -170,12 +185,15 @@ export default function Login() {
                     exiting={FadeOut.duration(200)}
                     className="w-full max-w-sm bg-white/90 p-6 rounded-3xl shadow-xl backdrop-blur-xl"
                 >
-                    <Pressable onPress={() => setMode("landing")} className="mb-6 self-start">
+                    <Pressable onPress={() => {
+                        setMode("landing");
+                        setResendTimer(0);
+                    }} className="mb-6 self-start">
                         <Ionicons name="arrow-back" size={24} color="#374151" />
                     </Pressable>
 
-                    <Text className="text-2xl font-bold text-gray-900 mb-2">What's your email?</Text>
-                    <Text className="text-gray-500 mb-8">We'll send you a magic link to sign in.</Text>
+                    <Text className="text-2xl font-bold text-gray-900 mb-2">Sign in or Sign up</Text>
+                    <Text className="text-gray-500 mb-8">Enter your email to get a 6-digit login code.</Text>
 
                     <View>
                         <Text className="text-gray-700 font-medium mb-1 ml-1">Email</Text>
@@ -185,20 +203,31 @@ export default function Login() {
                             keyboardType="email-address"
                             autoCapitalize="none"
                             value={email}
-                            onChangeText={setEmail}
+                            onChangeText={(text) => {
+                                setEmail(text);
+                                if (emailError) setEmailError("");
+                            }}
                             autoFocus
                             onSubmitEditing={() => handleSendOtp(false)}
                             returnKeyType="go"
                         />
+                        {emailError ? (
+                            <Text className="text-red-500 text-xs mt-1 ml-1 font-medium">{emailError}</Text>
+                        ) : null}
                     </View>
 
                     <Pressable
                         onPress={() => handleSendOtp(false)}
-                        disabled={loading}
-                        className={`w-full bg-blue-600 p-4 rounded-xl items-center mt-6 active:bg-blue-700 ${loading ? 'opacity-70' : ''}`}
+                        disabled={loading || sendSuccess}
+                        className={`w-full ${sendSuccess ? 'bg-green-500' : 'bg-blue-600'} p-4 rounded-xl items-center mt-6 active:bg-blue-700 ${loading ? 'opacity-70' : ''}`}
                     >
                         {loading ? (
                             <ActivityIndicator color="white" />
+                        ) : sendSuccess ? (
+                            <View className="flex-row items-center">
+                                <Ionicons name="checkmark-circle" size={20} color="white" style={{ marginRight: 8 }} />
+                                <Text className="font-bold text-white text-lg">Code Sent!</Text>
+                            </View>
                         ) : (
                             <Text className="font-bold text-white text-lg">Send Code</Text>
                         )}
@@ -231,7 +260,10 @@ export default function Login() {
                         </Pressable>
 
                         <Pressable
-                            onPress={() => setMode("email")}
+                            onPress={() => {
+                                setMode("email");
+                                setResendTimer(0);
+                            }}
                             className="w-full bg-gray-100 p-4 rounded-xl flex-row items-center justify-center active:bg-gray-200"
                         >
                             <Ionicons name="mail-outline" size={20} color="#374151" style={{ marginRight: 12 }} />

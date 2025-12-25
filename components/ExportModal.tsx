@@ -16,7 +16,7 @@ interface ExportModalProps {
 
 export default function ExportModal({ visible, onClose }: ExportModalProps) {
     const { expenses } = useExpenses();
-    const { currency } = useSettings();
+    const { currency, isPremium } = useSettings();
 
     const [exportFilter, setExportFilter] = useState<'all' | 'date' | 'month' | 'year'>('date');
     const [exportFormat, setExportFormat] = useState<'pdf' | 'whatsapp'>('whatsapp');
@@ -95,11 +95,32 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
             }
 
             if (exportFormat === 'whatsapp') {
-                const total = formatAmount(filtered.reduce((sum, e) => sum + e.amount, 0));
-                let message = `*Expense Report*\nDate: ${selectedDate.toLocaleDateString()}\nTotal: ${currency} ${total}\n\n*Details:*\n`;
-                filtered.forEach(e => {
-                    message += `- ${e.category}: ${currency}${formatAmount(e.amount)} (${e.description})\n`;
-                });
+                const incomeItems = filtered.filter(e => e.type === 'income');
+                const expenseItems = filtered.filter(e => e.type === 'expense');
+
+                const totalIncome = incomeItems.reduce((sum, e) => sum + e.amount, 0);
+                const totalExpense = expenseItems.reduce((sum, e) => sum + e.amount, 0);
+                const netBalance = totalIncome - totalExpense;
+
+                let message = `📅 *Daily Report: ${selectedDate.toLocaleDateString()}*\n\n`;
+
+                if (incomeItems.length > 0) {
+                    message += `*Income:*\n`;
+                    incomeItems.forEach(e => {
+                        message += `• ${e.description} - ${formatAmount(e.amount)}\n`;
+                    });
+                    message += `_*Total Income - ${formatAmount(totalIncome)}*_\n\n`;
+                }
+
+                if (expenseItems.length > 0) {
+                    message += `*Expenses:*\n`;
+                    expenseItems.forEach(e => {
+                        message += `• ${e.description} - ${formatAmount(e.amount)}\n`;
+                    });
+                    message += `_*Total expenses - ${formatAmount(totalExpense)}*_\n\n`;
+                }
+
+                message += `_*Balance - ${formatAmount(netBalance)}*_`;
 
                 const url = `whatsapp://send?text=${encodeURIComponent(message)}`;
                 const supported = await Linking.canOpenURL(url);
@@ -109,6 +130,14 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                     Alert.alert("WhatsApp Not Installed", "Please install WhatsApp to use this feature.");
                 }
             } else if (exportFormat === 'pdf') {
+                if (!isPremium) {
+                    Alert.alert(
+                        "👑 DailyXpense PRO",
+                        "PDF Export is a PRO feature. Upgrade to unlock professional reports and advanced export options.",
+                        [{ text: "OK" }]
+                    );
+                    return;
+                }
                 const uri = await generatePDF(filtered);
                 await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
             }
@@ -157,16 +186,26 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                     <Text className="text-xs font-bold text-gray-400 mb-2 uppercase">Format</Text>
                     <View className="flex-row gap-2 mb-6">
                         {[
-                            { id: 'pdf', label: 'PDF', icon: 'document' },
+                            { id: 'pdf', label: 'PDF Report', icon: 'document' },
                             { id: 'whatsapp', label: 'WhatsApp', icon: 'logo-whatsapp' }
                         ].map((fmt) => (
                             <Pressable
                                 key={fmt.id}
                                 onPress={() => setExportFormat(fmt.id as any)}
-                                className={`flex-1 flex-row items-center justify-center px-2 py-3 rounded-lg border ${exportFormat === fmt.id ? 'bg-blue-600 border-blue-600' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
+                                className={`flex-1 flex-row items-center justify-center px-2 py-4 rounded-xl border-2 relative ${fmt.id === 'pdf'
+                                        ? (exportFormat === fmt.id ? 'bg-blue-600 border-yellow-400' : 'bg-white dark:bg-gray-800 border-yellow-400')
+                                        : (exportFormat === fmt.id ? 'bg-blue-600 border-blue-600' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700')
+                                    }`}
                             >
-                                <Ionicons name={fmt.icon as any} size={16} color={exportFormat === fmt.id ? 'white' : '#4b5563'} style={{ marginRight: 6 }} />
-                                <Text className={`font-bold text-xs ${exportFormat === fmt.id ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>{fmt.label}</Text>
+                                {fmt.id === 'pdf' && (
+                                    <View className="absolute -top-2.5 -right-1.5 bg-yellow-400 border border-yellow-500 px-2 py-0.5 rounded-full shadow-sm z-10">
+                                        <Text className="text-[8px] font-black text-yellow-900 tracking-tighter uppercase">PRO</Text>
+                                    </View>
+                                )}
+                                <Ionicons name={fmt.icon as any} size={18} color={exportFormat === fmt.id ? 'white' : '#4b5563'} style={{ marginRight: 8 }} />
+                                <Text className={`font-bold text-sm ${exportFormat === fmt.id ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
+                                    {fmt.label}
+                                </Text>
                             </Pressable>
                         ))}
                     </View>

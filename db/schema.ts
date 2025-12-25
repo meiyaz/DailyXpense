@@ -33,6 +33,7 @@ export const settings = sqliteTable('settings', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
   syncStatus: text('sync_status', { enum: ['PENDING', 'SYNCED'] }).default('PENDING').notNull(),
   maxAmount: real('max_amount'),
+  isPremium: integer('is_premium', { mode: 'boolean' }).default(false),
 });
 
 export type Expense = typeof expenses.$inferSelect;

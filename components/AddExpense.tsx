@@ -230,9 +230,6 @@ export function AddExpense() {
                                     {/* Amount */}
                                     <View className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
                                         <View className="flex-row items-center justify-end px-3 py-2">
-                                            <Text className="font-bold mr-1 text-lg text-gray-400 dark:text-gray-500">
-                                                {currency}
-                                            </Text>
                                             <TextInput
                                                 className="font-bold text-xl text-gray-900 dark:text-white min-w-[60px] text-right p-0"
                                                 value={amount}

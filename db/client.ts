@@ -52,7 +52,8 @@ if (Platform.OS === 'web') {
         categories TEXT,
         updated_at INTEGER NOT NULL,
         sync_status TEXT DEFAULT 'PENDING' NOT NULL,
-        max_amount REAL -- Added in V3
+        max_amount REAL,
+        is_premium INTEGER DEFAULT 0 -- Added in V4
       );
     `);
 
@@ -65,9 +66,11 @@ if (Platform.OS === 'web') {
 
     try {
       await expoDb.execAsync("ALTER TABLE settings ADD COLUMN max_amount REAL");
-    } catch (e) {
-      // Column likely exists
-    }
+    } catch (e) { }
+
+    try {
+      await expoDb.execAsync("ALTER TABLE settings ADD COLUMN is_premium INTEGER DEFAULT 0");
+    } catch (e) { }
   };
 }
 

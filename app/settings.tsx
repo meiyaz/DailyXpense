@@ -2,9 +2,11 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 
-import { View, Text, Switch, Modal, TextInput, Alert, ScrollView, Pressable, TouchableOpacity, FlatList, useColorScheme as useRNColorScheme } from "react-native";
+import { View, Text, Switch, Modal, TextInput, Alert, ScrollView, Pressable, TouchableOpacity, FlatList, useColorScheme as useRNColorScheme, Image } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { useSettings } from "../store/SettingsContext";
 import { useState, useRef, useEffect } from "react";
 import { useExpenses } from "../store/ExpenseContext";
@@ -19,8 +21,7 @@ const AVAILABLE_ICONS = [
     "cart", "car", "fast-food", "game-controller",
     "home", "receipt", "medkit", "airplane",
     "bicycle", "book", "briefcase", "cafe",
-    "camera", "card", "construct", "film",
-    "fitness", "flower", "gift", "globe",
+    "camera", "fitness", "flower", "gift", "globe",
     "hammer", "heart", "key", "library",
     "map", "musical-notes", "paw", "phone-portrait",
     "restaurant", "school", "shirt", "ticket",
@@ -30,7 +31,8 @@ const AVAILABLE_ICONS = [
 
 const PROFILE_ICONS = [
     "person", "person-circle", "person-add", "people", "briefcase",
-    "school", "business", "laptop", "easel", "library", "glasses", "shirt"
+    "school", "business", "laptop", "easel", "library",
+    "glasses", "shirt", "happy", "star", "heart"
 ];
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -311,6 +313,52 @@ export default function Settings() {
 
     // Helper to determine if avatar is an icon or emoji
     const isIcon = (str: string) => AVAILABLE_ICONS.includes(str) || PROFILE_ICONS.includes(str) || str.includes("-") || str === "pricetag";
+    const isImage = (str: string) => str && (str.startsWith('data:image') || str.startsWith('file://') || str.startsWith('http'));
+
+    const pickImage = async (useCamera: boolean = false) => {
+        try {
+            let result;
+            if (useCamera) {
+                const permission = await ImagePicker.requestCameraPermissionsAsync();
+                if (!permission.granted) {
+                    Alert.alert("Permission Required", "Camera access is needed to take a photo.");
+                    return;
+                }
+                result = await ImagePicker.launchCameraAsync({
+                    allowsEditing: true,
+                    aspect: [1, 1],
+                    quality: 1,
+                });
+            } else {
+                result = await ImagePicker.launchImageLibraryAsync({
+                    allowsEditing: true,
+                    aspect: [1, 1],
+                    quality: 1,
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                });
+            }
+
+            if (!result.canceled && result.assets && result.assets[0]) {
+                const asset = result.assets[0];
+
+                // Optimize image: resize to 300x300 and compress for storage
+                const manipResult = await ImageManipulator.manipulateAsync(
+                    asset.uri,
+                    [{ resize: { width: 300, height: 300 } }],
+                    { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+                );
+
+                if (manipResult.base64) {
+                    const base64Uri = `data:image/jpeg;base64,${manipResult.base64}`;
+                    updateSettings({ avatar: base64Uri });
+                    setShowAvatarPicker(false);
+                }
+            }
+        } catch (error) {
+            console.error("Error picking image:", error);
+            Alert.alert("Error", "Failed to process image. Please try again.");
+        }
+    };
 
     const handleToggleNotifications = async (value: boolean) => {
         if (Platform.OS === 'web') {
@@ -388,7 +436,9 @@ export default function Settings() {
                             onPress={() => setShowAvatarPicker(true)}
                             className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full items-center justify-center mb-3 border-2 border-blue-100 dark:border-blue-900/30 relative"
                         >
-                            {isIcon(avatar) || PROFILE_ICONS.includes(avatar) ? (
+                            {isImage(avatar) ? (
+                                <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />
+                            ) : isIcon(avatar) || PROFILE_ICONS.includes(avatar) ? (
                                 <Ionicons name={avatar as any} size={40} color="#2563eb" />
                             ) : (
                                 <Text className="text-4xl">{avatar || "👤"}</Text>
@@ -808,9 +858,42 @@ export default function Settings() {
                 }
             >
                 <Pressable className="flex-1 bg-black/60 justify-center items-center" onPress={() => setShowAvatarPicker(false)}>
-                    <View className="bg-white dark:bg-gray-900 p-6 rounded-3xl w-[80%] shadow-2xl">
+                    <View className="bg-white dark:bg-gray-900 p-6 rounded-3xl w-[90%] max-w-[400px] shadow-2xl">
                         <Text className="text-lg font-bold text-center mb-4 text-gray-800 dark:text-white">Choose Avatar</Text>
-                        <View className="flex-1 max-h-[400px]">
+
+                        {/* Photo Options */}
+                        <View className="flex-row gap-2 mb-6">
+                            <Pressable
+                                onPress={() => pickImage(true)}
+                                className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl items-center border border-blue-100 dark:border-blue-900/10"
+                            >
+                                <Ionicons name="camera" size={24} color="#2563eb" />
+                                <Text className="text-[10px] font-bold text-blue-600 dark:text-blue-400 mt-1 uppercase">Camera</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={() => pickImage(false)}
+                                className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl items-center border border-blue-100 dark:border-blue-900/10"
+                            >
+                                <Ionicons name="images" size={24} color="#2563eb" />
+                                <Text className="text-[10px] font-bold text-blue-600 dark:text-blue-400 mt-1 uppercase">Gallery</Text>
+                            </Pressable>
+                            {isImage(avatar) && (
+                                <Pressable
+                                    onPress={() => {
+                                        updateSettings({ avatar: "👤" });
+                                        setShowAvatarPicker(false);
+                                    }}
+                                    className="flex-1 bg-red-50 dark:bg-red-900/20 p-3 rounded-2xl items-center border border-red-100 dark:border-red-900/10"
+                                >
+                                    <Ionicons name="trash" size={24} color="#ef4444" />
+                                    <Text className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1 uppercase">Remove</Text>
+                                </Pressable>
+                            )}
+                        </View>
+
+                        <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-4">Or choose an icon</Text>
+
+                        <View className="max-h-[300px]">
                             <FlatList
                                 data={PROFILE_ICONS}
                                 keyExtractor={(item) => item}
@@ -825,7 +908,7 @@ export default function Settings() {
                                         }}
                                         className={`w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-2xl items-center justify-center ${avatar === item ? 'bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-500' : ''} `}
                                     >
-                                        <Ionicons name={item as any} size={24} color={avatar === item ? "#2563eb" : "#9ca3af"} />
+                                        <Ionicons name={item as any} size={24} color={avatar === item ? "#2563eb" : (isDark ? "#9ca3af" : "#4b5563")} />
                                     </TouchableOpacity>
                                 )}
                             />
@@ -929,7 +1012,7 @@ export default function Settings() {
                                             onPress={() => setNewCategoryIcon(item)}
                                             className={`w-10 h-10 items-center justify-center rounded-xl ${newCategoryIcon === item ? 'bg-blue-600' : 'bg-transparent'} `}
                                         >
-                                            <Ionicons name={item as any} size={20} color={newCategoryIcon === item ? 'white' : '#6b7280'} />
+                                            <Ionicons name={item as any} size={20} color={newCategoryIcon === item ? 'white' : (isDark ? '#9ca3af' : '#4b5563')} />
                                         </Pressable>
                                     )}
                                 />

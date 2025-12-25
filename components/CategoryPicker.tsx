@@ -1,4 +1,4 @@
-import { Modal, View, Text, Pressable, ScrollView, TouchableOpacity, TextInput, Alert, FlatList } from "react-native";
+import { Modal, View, Text, Pressable, ScrollView, TouchableOpacity, TextInput, Alert, FlatList, useColorScheme as useRNColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../store/SettingsContext";
 import { useExpenses } from "../store/ExpenseContext";
@@ -17,8 +17,7 @@ const AVAILABLE_ICONS = [
     "cart", "car", "fast-food", "game-controller",
     "home", "receipt", "medkit", "airplane",
     "bicycle", "book", "briefcase", "cafe",
-    "camera", "card", "construct", "film",
-    "fitness", "flower", "gift", "globe",
+    "camera", "fitness", "flower", "gift", "globe",
     "hammer", "heart", "key", "library",
     "map", "musical-notes", "paw", "phone-portrait",
     "restaurant", "school", "shirt", "ticket",
@@ -26,8 +25,10 @@ const AVAILABLE_ICONS = [
 ];
 
 export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, customCategories, type = 'expense' }: CategoryPickerProps) {
-    const { categories: defaultCategories, addCategory } = useSettings();
+    const { categories: defaultCategories, addCategory, theme } = useSettings();
     const { expenses } = useExpenses();
+    const systemScheme = useRNColorScheme();
+    const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
     const [isAdding, setIsAdding] = useState(false);
 
     // New Category State
@@ -99,7 +100,7 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
                             {isAdding ? "New Category" : "Select Category"}
                         </Text>
                         <Pressable onPress={() => { setIsAdding(false); onClose(); }} className="p-1 bg-gray-100 dark:bg-gray-800 rounded-full">
-                            <Ionicons name="close" size={20} color="#6b7280" />
+                            <Ionicons name="close" size={20} color={isDark ? "#9ca3af" : "#6b7280"} />
                         </Pressable>
                     </View>
 
@@ -129,7 +130,7 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
                                             onPress={() => setSelectedIcon(item)}
                                             className={`w-10 h-10 items-center justify-center rounded-xl ${selectedIcon === item ? 'bg-blue-600' : 'bg-transparent'}`}
                                         >
-                                            <Ionicons name={item as any} size={20} color={selectedIcon === item ? 'white' : '#6b7280'} />
+                                            <Ionicons name={item as any} size={20} color={selectedIcon === item ? 'white' : (isDark ? '#9ca3af' : '#4b5563')} />
                                         </Pressable>
                                     )}
                                 />
@@ -198,7 +199,7 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
                                     className="w-[30%] mb-6 items-center"
                                 >
                                     <View className="w-16 h-16 rounded-2xl items-center justify-center mb-2 border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700">
-                                        <Ionicons name="add" size={32} color="#9ca3af" />
+                                        <Ionicons name="add" size={32} color={isDark ? "#9ca3af" : "#6b7280"} />
                                     </View>
                                     <Text className="text-center text-xs font-medium text-gray-500 dark:text-gray-400">
                                         New
@@ -212,5 +213,3 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
         </Modal>
     );
 }
-
-// Add these to interface if Ionicons names are strict, or just use string

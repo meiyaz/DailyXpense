@@ -155,7 +155,6 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                     <View className="flex-1 bg-white rounded-lg overflow-hidden">
                         <View className="flex-row items-center justify-end px-2 py-2">
                             <Text className="font-bold mr-1 text-base text-gray-400">
-                                {currency}
                             </Text>
                             <TextInput
                                 className="font-bold text-lg text-gray-900 min-w-[50px] text-right p-0"
@@ -248,7 +247,7 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
             {/* Right: Amount */}
             <View className="items-end">
                 <Text className={`font-bold text-lg ${expense.type === 'income' ? 'text-green-600 dark:text-green-500' : 'text-gray-800 dark:text-white'}`}>
-                    {expense.type === 'income' ? '+' : ''}{currency}{formatAmount(expense.amount)}
+                    {expense.type === 'income' ? '+' : ''}{formatAmount(expense.amount)}
                 </Text>
             </View>
         </Pressable>

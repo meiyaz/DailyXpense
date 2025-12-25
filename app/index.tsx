@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert, Image } from "react-native";
 import { Link } from "expo-router";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
@@ -12,7 +12,7 @@ import ExportModal from "../components/ExportModal";
 
 export default function Home() {
     const { expenses } = useExpenses();
-    const { name, categories, updateSettings } = useSettings();
+    const { name, categories, updateSettings, isLoading: settingsLoading } = useSettings();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -23,19 +23,13 @@ export default function Home() {
     const [tourStep, setTourStep] = useState(0);
     const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Show modal if name is empty (First time user)
-        if (!name || name.trim() === "") {
-            setIsNicknameModalVisible(true);
-            setTourStep(0);
-        }
-    }, []); // Run once on mount (or we trust name check logic) - Actually better to check on focus or specific load.
     // Ideally: if name is missing, start tour. Logic:
     useEffect(() => {
+        if (settingsLoading) return;
         if ((!name || name.trim() === "") && !isNicknameModalVisible) {
             setIsNicknameModalVisible(true);
         }
-    }, [name]);
+    }, [name, settingsLoading]);
 
     const handleSaveNickname = () => {
         if (!newNickname.trim()) {
@@ -49,6 +43,11 @@ export default function Home() {
     // Auth Protection
     useProtectedRoute();
 
+    // Helper to determine if avatar is an icon or emoji
+    const isIcon = (str: string) => str && (str.includes("-") || str === "person" || str === "person-circle" || str === "happy" || str === "glasses" || str === "woman" || str === "man" || str === "pricetag");
+    const isImage = (str: string) => str && (str.startsWith('data:image') || str.startsWith('file://') || str.startsWith('http'));
+
+    const avatar = useSettings().avatar || "👤";
     const greeting = name ? `Hello, ${name}!` : "DailyXpense";
 
     // Sort categories by recent usage (last 15 expenses)
@@ -107,8 +106,19 @@ export default function Home() {
                             </Pressable>
                         </Link>
                         <Link href="/settings" asChild>
-                            <Pressable className="w-10 h-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full items-center justify-center shadow-sm active:bg-gray-50 dark:active:bg-gray-800">
-                                <Ionicons name="settings-outline" size={20} color="#6b7280" />
+                            <Pressable className="w-11 h-11 bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-blue-900/30 rounded-full items-center justify-center shadow-md active:bg-gray-50 dark:active:bg-gray-800 relative">
+                                {isImage(avatar) ? (
+                                    <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />
+                                ) : isIcon(avatar) ? (
+                                    <View className="w-full h-full items-center justify-center bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                                        <Ionicons name={avatar as any} size={22} color="#2563eb" />
+                                    </View>
+                                ) : (
+                                    <Text className="text-2xl">{avatar || "👤"}</Text>
+                                )}
+                                <View className="absolute -bottom-0.5 -right-0.5 bg-blue-600 rounded-full p-1 border-2 border-white dark:border-black shadow-lg">
+                                    <Ionicons name="settings" size={8} color="white" />
+                                </View>
                             </Pressable>
                         </Link>
                     </View>
