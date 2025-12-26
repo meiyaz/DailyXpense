@@ -35,7 +35,7 @@ jobs:
         run: npm install -g eas-cli
 
       - name: Build APK with EAS
-        run: eas build --platform android --non-interactive --local
+        run: eas build --platform android --profile preview --non-interactive --local
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
@@ -45,5 +45,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: '*.apk'
+          path: "**/*.apk"
           retention-days: 30
