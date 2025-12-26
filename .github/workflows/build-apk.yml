@@ -41,9 +41,12 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
 
+      - name: Rename APK
+        run: find ./android/app/build/outputs/apk -name "*.apk" -exec cp {} DailyXpense.apk \; || find . -name "*.apk" -exec cp {} DailyXpense.apk \;
+
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: "**/*.apk"
+          name: DailyXpense-APK
+          path: "DailyXpense.apk"
           retention-days: 30

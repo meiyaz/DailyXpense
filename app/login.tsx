@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextInput, ActivityIndicator, Alert, ImageBackground, Keyboard } from "react-native";
+import { View, Text, Pressable, TextInput, ActivityIndicator, Alert, ImageBackground, Keyboard, Image } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -106,7 +106,7 @@ export default function Login() {
     return (
         <View className="flex-1 bg-[#1a2130]">
             <ImageBackground
-                source={require('../assets/images/ledger_bg_light.png')}
+                source={require('../assets/images/ledger_bg_premium.png')}
                 className="flex-1 items-center justify-center p-6"
                 resizeMode="cover"
                 style={{ width: '100%', height: '100%' }}
@@ -245,8 +245,12 @@ export default function Login() {
                         className="w-full max-w-sm items-center"
                     >
                         <View className="mb-12 items-center bg-white/80 p-6 rounded-3xl shadow-sm backdrop-blur-md w-full">
-                            <View className="w-20 h-20 bg-blue-600 rounded-3xl items-center justify-center mb-4 shadow-lg shadow-blue-200">
-                                <Ionicons name="wallet-outline" size={40} color="white" />
+                            <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-4 shadow-sm overflow-hidden border border-gray-100/50">
+                                <Image
+                                    source={require('../assets/logo_premium.png')}
+                                    className="w-full h-full"
+                                    resizeMode="contain"
+                                />
                             </View>
                             <Text className="text-3xl font-bold text-gray-800">DailyXpense</Text>
                             <Text className="text-gray-500 mt-2 text-center">Track your spending, master your budget.</Text>

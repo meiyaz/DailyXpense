@@ -1,0 +1,23 @@
+diff --git a/node_modules/drizzle-orm/expo-sqlite/query.cjs b/node_modules/drizzle-orm/expo-sqlite/query.cjs
+index 1cd04b7..5e4e75f 100644
+--- a/node_modules/drizzle-orm/expo-sqlite/query.cjs
++++ b/node_modules/drizzle-orm/expo-sqlite/query.cjs
+@@ -21,7 +21,7 @@ __export(query_exports, {
+   useLiveQuery: () => useLiveQuery
+ });
+ module.exports = __toCommonJS(query_exports);
+-var import_next = require("expo-sqlite/next");
++var import_next = require("expo-sqlite");
+ var import_react = require("react");
+ var import__ = require("../index.cjs");
+ var import_sqlite_core = require("../sqlite-core/index.cjs");
+diff --git a/node_modules/drizzle-orm/expo-sqlite/query.js b/node_modules/drizzle-orm/expo-sqlite/query.js
+index 6a41bbf..6c1c408 100644
+--- a/node_modules/drizzle-orm/expo-sqlite/query.js
++++ b/node_modules/drizzle-orm/expo-sqlite/query.js
+@@ -1,4 +1,4 @@
+-import { addDatabaseChangeListener } from "expo-sqlite/next";
++import { addDatabaseChangeListener } from "expo-sqlite";
+ import { useEffect, useState } from "react";
+ import { is, SQL, Subquery } from "../index.js";
+ import { getTableConfig, getViewConfig, SQLiteTable, SQLiteView } from "../sqlite-core/index.js";
