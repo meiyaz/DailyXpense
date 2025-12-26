@@ -65,6 +65,8 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
                 const { data, error } = await supabase
                     .from('expenses')
                     .select('*')
+                    .eq('user_id', userId)
+                    .eq('deleted', false)
                     .order('date', { ascending: false });
 
                 if (error) throw error;
@@ -192,7 +194,10 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
             if (Platform.OS === 'web') {
                 const { error } = await supabase
                     .from('expenses')
-                    .delete()
+                    .update({
+                        deleted: true,
+                        updated_at: new Date().toISOString()
+                    })
                     .eq('id', id);
                 if (error) console.error("Supabase delete error:", error);
                 loadExpenses();

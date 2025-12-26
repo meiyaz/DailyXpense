@@ -47,7 +47,8 @@ export const SyncService = {
             user_id: exp.userId,
             created_at: exp.createdAt.toISOString(),
             updated_at: exp.updatedAt.toISOString(),
-            // deleted: exp.deleted // Only if you have a deleted column in Supabase
+            deleted: exp.deleted === true || exp.deleted === 1,
+            type: exp.type || 'expense'
         }));
 
         const { error: pushError } = await supabase.from('expenses').upsert(payloads);
@@ -90,7 +91,8 @@ export const SyncService = {
                         createdAt: new Date(remoteExp.created_at),
                         updatedAt: new Date(remoteExp.updated_at),
                         syncStatus: 'SYNCED',
-                        deleted: false, // Or map if implemented
+                        deleted: remoteExp.deleted === true || remoteExp.deleted === 1,
+                        type: remoteExp.type || 'expense'
                     } as any)
                     .onConflictDoUpdate({
                         target: expenses.id,
@@ -103,6 +105,8 @@ export const SyncService = {
                             createdAt: new Date(remoteExp.created_at),
                             updatedAt: new Date(remoteExp.updated_at),
                             syncStatus: 'SYNCED',
+                            deleted: remoteExp.deleted === true || remoteExp.deleted === 1,
+                            type: remoteExp.type || 'expense'
                         } as any
                     });
             }
