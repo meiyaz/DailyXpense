@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "DailyXpense",
-    "slug": "DailyXpense",
+    "slug": "dailyxpense",
     "scheme": "dailyxpense",
     "version": "1.0.0",
     "orientation": "portrait",
