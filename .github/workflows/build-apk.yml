@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Clean Environment
+        run: rm -rf android
+
       - name: Sync Expo Environment
         run: npx expo install --check
 
@@ -40,8 +43,8 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
-          NODE_OPTIONS: "--max-old-space-size=4096"
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.configureondemand=false"
+          NODE_OPTIONS: "--max-old-space-size=1024"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.workers.max=1 -Dorg.gradle.vfs.watch=false"
           EAS_NO_VCS: 1
           CI: true
 
