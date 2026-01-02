@@ -34,6 +34,9 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
+      - name: Sync Expo Environment
+        run: npx expo install --check --fix
+
       - name: Build APK with EAS
         run: eas build --platform android --profile preview --non-interactive --local
         env:
@@ -41,9 +44,14 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false"
+          EAS_NO_VCS: 1
 
       - name: Rename APK
-        run: find ./android/app/build/outputs/apk -name "*.apk" -exec cp {} DailyXpense.apk \; || find . -name "*.apk" -exec cp {} DailyXpense.apk \;
+        run: |
+          BUILD_DIR=$(find . -name "build" -type d -path "*/android/app/build" | head -n 1)
+          find . -name "*.apk" -exec cp {} DailyXpense.apk \; || echo "No APK found in root"
+
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4

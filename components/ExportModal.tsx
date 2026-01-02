@@ -107,20 +107,20 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                 if (incomeItems.length > 0) {
                     message += `*Income:*\n`;
                     incomeItems.forEach(e => {
-                        message += `• ${e.description} - ${formatAmount(e.amount)}\n`;
+                        message += `• ${e.description}: ${formatAmount(e.amount)}\n`;
                     });
-                    message += `_*Total Income - ${formatAmount(totalIncome)}*_\n\n`;
+                    message += `_*Total Income: ${formatAmount(totalIncome)}*_\n\n`;
                 }
 
                 if (expenseItems.length > 0) {
                     message += `*Expenses:*\n`;
                     expenseItems.forEach(e => {
-                        message += `• ${e.description} - ${formatAmount(e.amount)}\n`;
+                        message += `• ${e.description}: ${formatAmount(e.amount)}\n`;
                     });
-                    message += `_*Total expenses - ${formatAmount(totalExpense)}*_\n\n`;
+                    message += `_*Total Expenses: ${formatAmount(totalExpense)}*_\n\n`;
                 }
 
-                message += `_*Balance - ${formatAmount(netBalance)}*_`;
+                message += `_*Balance: ${formatAmount(netBalance)}*_`;
 
                 const url = `whatsapp://send?text=${encodeURIComponent(message)}`;
                 const supported = await Linking.canOpenURL(url);
@@ -193,8 +193,8 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                                 key={fmt.id}
                                 onPress={() => setExportFormat(fmt.id as any)}
                                 className={`flex-1 flex-row items-center justify-center px-2 py-4 rounded-xl border-2 relative ${fmt.id === 'pdf'
-                                        ? (exportFormat === fmt.id ? 'bg-blue-600 border-yellow-400' : 'bg-white dark:bg-gray-800 border-yellow-400')
-                                        : (exportFormat === fmt.id ? 'bg-blue-600 border-blue-600' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700')
+                                    ? (exportFormat === fmt.id ? 'bg-blue-600 border-yellow-400' : 'bg-white dark:bg-gray-800 border-yellow-400')
+                                    : (exportFormat === fmt.id ? 'bg-blue-600 border-blue-600' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700')
                                     }`}
                             >
                                 {fmt.id === 'pdf' && (

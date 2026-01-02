@@ -18,6 +18,7 @@ export function AddExpense() {
     const [amount, setAmount] = useState("");
     const [date, setDate] = useState(new Date());
     const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+    const [hasManuallySelected, setHasManuallySelected] = useState(false);
     const [type, setType] = useState<'expense' | 'income'>('expense');
 
     // UI State
@@ -56,23 +57,17 @@ export function AddExpense() {
 
     // AI Category Prediction
     useEffect(() => {
-        if (!description.trim()) return;
+        if (!description.trim() || hasManuallySelected) return;
 
-        // Debounce prediction
         const timer = setTimeout(() => {
-            const predicted = predictCategory(description, categories, expenses);
-            if (predicted) {
-                // Visualize the "AI" suggestion by auto-selecting it
-                // We could also show a "Suggested" badge, but auto-select is smoother for now
-                // Only auto-select if user hasn't manually changed it WHILE typing this specific word? 
-                // For simplicity, just update it.
+            const predicted = predictCategory(description, categories, expenses, type);
+            if (predicted && predicted !== selectedCategory) {
                 setSelectedCategory(predicted);
             }
-        }, 500); // 500ms delay
+        }, 50); // Fast response for 'as-you-type' feel
 
         return () => clearTimeout(timer);
-        return () => clearTimeout(timer);
-    }, [description, categories, expenses]);
+    }, [description, categories, expenses, type, hasManuallySelected]);
 
     // Reset category when type changes
     useEffect(() => {
@@ -114,6 +109,7 @@ export function AddExpense() {
         setAmount("");
         setType('expense');
         setDate(new Date());
+        setHasManuallySelected(false);
         setIsExpanded(false);
     };
 
@@ -292,7 +288,10 @@ export function AddExpense() {
                 <CategoryPicker
                     visible={showCategoryPicker}
                     onClose={() => setShowCategoryPicker(false)}
-                    onSelect={setSelectedCategory}
+                    onSelect={(cat) => {
+                        setSelectedCategory(cat);
+                        setHasManuallySelected(true);
+                    }}
                     selectedCategory={selectedCategory}
                     customCategories={sortedCategories}
                     type={type}

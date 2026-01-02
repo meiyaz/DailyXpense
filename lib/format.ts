@@ -5,18 +5,24 @@
 export const formatAmount = (amount: number): string => {
     if (isNaN(amount) || amount === null || amount === undefined) return "0";
 
-    const parts = amount.toFixed(2).split('.');
+    const isNegative = amount < 0;
+    const absAmount = Math.abs(amount);
 
-    // Indian numbering system logic: 
-    // Last 3 digits grouped, then groups of 2
+    const parts = absAmount.toFixed(2).split('.');
     let x = parts[0];
-    let lastThree = x.substring(x.length - 3);
-    let otherNumbers = x.substring(0, x.length - 3);
-    if (otherNumbers !== '') {
-        lastThree = ',' + lastThree;
-    }
-    const res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+    let res = "";
 
-    if (parts[1] === '00') return res;
-    return res + "." + parts[1];
+    if (x.length > 3) {
+        let lastThree = x.substring(x.length - 3);
+        let otherNumbers = x.substring(0, x.length - 3);
+        res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + lastThree;
+    } else {
+        res = x;
+    }
+
+    if (parts[1] !== '00') {
+        res += "." + parts[1];
+    }
+
+    return isNegative ? "-" + res : res;
 };

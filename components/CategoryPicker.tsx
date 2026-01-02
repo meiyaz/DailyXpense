@@ -38,7 +38,7 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
     // Sort and filter categories by type and recent usage
     const filteredAndSortedCategories = useMemo(() => {
         // 1. Filter by type
-        const typeFiltered = defaultCategories.filter(cat => cat.type === type);
+        const typeFiltered = defaultCategories.filter(cat => (cat.type || 'expense') === type);
 
         // 2. Get recent 15 expenses
         const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -166,7 +166,7 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
                                                 onSelect(cat.name);
                                                 onClose();
                                             }}
-                                            className="w-[30%] mb-6 items-center"
+                                            className={`w-[30%] mb-6 items-center ${isSelected ? 'scale-105' : ''}`}
                                         >
                                             <View
                                                 style={{
@@ -175,13 +175,17 @@ export function CategoryPicker({ visible, onClose, onSelect, selectedCategory, c
                                                     shadowOffset: { width: 0, height: 4 },
                                                     shadowOpacity: 0.3,
                                                     shadowRadius: 5,
-                                                    elevation: 5
+                                                    elevation: 5,
+                                                    borderWidth: isSelected ? 4 : 0,
+                                                    borderColor: isDark ? 'white' : 'rgba(0,0,0,0.1)'
                                                 }}
-                                                className={`w-16 h-16 rounded-2xl items-center justify-center mb-2 ${isSelected ? 'border-4 border-white ring-2 ring-gray-900' : ''}`}
+                                                className="w-16 h-16 rounded-2xl items-center justify-center mb-2"
                                             >
                                                 <Ionicons name={(cat.icon as any) || "pricetag"} size={32} color="white" />
                                                 {isSelected && (
-                                                    <View className="absolute -top-2 -right-2 bg-white rounded-full p-0.5">
+                                                    <View
+                                                        style={{ position: 'absolute', top: -8, right: -8, backgroundColor: 'white', borderRadius: 10 }}
+                                                    >
                                                         <Ionicons name="checkmark-circle" size={20} color={cat.color} />
                                                     </View>
                                                 )}

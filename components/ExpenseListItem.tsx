@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { DatePicker } from "./ui/DatePicker";
 import { CategoryPicker } from "./CategoryPicker";
 import { formatAmount } from "../lib/format";
+import { predictCategory } from "../services/CategoryPredictor";
 
 interface ExpenseListItemProps {
     expense: Expense;
@@ -40,6 +41,7 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
     const [amount, setAmount] = useState(expense.amount.toString());
     const [date, setDate] = useState(new Date(expense.date));
     const [selectedCategory, setSelectedCategory] = useState(expense.category);
+    const [hasManuallySelected, setHasManuallySelected] = useState(false);
     const [type, setType] = useState<'expense' | 'income'>(expense.type || 'expense');
 
     const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
@@ -57,6 +59,21 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
             setSelectedCategory(validCats[0].name);
         }
     }, [type, effectiveIsEditing]);
+
+    // AI Category Prediction (Instant feel)
+    const { expenses } = useExpenses();
+    useEffect(() => {
+        if (!effectiveIsEditing || !description.trim() || hasManuallySelected) return;
+
+        const timer = setTimeout(() => {
+            const predicted = predictCategory(description, categories, expenses, type);
+            if (predicted && predicted !== selectedCategory) {
+                setSelectedCategory(predicted);
+            }
+        }, 50);
+
+        return () => clearTimeout(timer);
+    }, [description, categories, expenses, type, effectiveIsEditing, hasManuallySelected]);
 
     const categoryObj = categories.find(c => c.name === (effectiveIsEditing ? selectedCategory : expense.category));
     const catColor = categoryObj ? categoryObj.color : "#9ca3af";
@@ -205,9 +222,12 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                 <CategoryPicker
                     visible={categoryPickerVisible}
                     onClose={() => setCategoryPickerVisible(false)}
-                    onSelect={setSelectedCategory}
+                    onSelect={(cat) => {
+                        setSelectedCategory(cat);
+                        setHasManuallySelected(true);
+                    }}
                     selectedCategory={selectedCategory}
-                    type={type} // Pass type to filter categories if needed, or just context
+                    type={type}
                 />
             </View>
         );

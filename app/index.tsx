@@ -79,11 +79,12 @@ export default function Home() {
             setSelectedCategories([]);
         } else {
             setSelectedCategories(prev => {
+                // If already selected, unselect it (go back to All)
                 if (prev.includes(catName)) {
-                    return prev.filter(c => c !== catName);
-                } else {
-                    return [...prev, catName];
+                    return [];
                 }
+                // Otherwise, select ONLY this one (single select for better UX)
+                return [catName];
             });
         }
     };
@@ -289,14 +290,19 @@ export default function Home() {
                         >
                             <Text className={`text-xs font-bold ${selectedCategories.length === 0 ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>All</Text>
                         </Pressable>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1 flex-row gap-2">
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            className="flex-1"
+                            contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingLeft: 4 }}
+                        >
                             {orderedCategories.map((cat) => {
                                 const isSelected = selectedCategories.includes(cat.name);
                                 return (
                                     <Pressable
                                         key={cat.id}
                                         onPress={() => toggleCategory(cat.name)}
-                                        className={`flex-row items-center px-3 py-1.5 rounded-full border mr-2 ${isSelected ? "bg-blue-600 border-blue-600" : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"}`}
+                                        className={`flex-row items-center px-3 py-1.5 rounded-full border ${isSelected ? "bg-blue-600 border-blue-600 shadow-sm" : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"}`}
                                     >
                                         <Ionicons name={cat.icon as any} size={12} color={isSelected ? "white" : cat.color} style={{ marginRight: 4 }} />
                                         <Text className={`text-xs font-bold ${isSelected ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>{cat.name}</Text>
