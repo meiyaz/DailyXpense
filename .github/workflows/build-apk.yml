@@ -35,7 +35,7 @@ jobs:
         run: npx expo install --check
 
       - name: Build APK with EAS
-        run: npx eas-cli build --platform android --profile preview --non-interactive --local --verbose
+        run: npx eas-cli build --platform android --profile preview --non-interactive --local
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}

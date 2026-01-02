@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert, Image } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert, Image, useColorScheme as useRNColorScheme } from "react-native";
 import { Link } from "expo-router";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
@@ -12,7 +12,9 @@ import ExportModal from "../components/ExportModal";
 
 export default function Home() {
     const { expenses } = useExpenses();
-    const { name, categories, updateSettings, isLoading: settingsLoading } = useSettings();
+    const { name, categories, updateSettings, theme, isLoading: settingsLoading } = useSettings();
+    const systemScheme = useRNColorScheme();
+    const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
 
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -274,10 +276,19 @@ export default function Home() {
                                 <Pressable
                                     key={cat.id}
                                     onPress={() => toggleCategory(cat.name)}
-                                    className={`flex-row items-center px-3 py-1.5 rounded-full border ${isSelected ? "bg-blue-600 border-blue-600" : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"}`}
+                                    className="flex-row items-center px-3 py-1.5 rounded-full border mb-1 mr-1"
+                                    style={{
+                                        backgroundColor: isSelected ? "#2563eb" : (isDark ? "#111827" : "#ffffff"),
+                                        borderColor: isSelected ? "#2563eb" : (isDark ? "#1f2937" : "#e5e7eb")
+                                    }}
                                 >
                                     <Ionicons name={cat.icon as any} size={12} color={isSelected ? "white" : cat.color} style={{ marginRight: 4 }} />
-                                    <Text className={`text-xs font-bold ${isSelected ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>{cat.name}</Text>
+                                    <Text
+                                        className="text-xs font-bold"
+                                        style={{ color: isSelected ? "white" : (isDark ? "#d1d5db" : "#4b5563") }}
+                                    >
+                                        {cat.name}
+                                    </Text>
                                 </Pressable>
                             );
                         })}
@@ -302,10 +313,19 @@ export default function Home() {
                                     <Pressable
                                         key={cat.id}
                                         onPress={() => toggleCategory(cat.name)}
-                                        className={`flex-row items-center px-3 py-1.5 rounded-full border ${isSelected ? "bg-blue-600 border-blue-600 shadow-sm" : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"}`}
+                                        className="flex-row items-center px-3 py-1.5 rounded-full border"
+                                        style={{
+                                            backgroundColor: isSelected ? "#2563eb" : (isDark ? "#111827" : "#ffffff"),
+                                            borderColor: isSelected ? "#2563eb" : (isDark ? "#1f2937" : "#e5e7eb")
+                                        }}
                                     >
                                         <Ionicons name={cat.icon as any} size={12} color={isSelected ? "white" : cat.color} style={{ marginRight: 4 }} />
-                                        <Text className={`text-xs font-bold ${isSelected ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>{cat.name}</Text>
+                                        <Text
+                                            className="text-xs font-bold"
+                                            style={{ color: isSelected ? "white" : (isDark ? "#d1d5db" : "#4b5563") }}
+                                        >
+                                            {cat.name}
+                                        </Text>
                                     </Pressable>
                                 );
                             })}
