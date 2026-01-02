@@ -52,10 +52,12 @@ export default function Home() {
         if (settingsLoading) return;
 
         const hasName = name && name.trim() !== "";
+        const hour = new Date().getHours();
+        const isDND = hour >= 0 && hour < 5;
 
         if (!hasName) {
             if (!isNicknameModalVisible) setIsNicknameModalVisible(true);
-        } else if (!isNicknameModalVisible && !showWelcomeBack) {
+        } else if (!isNicknameModalVisible && !showWelcomeBack && !isDND) {
             // Returning user - Show welcome back briefly if we just loaded
             setShowWelcomeBack(true);
             playWelcomeSound(); // Trigger sound
@@ -80,6 +82,15 @@ export default function Home() {
     const isImage = (str: string) => str && (str.startsWith('data:image') || str.startsWith('file://') || str.startsWith('http'));
 
     const avatar = useSettings().avatar || "👤";
+
+    const vibeData = useMemo(() => {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) return { title: `Good Morning, ${name}!`, vibe: "☀️ Sun's up! Record your morning coffee." };
+        if (hour >= 12 && hour < 17) return { title: `Good Afternoon, ${name}!`, vibe: "🌤️ Lunch time? Track those wins." };
+        if (hour >= 17 && hour < 24) return { title: `Good Evening, ${name}!`, vibe: "🌆 Winding down? Review your day." };
+        return { title: `Hello, ${name}!`, vibe: "🌙 Happy Tracking!" }; // Fallback
+    }, [name]);
+
     const greeting = name ? `Hello, ${name}!` : "DailyXpense";
 
     // Sort categories by recent usage (last 15 expenses)
@@ -151,15 +162,15 @@ export default function Home() {
                                 )}
                             </View>
                             <View>
-                                <Text className="text-gray-900 dark:text-white font-bold text-[12px]">Welcome back!</Text>
-                                <Text className="text-blue-600 dark:text-blue-400 font-medium text-[10px]">Nice to see you again, {name}</Text>
+                                <Text className="text-gray-900 dark:text-white font-bold text-[12px]">{vibeData.title}</Text>
+                                <Text className="text-blue-600 dark:text-blue-400 font-medium text-[10px]">{vibeData.vibe}</Text>
                             </View>
                         </View>
                     </Animated.View>
                 )}
 
                 <View className="px-4">
-                    <View className="flex-row justify-between items-center mb-6 pt-8">
+                    <View className="flex-row justify-between items-center mb-2 pt-8">
                         <View className="flex-1">
                             <Text className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{greeting}</Text>
                             <Text className="text-gray-500 dark:text-gray-400 text-sm">Track your expenses</Text>
@@ -194,12 +205,12 @@ export default function Home() {
                 </View>
 
                 {/* Filters Row */}
-                <View className="mb-4 px-4">
+                <View className="mb-2 px-4">
                     <View className="flex-row gap-2 mb-3">
-                        <View className="flex-1 flex-row items-center bg-gray-100 dark:bg-gray-900 rounded-xl px-3 py-2.5">
+                        <View className="flex-1 flex-row items-center bg-gray-100 dark:bg-gray-900 rounded-xl px-3 py-1.5">
                             <Ionicons name="search" size={20} color="#9ca3af" />
                             <TextInput
-                                className="flex-1 ml-2 text-base text-gray-800 dark:text-white"
+                                className="flex-1 ml-2 text-base text-gray-800 dark:text-white py-1"
                                 placeholder="Search expenses..."
                                 value={searchQuery}
                                 onChangeText={setSearchQuery}
@@ -213,7 +224,7 @@ export default function Home() {
                         </View>
                         <Pressable
                             onPress={() => setIsFilterExpanded(!isFilterExpanded)}
-                            className={`w-12 items-center justify-center rounded-xl border ${isFilterExpanded ? 'bg-blue-600 border-blue-600' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800'}`}
+                            className={`w-12 h-[42px] items-center justify-center rounded-xl border ${isFilterExpanded ? 'bg-blue-600 border-blue-600' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800'}`}
                         >
                             <Ionicons name={isFilterExpanded ? "grid" : "grid-outline"} size={20} color={isFilterExpanded ? "white" : "#6b7280"} />
                         </Pressable>
@@ -291,7 +302,7 @@ export default function Home() {
                     )}
                 </View>
 
-                <ScrollView showsVerticalScrollIndicator={false} className="flex-1 pb-20 mt-4 px-4">
+                <ScrollView showsVerticalScrollIndicator={false} className="flex-1 pb-20 mt-0 px-4">
                     {(() => {
                         const filtered = expenses.filter(e => {
                             const matchesSearch = e.description.toLowerCase().includes(searchQuery.toLowerCase());

@@ -2,7 +2,7 @@ import { View, Text, Pressable, TextInput, Alert, Animated } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import { Expense, useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DatePicker } from "./ui/DatePicker";
 import { CategoryPicker } from "./CategoryPicker";
 import { formatAmount } from "../lib/format";
@@ -45,6 +45,7 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
     const [type, setType] = useState<'expense' | 'income'>(expense.type || 'expense');
 
     const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
+    const amountInputRef = useRef<TextInput>(null);
 
     // Reset category when type changes
     useEffect(() => {
@@ -116,7 +117,7 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
 
     if (effectiveIsEditing) {
         return (
-            <View className={`bg-blue-50/50 p-4 ${!isLast ? 'border-b border-gray-100' : ''}`}>
+            <View className={`bg-blue-50 dark:bg-blue-900/30 p-4 border-l-4 border-l-blue-500 ${!isLast ? 'border-b border-gray-100 dark:border-gray-800' : ''}`}>
                 {/* Header Close */}
                 <View className="flex-row justify-end items-center mb-2">
                     <Pressable onPress={() => effectiveSetIsEditing(false)}>
@@ -126,10 +127,11 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
 
                 {/* ROW 1: Description */}
                 <TextInput
-                    className="text-gray-900 font-bold text-base p-2 bg-white rounded-lg mb-3"
+                    className="text-gray-900 dark:text-white font-bold text-base p-2 bg-white dark:bg-gray-800 rounded-lg mb-3"
                     value={description}
                     onChangeText={setDescription}
                     placeholder="Description"
+                    placeholderTextColor="#9ca3af"
                 />
 
                 {/* ROW 1.5: Type Toggle */}
@@ -142,11 +144,11 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                             alignItems: 'center',
                             borderRadius: 8,
                             borderWidth: 1,
-                            borderColor: type === 'expense' ? '#fecaca' : '#e5e7eb',
-                            backgroundColor: type === 'expense' ? '#fef2f2' : '#f9fafb',
+                            borderColor: type === 'expense' ? '#fecaca' : '#374151',
+                            backgroundColor: type === 'expense' ? '#fef2f2' : '#1f2937',
                         }}
                     >
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: type === 'expense' ? '#ef4444' : '#9ca3af' }}>EXPENSE</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: type === 'expense' ? '#ef4444' : '#6b7280' }}>EXPENSE</Text>
                     </Pressable>
                     <Pressable
                         onPress={() => setType('income')}
@@ -156,11 +158,11 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                             alignItems: 'center',
                             borderRadius: 8,
                             borderWidth: 1,
-                            borderColor: type === 'income' ? '#bbf7d0' : '#e5e7eb',
-                            backgroundColor: type === 'income' ? '#f0fdf4' : '#f9fafb',
+                            borderColor: type === 'income' ? '#bbf7d0' : '#374151',
+                            backgroundColor: type === 'income' ? '#f0fdf4' : '#1f2937',
                         }}
                     >
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: type === 'income' ? '#22c55e' : '#9ca3af' }}>INCOME</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: type === 'income' ? '#22c55e' : '#6b7280' }}>INCOME</Text>
                     </Pressable>
                 </View>
 
@@ -169,12 +171,14 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                     <View className="flex-1">
                         <DatePicker value={date} onChange={setDate} />
                     </View>
-                    <View className="flex-1 bg-white rounded-lg overflow-hidden">
-                        <View className="flex-row items-center justify-end px-2 py-2">
-                            <Text className="font-bold mr-1 text-base text-gray-400">
-                            </Text>
+                    <Pressable
+                        onPress={() => amountInputRef.current?.focus()}
+                        className="flex-1 bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700"
+                    >
+                        <View className="flex-row items-center justify-end px-3 py-2.5">
                             <TextInput
-                                className="font-bold text-lg text-gray-900 min-w-[50px] text-right p-0"
+                                ref={amountInputRef}
+                                className="font-bold text-lg text-gray-900 dark:text-white min-w-[80px] text-right p-0"
                                 value={amount}
                                 onChangeText={handleAmountChange}
                                 keyboardType="numeric"
@@ -189,32 +193,32 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                                 }}
                             />
                         </View>
-                    </View>
+                    </Pressable>
                 </View>
 
                 {/* ROW 3: Category | Actions */}
                 <View className="flex-row items-center justify-between">
                     <Pressable
                         onPress={() => setCategoryPickerVisible(true)}
-                        className="flex-row items-center bg-white px-3 py-1.5 rounded-lg shadow-sm"
+                        className="flex-row items-center bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg shadow-sm"
                     >
                         <View className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: catColor }} />
-                        <Text className="text-gray-700 text-xs font-semibold">{selectedCategory}</Text>
+                        <Text className="text-gray-700 dark:text-gray-300 text-xs font-semibold">{selectedCategory}</Text>
                     </Pressable>
 
                     <View className="flex-row items-center gap-2">
                         <Pressable
                             onPress={handleDelete}
-                            className="p-2 rounded-full bg-red-50"
+                            className="p-2 rounded-full bg-red-50 dark:bg-red-900/20"
                         >
                             <Ionicons name="trash-outline" size={20} color="#ef4444" />
                         </Pressable>
 
                         <Pressable
                             onPress={handleSave}
-                            className="p-2 rounded-full bg-blue-100"
+                            className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30"
                         >
-                            <Ionicons name="checkmark" size={20} color="#2563eb" />
+                            <Ionicons name="checkmark" size={20} color="#3b82f6" />
                         </Pressable>
                     </View>
                 </View>
@@ -229,7 +233,7 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                     selectedCategory={selectedCategory}
                     type={type}
                 />
-            </View>
+            </View >
         );
     }
 

@@ -101,10 +101,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (userId) loadSettings();
     }, [userId]);
 
-    // Effect to sync NativeWind with system theme when in 'system' mode
+    // Effect to sync NativeWind with app theme
     useEffect(() => {
         if (theme === 'system') {
             setColorScheme(systemScheme || 'light');
+        } else if (theme === 'light' || theme === 'dark') {
+            setColorScheme(theme);
         }
     }, [theme, systemScheme, setColorScheme]);
 
