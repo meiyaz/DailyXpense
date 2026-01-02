@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState, useMemo, useEffect } from "react";
 import ExportModal from "../components/ExportModal";
 import { FloatingBackground } from "../components/FloatingBackground";
+import { CustomAlert } from "../components/ui/CustomAlert";
 
 export default function Home() {
     // Hooks & State
@@ -30,6 +31,21 @@ export default function Home() {
     const [tourStep, setTourStep] = useState(0);
     const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
     const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        icon: undefined as any,
+        buttons: [] as any[]
+    });
+
+    const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+
+    const showCustomAlert = (title: string, message: string, icon: any, buttons: any[] = [{ text: "OK" }]) => {
+        setAlertConfig({ visible: true, title, message, icon, buttons });
+    };
 
     // Sound Logic
     const playWelcomeSound = async () => {
@@ -68,7 +84,7 @@ export default function Home() {
 
     const handleSaveNickname = () => {
         if (!newNickname.trim()) {
-            Alert.alert("Required", "Please enter a nickname.");
+            showCustomAlert("Required", "Please enter a nickname.", "alert-circle");
             return;
         }
         updateSettings({ name: newNickname.trim() });
@@ -163,10 +179,15 @@ export default function Home() {
                                     if (isPremium) {
                                         router.push('/dashboard');
                                     } else {
-                                        Alert.alert("Premium Feature", "The Analytics Dashboard is available exclusively to Pro members.", [
-                                            { text: "Cancel", style: "cancel" },
-                                            { text: "Upgrade", style: "default", onPress: () => router.push("/settings") }
-                                        ]);
+                                        showCustomAlert(
+                                            "Premium Feature",
+                                            "The Analytics Dashboard is available exclusively to Pro members.",
+                                            "lock-closed",
+                                            [
+                                                { text: "Cancel", style: "cancel" },
+                                                { text: "Upgrade", style: "default", onPress: () => router.push("/settings") }
+                                            ]
+                                        );
                                     }
                                 }}
                                 className="w-10 h-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full items-center justify-center shadow-sm active:bg-gray-50 dark:active:bg-gray-800"
@@ -414,7 +435,7 @@ export default function Home() {
                                                 updateSettings({ name: newNickname.trim() });
                                                 setTourStep(2);
                                             } else {
-                                                Alert.alert("Please enter a name");
+                                                showCustomAlert("Required", "Please enter a name", "alert-circle");
                                             }
                                         }}
                                         className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
@@ -454,6 +475,15 @@ export default function Home() {
                     </View>
                 </View>
             </Modal>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                icon={alertConfig.icon}
+                buttons={alertConfig.buttons}
+                onClose={closeAlert}
+            />
         </View>
     );
 }

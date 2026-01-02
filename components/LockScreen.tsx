@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, Platform, StyleSheet, Dimensions, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Platform, StyleSheet, Dimensions, ActivityIndicator, TextInput, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSettings } from '../store/SettingsContext';
 import { useAuth } from '../store/AuthContext';
 import { useRouter } from 'expo-router';
+import { CustomAlert } from './ui/CustomAlert';
 
 const { width } = Dimensions.get('window');
 
@@ -12,6 +13,19 @@ export default function LockScreen() {
     const { setIsAppUnlocked, securityPin, biometricsEnabled, appLockEnabled, updateSettings } = useSettings();
     const { user, sendOtp, verifyOtp, signOut } = useAuth();
     const router = useRouter();
+
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        icon: undefined as any,
+        buttons: [] as any[]
+    });
+
+    const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+    const showCustomAlert = (title: string, message: string, icon: any, buttons: any[] = [{ text: "OK" }]) => {
+        setAlertConfig({ visible: true, title, message, icon, buttons });
+    };
 
     const [mode, setMode] = useState<'entry' | 'recovery_otp' | 'reset_pin'>('entry');
     const [pin, setPin] = useState('');
@@ -33,15 +47,15 @@ export default function LockScreen() {
 
             if (!hasHardware || !isEnrolled) {
                 if (!biometricsEnabled) {
-                    Alert.alert("Not Enabled", "Biometric authentication is not enabled or supported on this device.");
+                    showCustomAlert("Not Enabled", "Biometric authentication is not enabled or supported on this device.", "finger-print");
                 } else {
-                    Alert.alert("Not Ready", "Biometric hardware is not available or no fingerprints/faces are enrolled.");
+                    showCustomAlert("Not Ready", "Biometric hardware is not available or no fingerprints/faces are enrolled.", "finger-print");
                 }
                 return;
             }
 
             if (!biometricsEnabled) {
-                Alert.alert("Notice", "Biometrics are supported but not enabled in Settings. Please enable them first.", [
+                showCustomAlert("Notice", "Biometrics are supported but not enabled in Settings. Please enable them first.", "finger-print", [
                     { text: "Use PIN", style: "default" }
                 ]);
                 return;
@@ -73,7 +87,7 @@ export default function LockScreen() {
                 } else {
                     setError(true);
                     setPin('');
-                    Alert.alert("Invalid PIN", "The PIN you entered is incorrect.");
+                    showCustomAlert("Invalid PIN", "The PIN you entered is incorrect.", "close-circle");
                 }
             }
         } else if (mode === 'reset_pin') {
@@ -84,7 +98,7 @@ export default function LockScreen() {
             if (updatedPin.length === 4) {
                 updateSettings({ securityPin: updatedPin, appLockEnabled: true });
                 setIsAppUnlocked(true);
-                Alert.alert("Success", "Your security PIN has been reset.");
+                showCustomAlert("Success", "Your security PIN has been reset.", "checkmark-circle");
             }
         }
     };
@@ -96,13 +110,13 @@ export default function LockScreen() {
         try {
             const { error } = await sendOtp(user.email);
             if (error) {
-                Alert.alert("Error", error.message);
+                showCustomAlert("Error", error.message, "alert-circle");
             } else {
                 setMode('recovery_otp');
                 setOtp('');
             }
         } catch (e: any) {
-            Alert.alert("Error", e.message);
+            showCustomAlert("Error", e.message, "alert-circle");
         } finally {
             setLoading(false);
         }
@@ -115,13 +129,13 @@ export default function LockScreen() {
         try {
             const { error } = await verifyOtp(user.email, otp);
             if (error) {
-                Alert.alert("Verification Failed", "The code you entered is invalid or expired.");
+                showCustomAlert("Verification Failed", "The code you entered is invalid or expired.", "close-circle");
             } else {
                 setMode('reset_pin');
                 setNewPin('');
             }
         } catch (e: any) {
-            Alert.alert("Error", e.message);
+            showCustomAlert("Error", e.message, "alert-circle");
         } finally {
             setLoading(false);
         }
@@ -269,20 +283,34 @@ export default function LockScreen() {
                 <TouchableOpacity
                     className="mt-8"
                     onPress={() => {
-                        Alert.alert("Sign Out", "Are you sure you want to sign out? You will need to login again with your email.", [
-                            { text: "Cancel", style: "cancel" },
-                            {
-                                text: "Sign Out", style: "destructive", onPress: async () => {
-                                    await signOut();
-                                    // layout handles redirection
+                        showCustomAlert(
+                            "Sign Out",
+                            "Are you sure you want to sign out? You will need to login again with your email.",
+                            "log-out",
+                            [
+                                { text: "Cancel", style: "cancel" },
+                                {
+                                    text: "Sign Out", style: "destructive", onPress: async () => {
+                                        await signOut();
+                                        // layout handles redirection
+                                    }
                                 }
-                            }
-                        ]);
+                            ]
+                        );
                     }}
                 >
                     <Text className="text-red-400 font-medium text-xs uppercase tracking-widest">or sign out</Text>
                 </TouchableOpacity>
             )}
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                icon={alertConfig.icon}
+                buttons={alertConfig.buttons}
+                onClose={closeAlert}
+            />
         </View>
     );
 }

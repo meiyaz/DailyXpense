@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextInput, ActivityIndicator, Alert, Keyboard, Image, StyleSheet } from "react-native";
+import { View, Text, Pressable, TextInput, ActivityIndicator, Keyboard, Image, StyleSheet } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,6 +8,7 @@ import { useSettings } from "../store/SettingsContext";
 import * as LocalAuthentication from "expo-local-authentication";
 import { useColorScheme as useRNColorScheme, Platform } from "react-native";
 import { FloatingBackground } from "../components/FloatingBackground";
+import { CustomAlert } from "../components/ui/CustomAlert";
 
 export default function Login() {
     const { sendOtp, verifyOtp, signInWithGoogle } = useAuth();
@@ -26,6 +27,20 @@ export default function Login() {
     const [emailError, setEmailError] = useState("");
     const [sendSuccess, setSendSuccess] = useState(false);
     const { isAuthenticated } = useAuth();
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        icon: undefined as any,
+        buttons: [] as any[]
+    });
+
+    const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+    const showCustomAlert = (title: string, message: string, icon: any, buttons: any[] = [{ text: "OK" }]) => {
+        setAlertConfig({ visible: true, title, message, icon, buttons });
+    };
 
     useEffect(() => {
         if (resendTimer <= 0) return;
@@ -94,7 +109,7 @@ export default function Login() {
                 setResendTimer(30);
             }
         } catch (e: any) {
-            Alert.alert("Error", e.message);
+            showCustomAlert("Error", e.message, "alert-circle");
         } finally {
             setLoading(false);
         }
@@ -105,7 +120,7 @@ export default function Login() {
         const cleanOtp = otp.trim();
 
         if (cleanOtp.length !== 6) {
-            Alert.alert("Error", "Please enter the 6-digit code");
+            showCustomAlert("Error", "Please enter the 6-digit code", "alert-circle");
             return;
         }
 
@@ -113,7 +128,7 @@ export default function Login() {
         try {
             const { error, session } = await verifyOtp(cleanEmail, cleanOtp);
             if (error) {
-                Alert.alert("Verification Failed", error.message || JSON.stringify(error));
+                showCustomAlert("Verification Failed", error.message || JSON.stringify(error), "close-circle");
             } else if (session) {
                 // Check if we need to set up a PIN (Native only)
                 if (Platform.OS !== 'web' && !securityPin) {
@@ -124,7 +139,7 @@ export default function Login() {
                 }
             }
         } catch (e: any) {
-            Alert.alert("Error", e.message);
+            showCustomAlert("Error", e.message, "alert-circle");
         } finally {
             setLoading(false);
         }
@@ -132,7 +147,7 @@ export default function Login() {
 
     const handleCompletePinSetup = async () => {
         if (pin !== confirmPin) {
-            Alert.alert("Error", "PINs do not match. Please try again.");
+            showCustomAlert("Error", "PINs do not match. Please try again.", "alert-circle");
             setPin("");
             setConfirmPin("");
             setMode("setup_pin");
@@ -148,11 +163,12 @@ export default function Login() {
             let useBiometrics = false;
             if (hasHardware && isEnrolled) {
                 const result = await new Promise((resolve) => {
-                    Alert.alert(
+                    showCustomAlert(
                         "Enable Biometrics",
                         "Would you like to use FaceID or Fingerprint for faster access?",
+                        "finger-print",
                         [
-                            { text: "Later", onPress: () => resolve(false) },
+                            { text: "Later", onPress: () => resolve(false), style: 'cancel' },
                             { text: "Enable", onPress: () => resolve(true) }
                         ]
                     );
@@ -169,7 +185,7 @@ export default function Login() {
             setIsAppUnlocked(true);
             router.replace("/");
         } catch (e: any) {
-            Alert.alert("Error", "Failed to save security settings.");
+            showCustomAlert("Error", "Failed to save security settings.", "alert-circle");
         } finally {
             setLoading(false);
         }
@@ -179,9 +195,9 @@ export default function Login() {
         setLoading(true);
         try {
             const { error } = await signInWithGoogle();
-            if (error) Alert.alert("Google Sign-In Failed", error.message);
+            if (error) showCustomAlert("Google Sign-In Failed", error.message, "logo-google");
         } catch (e: any) {
-            Alert.alert("Error", e.message);
+            showCustomAlert("Error", e.message, "alert-circle");
         } finally {
             setLoading(false);
         }
@@ -469,6 +485,14 @@ export default function Login() {
                 </View>
 
             </View>
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                icon={alertConfig.icon}
+                buttons={alertConfig.buttons}
+                onClose={closeAlert}
+            />
         </View>
     );
 }

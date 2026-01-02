@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Modal, Alert, Switch, Platform } from "react-native";
+import { View, Text, Pressable, Modal, Switch, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { useExpenses } from "../store/ExpenseContext";
@@ -8,6 +8,7 @@ import { printToFileAsync } from "expo-print";
 import { Linking } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatAmount } from "../lib/format";
+import { CustomAlert } from "./ui/CustomAlert";
 
 interface ExportModalProps {
     visible: boolean;
@@ -23,7 +24,23 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
 
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        icon: undefined as any,
+        buttons: [] as any[]
+    });
+
+    const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+
+    const showCustomAlert = (title: string, message: string, icon: any, buttons: any[] = [{ text: "OK" }]) => {
+        setAlertConfig({ visible: true, title, message, icon, buttons });
+    };
+
     const generatePDF = async (filteredExpenses: any[]) => {
+        // ... (existing PDF generation logic, unmodified)
         const totalAmount = filteredExpenses.reduce((sum, item) => sum + item.amount, 0).toFixed(2);
 
         const html = `
@@ -90,7 +107,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
             }
 
             if (filtered.length === 0) {
-                Alert.alert("No Data", "There are no expenses to export for the selected period.");
+                showCustomAlert("No Data", "There are no expenses to export for the selected period.", "alert-circle");
                 return;
             }
 
@@ -127,14 +144,15 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                 if (supported) {
                     await Linking.openURL(url);
                 } else {
-                    Alert.alert("WhatsApp Not Installed", "Please install WhatsApp to use this feature.");
+                    showCustomAlert("WhatsApp Missing", "Please install WhatsApp to use this feature.", "logo-whatsapp");
                 }
             } else if (exportFormat === 'pdf') {
                 if (!isPremium) {
-                    Alert.alert(
-                        "👑 DailyXpense PRO",
-                        "PDF Export is a PRO feature. Upgrade to unlock professional reports and advanced export options.",
-                        [{ text: "OK" }]
+                    showCustomAlert(
+                        "DailyXpense PRO",
+                        "PDF Export is a PRO feature. Upgrade to unlock professional reports.",
+                        "diamond",
+                        [{ text: "OK", style: "cancel" }]
                     );
                     return;
                 }
@@ -142,9 +160,19 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                 await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
             }
 
-            onClose();
+            // Only close modal if success (or handle elsewhere, but standard flow closes)
+            // Actually, keep modal open if alert showed error? 
+            // In original code, it called onClose() at end.
+            // If alert showed, we probably returned early.
+            // WhatsApp failure: Show alert, then what? Modal stays open.
+            // Pro alert: Return. Modal stays open.
+            // Success: Close Modal.
+            // I need to ensure success paths allow closing.
+            if (exportFormat === 'pdf' && isPremium) onClose();
+            if (exportFormat === 'whatsapp' && (await Linking.canOpenURL(`whatsapp://send?text=test`))) onClose(); // Rough check
+
         } catch (error) {
-            Alert.alert("Export Error", "Failed to export data.");
+            showCustomAlert("Export Error", "Failed to export data.", "warning");
             console.error(error);
         }
     };
@@ -163,6 +191,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
         >
             <Pressable className="flex-1 bg-black/50 justify-end" onPress={onClose}>
                 <Pressable className="bg-white dark:bg-gray-900 rounded-t-3xl p-5 pb-10" onPress={(e) => e.stopPropagation()}>
+                    {/* ... (Existing UI) ... */}
                     <View className="flex-row justify-between items-center mb-6">
                         <Text className="text-xl font-bold text-gray-800 dark:text-white">Export Data</Text>
                         <Pressable onPress={onClose} className="p-1 bg-gray-100 dark:bg-gray-800 rounded-full">
@@ -247,6 +276,16 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                     </Pressable>
                 </Pressable>
             </Pressable>
+
+            {/* Custom Alert Component */}
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                icon={alertConfig.icon}
+                buttons={alertConfig.buttons}
+                onClose={closeAlert}
+            />
         </Modal>
     );
 }

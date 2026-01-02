@@ -1,11 +1,25 @@
-import React from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../store/AuthContext";
 import Constants from 'expo-constants';
+import { CustomAlert } from "../ui/CustomAlert";
 
 export const AccountSection: React.FC = () => {
     const { signOut, user } = useAuth();
+
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        icon: undefined as any,
+        buttons: [] as any[]
+    });
+
+    const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+    const showCustomAlert = (title: string, message: string, icon: any, buttons: any[] = [{ text: "OK" }]) => {
+        setAlertConfig({ visible: true, title, message, icon, buttons });
+    };
 
     return (
         <View className="mb-8">
@@ -14,10 +28,15 @@ export const AccountSection: React.FC = () => {
                 {/* Sign Out */}
                 <Pressable
                     onPress={() => {
-                        Alert.alert("Log Out", "Are you sure you want to log out?", [
-                            { text: "Cancel", style: "cancel" },
-                            { text: "Log Out", style: "destructive", onPress: () => signOut() }
-                        ]);
+                        showCustomAlert(
+                            "Log Out",
+                            "Are you sure you want to log out?",
+                            "log-out",
+                            [
+                                { text: "Cancel", style: "cancel" },
+                                { text: "Log Out", style: "destructive", onPress: () => signOut() }
+                            ]
+                        );
                     }}
                     className="flex-row items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 active:bg-gray-100 dark:active:bg-gray-800"
                 >
@@ -52,6 +71,15 @@ export const AccountSection: React.FC = () => {
                 <Text className="text-[10px] text-gray-300 dark:text-gray-600">DailyXpense v2.1.0 (PRO)</Text>
                 <Text className="text-[9px] text-gray-300 dark:text-gray-700 mt-0.5">Build: {Constants.expoConfig?.version || 'Stable'}</Text>
             </View>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                icon={alertConfig.icon}
+                buttons={alertConfig.buttons}
+                onClose={closeAlert}
+            />
         </View>
     );
 };

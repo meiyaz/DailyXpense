@@ -21,6 +21,7 @@ import { SecuritySection } from "../components/settings/SecuritySection";
 import { PremiumSection } from "../components/settings/PremiumSection";
 import { AccountSection } from "../components/settings/AccountSection";
 import { CategoryModal } from "../components/settings/CategoryModal";
+import { CustomAlert } from "../components/ui/CustomAlert";
 // import * as Notifications from 'expo-notifications';
 // import * as Device from 'expo-device';
 
@@ -78,6 +79,20 @@ export default function Settings() {
     const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
     const [showThemePicker, setShowThemePicker] = useState(false);
 
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        icon: undefined as any,
+        buttons: [] as any[]
+    });
+
+    const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+    const showCustomAlert = (title: string, message: string, icon: any, buttons: any[] = [{ text: "OK" }]) => {
+        setAlertConfig({ visible: true, title, message, icon, buttons });
+    };
+
     // Category Creator/Editor State
     const [showCategoryCreator, setShowCategoryCreator] = useState(false);
     const [editingCategory, setEditingCategory] = useState<any>(null); // Store category being edited
@@ -117,7 +132,7 @@ export default function Settings() {
         // Simulate sync delay
         setTimeout(() => {
             setIsSyncing(false);
-            Alert.alert("Sync Complete", "Your data has been successfully synced to the cloud.");
+            showCustomAlert("Sync Complete", "Your data has been successfully synced to the cloud.", "cloud-done");
         }, 2000);
     };
 
@@ -295,9 +310,10 @@ export default function Settings() {
     const handleDeleteFromModal = () => {
         if (!editingCategory) return;
 
-        Alert.alert(
+        showCustomAlert(
             "Delete Category",
             `Are you sure you want to delete "${editingCategory.name}" ? `,
+            "trash",
             [
                 { text: "Cancel", style: "cancel" },
                 {
@@ -334,7 +350,7 @@ export default function Settings() {
             if (useCamera) {
                 const permission = await ImagePicker.requestCameraPermissionsAsync();
                 if (!permission.granted) {
-                    Alert.alert("Permission Required", "Camera access is needed to take a photo.");
+                    showCustomAlert("Permission Required", "Camera access is needed to take a photo.", "camera");
                     return;
                 }
                 result = await ImagePicker.launchCameraAsync({
@@ -369,13 +385,13 @@ export default function Settings() {
             }
         } catch (error) {
             console.error("Error picking image:", error);
-            Alert.alert("Error", "Failed to process image. Please try again.");
+            showCustomAlert("Error", "Failed to process image. Please try again.", "alert-circle");
         }
     };
 
     const handleToggleNotifications = async (value: boolean) => {
         if (Platform.OS === 'web') {
-            if (value) Alert.alert("Coming Soon", "Web notifications are currently under development.");
+            if (value) showCustomAlert("Coming Soon", "Web notifications are currently under development.", "construct");
             updateSettings({ notificationsEnabled: false });
             return;
         }
@@ -402,7 +418,7 @@ export default function Settings() {
                     }
                 } else {
                     // Permission denied, force disable
-                    Alert.alert("Permission Required", "Please enable notifications in your device settings to receive reminders.");
+                    showCustomAlert("Permission Required", "Please enable notifications in your device settings to receive reminders.", "notifications-off");
                     updateSettings({ notificationsEnabled: false });
                 }
             } catch (e) {
@@ -472,7 +488,7 @@ export default function Settings() {
                         handleToggleNotifications={handleToggleNotifications}
                         onTimePickerPress={() => {
                             if (Platform.OS === 'web') {
-                                Alert.alert("Coming Soon", "Web notifications are currently under development.");
+                                showCustomAlert("Coming Soon", "Web notifications are currently under development.", "construct");
                                 return;
                             }
                             setTempPickerDate(getDateFromTimeStr(reminderTime));
@@ -797,9 +813,9 @@ export default function Settings() {
                                     if (tempPin.length === 4) {
                                         updateSettings({ securityPin: tempPin, appLockEnabled: true });
                                         setShowPinModal(false);
-                                        Alert.alert("Success", "App Lock is now enabled with your new PIN.");
+                                        showCustomAlert("Success", "App Lock is now enabled with your new PIN.", "lock-closed");
                                     } else {
-                                        Alert.alert("Invalid PIN", "Please enter a 4-digit PIN.");
+                                        showCustomAlert("Invalid PIN", "Please enter a 4-digit PIN.", "close-circle");
                                     }
                                 }}
                                 className="flex-1 bg-primary p-3 rounded-xl items-center"
@@ -809,7 +825,7 @@ export default function Settings() {
                         </View>
                     </Pressable>
                 </Pressable>
-            </Modal>
+            </Modal >
 
             <Modal
                 animationType="fade"
@@ -884,7 +900,7 @@ export default function Settings() {
                                 onPress={() => {
                                     const val = parseInt(tempMaxAmount || '0', 10);
                                     if (val < 100) {
-                                        Alert.alert("Limit Too Low", "Minimum limit must be at least 100.");
+                                        showCustomAlert("Limit Too Low", "Minimum limit must be at least 100.", "alert-circle");
                                         return;
                                     }
                                     updateSettings({ maxAmount: val });
@@ -923,6 +939,15 @@ export default function Settings() {
                     updateSettings({ reminderTime: `${h}:${m}` });
                     setShowTimePicker(false);
                 }}
+            />
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                icon={alertConfig.icon}
+                buttons={alertConfig.buttons}
+                onClose={closeAlert}
             />
         </View >
     );

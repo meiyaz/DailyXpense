@@ -7,6 +7,7 @@ import { DatePicker } from "./ui/DatePicker";
 import { CategoryPicker } from "./CategoryPicker";
 import { formatAmount } from "../lib/format";
 import { predictCategory } from "../services/CategoryPredictor";
+import { CustomAlert } from "./ui/CustomAlert";
 
 interface ExpenseListItemProps {
     expense: Expense;
@@ -36,6 +37,19 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
         } else {
             setLocalIsEditing(val);
         }
+    };
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        icon: undefined as any,
+        buttons: [] as any[]
+    });
+    const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+    const showCustomAlert = (title: string, message: string, icon: any, buttons: any[] = [{ text: "OK" }]) => {
+        setAlertConfig({ visible: true, title, message, icon, buttons });
     };
 
     // Edit State
@@ -83,17 +97,22 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
     const catIcon: any = categoryObj ? categoryObj.icon : "pricetag";
 
     const handleDelete = () => {
-        Alert.alert("Delete", "Are you sure?", [
-            { text: "Cancel", style: "cancel" },
-            {
-                text: "Delete",
-                style: "destructive",
-                onPress: () => {
-                    deleteExpense(expense.id);
-                    // effectiveSetIsEditing(false); // No need, item unmounts
+        showCustomAlert(
+            "Delete Transaction",
+            "Are you sure you want to delete this transaction?",
+            "trash",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => {
+                        deleteExpense(expense.id);
+                        // effectiveSetIsEditing(false); // No need, item unmounts
+                    }
                 }
-            }
-        ]);
+            ]
+        );
     };
 
     const handleSave = () => {
@@ -258,6 +277,14 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                     selectedCategory={selectedCategory}
                     type={type}
                 />
+                <CustomAlert
+                    visible={alertConfig.visible}
+                    title={alertConfig.title}
+                    message={alertConfig.message}
+                    icon={alertConfig.icon}
+                    buttons={alertConfig.buttons}
+                    onClose={closeAlert}
+                />
             </View >
         );
     }
@@ -299,6 +326,15 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                     {expense.type === 'income' ? '+' : ''}{formatAmount(expense.amount)}
                 </Text>
             </View>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                icon={alertConfig.icon}
+                buttons={alertConfig.buttons}
+                onClose={closeAlert}
+            />
         </Pressable>
     );
 }

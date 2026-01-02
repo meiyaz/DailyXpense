@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Pressable, Platform, Alert, Animated, KeyboardAvoidingView, Modal, useColorScheme } from "react-native";
+import { View, Text, TextInput, Pressable, Platform, Animated, KeyboardAvoidingView, Modal, useColorScheme } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CategoryPicker } from "./CategoryPicker";
 import { DatePicker } from "./ui/DatePicker";
 import { predictCategory } from "../services/CategoryPredictor";
+import { CustomAlert } from "./ui/CustomAlert";
 
 export function AddExpense() {
     const { addExpense, expenses } = useExpenses();
@@ -26,6 +27,19 @@ export function AddExpense() {
     // UI State
     const [isExpanded, setIsExpanded] = useState(false);
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        icon: undefined as any,
+        buttons: [] as any[]
+    });
+    const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+    const showCustomAlert = (title: string, message: string, icon: any, buttons: any[] = [{ text: "OK" }]) => {
+        setAlertConfig({ visible: true, title, message, icon, buttons });
+    };
 
     // MRU Logic
     const getMRUCategories = () => {
@@ -92,7 +106,7 @@ export function AddExpense() {
 
     const handleSubmit = () => {
         if (!description.trim() || !amount || !selectedCategory) {
-            Alert.alert("Missing Info", "Please fill in all fields.");
+            showCustomAlert("Missing Info", "Please fill in all fields.", "alert-circle");
             return;
         }
 
@@ -306,6 +320,15 @@ export function AddExpense() {
                     type={type}
                 />
             </Modal>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                icon={alertConfig.icon}
+                buttons={alertConfig.buttons}
+                onClose={closeAlert}
+            />
         </>
     );
 }
