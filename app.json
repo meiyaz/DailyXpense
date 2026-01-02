@@ -24,6 +24,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.dailyxpense.app",
+      "newArchEnabled": true,
       "notification": {
         "icon": "./assets/icon.png",
         "color": "#2563eb"
