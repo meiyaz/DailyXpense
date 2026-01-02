@@ -48,7 +48,25 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
                 // STEP 2: Handle Native initialization (Local DB migration & Sync Service)
                 await migrateDb(); // Ensure table exists
                 SyncService.init();
+
+                // NATIVE MIGRATION: If we just logged in, move offline expenses to this user
+                if (userId !== "offline_user") {
+                    await db.update(expensesSchema)
+                        .set({
+                            userId: userId,
+                            syncStatus: 'PENDING', // Mark for push
+                            updatedAt: new Date()
+                        })
+                        .where(eq(expensesSchema.userId, "offline_user"));
+                }
+
                 await loadExpenses();
+
+                // Trigger an initial sync to pull latest cloud data
+                if (userId !== "offline_user") {
+                    await SyncService.sync();
+                    await loadExpenses(); // Refresh after sync
+                }
             } catch (e: any) {
                 console.error("Failed to initialize database", e);
             }
