@@ -291,6 +291,7 @@ export default function Login() {
 
                                 <View className="border-b-2 border-gray-200 pb-2">
                                     <TextInput
+                                        style={Platform.OS === 'web' ? { outlineStyle: 'none' } as any : undefined}
                                         className="text-2xl font-semibold text-gray-900 h-12"
                                         placeholder="name@example.com"
                                         placeholderTextColor="#9ca3af"
@@ -480,7 +481,7 @@ export default function Login() {
                     )}
 
                     <View className="mt-8 items-center">
-                        <Text className="text-[10px] text-gray-300 font-bold tracking-[0.4em] uppercase">DailyXpense Enterprise Edition</Text>
+                        <Text className="text-[10px] text-gray-300 font-bold tracking-[0.4em] uppercase">Secure • Private • Yours</Text>
                     </View>
                 </View>
 

@@ -51,29 +51,47 @@ function RootStack() {
         return <LockScreen />;
     }
 
+    // Web-Optimized Layout: Clean, centered, tablet-width column
+    const webContainerStyle = Platform.OS === 'web' ? {
+        maxWidth: 800,
+        width: '100%',
+        alignSelf: 'center' as const,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+    } : { flex: 1 };
+
+    const webWrapperStyle = Platform.OS === 'web' ? {
+        backgroundColor: isDark ? '#111' : '#f0f2f5',
+        alignItems: 'center' as const,
+    } : {};
+
     return (
-        <>
-            <Stack screenOptions={{
-                contentStyle: { backgroundColor: isDark ? 'black' : 'white' },
-                animation: 'slide_from_right',
-                animationDuration: 200
-            }}>
-                <Stack.Screen name="index" options={{ title: "Home", headerShown: false }} />
-                <Stack.Screen name="login" options={{ headerShown: false }} />
-                <Stack.Screen name="settings" options={{ presentation: "modal", title: "Settings" }} />
-                <Stack.Screen name="dashboard" options={{
-                    title: "Dashboard",
-                    headerBackTitle: "Home",
-                    headerShadowVisible: false,
-                    // Dynamic styling handled via screenOptions or component if needed, 
-                    // but static options here are safer.
-                    // Note: accessing isDark here works because RootStack is inside SettingsProvider
-                    headerStyle: { backgroundColor: isDark ? '#000000' : '#f9fafb' },
-                    headerTintColor: isDark ? 'white' : 'black',
-                }} />
-            </Stack>
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-        </>
+        <View style={[{ flex: 1, backgroundColor: isDark ? 'black' : 'white' }, webWrapperStyle]}>
+            <View style={[{ flex: 1, width: '100%', backgroundColor: isDark ? 'black' : 'white' }, webContainerStyle]}>
+                <Stack screenOptions={{
+                    contentStyle: { backgroundColor: isDark ? 'black' : 'white' },
+                    animation: 'slide_from_right',
+                    animationDuration: 200
+                }}>
+                    <Stack.Screen name="index" options={{ title: "Home", headerShown: false }} />
+                    <Stack.Screen name="login" options={{ headerShown: false }} />
+                    <Stack.Screen name="settings" options={{ presentation: "modal", title: "Settings" }} />
+                    <Stack.Screen name="dashboard" options={{
+                        title: "Dashboard",
+                        headerBackTitle: "Home",
+                        headerShadowVisible: false,
+                        // Dynamic styling handled via screenOptions or component if needed, 
+                        // but static options here are safer.
+                        // Note: accessing isDark here works because RootStack is inside SettingsProvider
+                        headerStyle: { backgroundColor: isDark ? '#000000' : '#f9fafb' },
+                        headerTintColor: isDark ? 'white' : 'black',
+                    }} />
+                </Stack>
+                <StatusBar style={isDark ? 'light' : 'dark'} />
+            </View>
+        </View>
     );
 }
 

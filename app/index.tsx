@@ -1,7 +1,7 @@
 import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert, Image, StyleSheet, useColorScheme as useRNColorScheme } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { Audio } from 'expo-av';
-import { Link, useRouter } from "expo-router";
+import { Link, useRouter, usePathname } from "expo-router";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
 import { ExpenseListItem } from "../components/ExpenseListItem";
@@ -17,6 +17,7 @@ export default function Home() {
     // Hooks & State
     const { expenses } = useExpenses();
     const router = useRouter();
+    const pathname = usePathname();
     const { name, categories, updateSettings, theme, isLoading: settingsLoading, isPremium, avatar: settingsAvatar } = useSettings();
 
     const systemScheme = useRNColorScheme();
@@ -72,7 +73,8 @@ export default function Home() {
         const hour = new Date().getHours();
         const isDND = hour >= 0 && hour < 5;
 
-        if (!hasName) {
+        // Only enforce nickname on Home Screen
+        if (!hasName && pathname === '/') {
             if (!isNicknameModalVisible) setIsNicknameModalVisible(true);
         } else if (!isNicknameModalVisible && !showWelcomeBack && !isDND) {
             setShowWelcomeBack(true);
@@ -80,7 +82,7 @@ export default function Home() {
             const timer = setTimeout(() => setShowWelcomeBack(false), 3000);
             return () => clearTimeout(timer);
         }
-    }, [name, settingsLoading]);
+    }, [name, settingsLoading, pathname]);
 
     const handleSaveNickname = () => {
         if (!newNickname.trim()) {
@@ -383,7 +385,7 @@ export default function Home() {
             />
 
             <Modal
-                visible={isNicknameModalVisible}
+                visible={isNicknameModalVisible && pathname === '/'}
                 transparent={true}
                 animationType="fade"
                 onRequestClose={() => { }}

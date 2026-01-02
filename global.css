@@ -40,3 +40,10 @@
 }
 
 /* Cyan 500 */
+
+/* Web Reset: Remove default outlines */
+@media screen {
+  input:focus, textarea:focus, select:focus {
+    outline: none !important;
+  }
+}
