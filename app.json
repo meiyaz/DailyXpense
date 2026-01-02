@@ -5,10 +5,10 @@
     "scheme": "dailyxpense",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon.jpg",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#1a2130"
     },
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.jpg",
         "backgroundColor": "#1a2130"
       },
       "edgeToEdgeEnabled": true,
@@ -26,12 +26,12 @@
       "package": "com.dailyxpense.app",
       "newArchEnabled": true,
       "notification": {
-        "icon": "./assets/icon.png",
+        "icon": "./assets/icon.jpg",
         "color": "#2563eb"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.jpg"
     },
     "plugins": [
       "expo-router",

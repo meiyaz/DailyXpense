@@ -108,7 +108,7 @@ export default function Login() {
         <View className="flex-1 bg-slate-50">
             <View style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]} pointerEvents="none">
                 <Image
-                    source={require('../assets/images/premium_ledger_bg.png')}
+                    source={require('../assets/images/premium_ledger_bg.jpg')}
                     style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', opacity: 0.08 }}
                     resizeMode="cover"
                 />
@@ -251,7 +251,7 @@ export default function Login() {
                         <View className="mb-12 items-center bg-white/80 p-6 rounded-3xl shadow-sm backdrop-blur-md w-full border border-white/40">
                             <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-4 shadow-sm overflow-hidden border border-gray-100/50 p-2">
                                 <Image
-                                    source={require('../assets/logo_premium.png')}
+                                    source={require('../assets/logo_premium.jpg')}
                                     style={{ width: '100%', height: '100%', borderRadius: 12 }}
                                     resizeMode="contain"
                                 />

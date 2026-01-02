@@ -134,7 +134,7 @@ export default function Home() {
             {/* Subtle Premium Background - TRUE FULL SCREEN */}
             <View style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]} pointerEvents="none">
                 <Image
-                    source={require('../assets/images/premium_ledger_bg.png')}
+                    source={require('../assets/images/premium_ledger_bg.jpg')}
                     style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', opacity: isDark ? 0.12 : 0.03 }}
                     resizeMode="cover"
                 />
@@ -385,7 +385,7 @@ export default function Home() {
                             <>
                                 <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50 p-2">
                                     <Image
-                                        source={require('../assets/logo_premium.png')}
+                                        source={require('../assets/logo_premium.jpg')}
                                         style={{ width: '100%', height: '100%', borderRadius: 12 }}
                                         resizeMode="contain"
                                     />
