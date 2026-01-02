@@ -109,6 +109,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }, [theme, systemScheme, setColorScheme]);
 
     const loadSettings = async () => {
+        setIsLoading(true);
         try {
             let loadedSettings: any = null;
 
@@ -288,13 +289,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
         try {
             // 1. Sync to Supabase (All Platforms)
-            // Fire and forget or await? Await to ensure we know if it fails.
-            const { error } = await supabase.from('settings').upsert(payload);
+            // ONLY if logged in (not offline_user)
+            if (userId !== "offline_user") {
+                const { error } = await supabase.from('settings').upsert(payload);
 
-            if (error) {
-                console.error("Supabase settings sync error", error);
-            } else {
-                // Synced to Cloud
+                if (error) {
+                    console.error("Supabase settings sync error", error);
+                }
             }
 
             // 2. Save to Local DB (Native Only)

@@ -31,12 +31,15 @@ function RootStack() {
 
         const inAuthGroup = segments[0] === 'login';
 
-        if (!isAuthenticated && !inAuthGroup) {
-            router.replace('/login');
-        } else if (isAuthenticated && inAuthGroup) {
-            router.replace('/');
-        }
-    }, [isAuthenticated, isLoading, segments, appLockEnabled, isAppUnlocked]);
+        // Use requestAnimationFrame to ensure the navigator is ready for the action
+        requestAnimationFrame(() => {
+            if (!isAuthenticated && !inAuthGroup) {
+                router.replace('/login');
+            } else if (isAuthenticated && inAuthGroup) {
+                router.replace('/');
+            }
+        });
+    }, [isAuthenticated, isLoading, segments, appLockEnabled, isAppUnlocked, navigationState?.key]);
 
     if (isLoading) {
         return <View style={{ flex: 1, backgroundColor: isDark ? 'black' : 'white' }} />;

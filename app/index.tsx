@@ -1,8 +1,9 @@
 import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert, Image, StyleSheet, useColorScheme as useRNColorScheme } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { Audio } from 'expo-av';
 import { Link } from "expo-router";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
-import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { ExpenseListItem } from "../components/ExpenseListItem";
 import { AddExpense } from "../components/AddExpense";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -25,12 +26,41 @@ export default function Home() {
     const [newNickname, setNewNickname] = useState("");
     const [tourStep, setTourStep] = useState(0);
     const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+    const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+
+    // Sound Logic
+    const playWelcomeSound = async () => {
+        try {
+            const { sound } = await Audio.Sound.createAsync(
+                { uri: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3' },
+                { shouldPlay: true, volume: 0.4 }
+            );
+            await sound.playAsync();
+            // Automatically unload sound after playing
+            sound.setOnPlaybackStatusUpdate((status) => {
+                if (status.isLoaded && status.didJustFinish) {
+                    sound.unloadAsync();
+                }
+            });
+        } catch (e) {
+            console.warn("Could not play welcome sound", e);
+        }
+    };
 
     // Ideally: if name is missing, start tour. Logic:
     useEffect(() => {
         if (settingsLoading) return;
-        if ((!name || name.trim() === "") && !isNicknameModalVisible) {
-            setIsNicknameModalVisible(true);
+
+        const hasName = name && name.trim() !== "";
+
+        if (!hasName) {
+            if (!isNicknameModalVisible) setIsNicknameModalVisible(true);
+        } else if (!isNicknameModalVisible && !showWelcomeBack) {
+            // Returning user - Show welcome back briefly if we just loaded
+            setShowWelcomeBack(true);
+            playWelcomeSound(); // Trigger sound
+            const timer = setTimeout(() => setShowWelcomeBack(false), 3000);
+            return () => clearTimeout(timer);
         }
     }, [name, settingsLoading]);
 
@@ -43,8 +73,7 @@ export default function Home() {
         setIsNicknameModalVisible(false);
     };
 
-    // Auth Protection
-    useProtectedRoute();
+
 
     // Helper to determine if avatar is an icon or emoji
     const isIcon = (str: string) => str && (str.includes("-") || str === "person" || str === "person-circle" || str === "happy" || str === "glasses" || str === "woman" || str === "man" || str === "pricetag");
@@ -98,10 +127,37 @@ export default function Home() {
                     style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', opacity: isDark ? 0.12 : 0.03 }}
                     resizeMode="cover"
                 />
-                <FloatingBackground />
             </View>
 
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
+                {/* Welcome Back Overlay */}
+                {showWelcomeBack && name && (
+                    <Animated.View
+                        entering={FadeIn.delay(500).duration(800)}
+                        exiting={FadeOut.duration(500)}
+                        style={{ zIndex: 100 }}
+                        className="absolute top-16 left-4 right-4 items-center"
+                    >
+                        <View className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-xl shadow-lg border border-blue-500/20 backdrop-blur-md flex-row items-center">
+                            <View className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center mr-2">
+                                {isImage(avatar) ? (
+                                    <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />
+                                ) : isIcon(avatar) ? (
+                                    <Ionicons name={avatar as any} size={12} color="#2563eb" />
+                                ) : (
+                                    <View className="items-center justify-center">
+                                        <Text style={{ fontSize: 12 }}>{avatar || "👤"}</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <View>
+                                <Text className="text-gray-900 dark:text-white font-bold text-[12px]">Welcome back!</Text>
+                                <Text className="text-blue-600 dark:text-blue-400 font-medium text-[10px]">Nice to see you again, {name}</Text>
+                            </View>
+                        </View>
+                    </Animated.View>
+                )}
+
                 <View className="px-4">
                     <View className="flex-row justify-between items-center mb-6 pt-8">
                         <View className="flex-1">

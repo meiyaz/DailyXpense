@@ -263,7 +263,8 @@ export default function Login() {
                         <View className="w-full max-w-sm gap-4">
                             <Pressable
                                 onPress={() => Alert.alert("Coming Soon", "Google Sign-In is currently under development.")}
-                                className="w-full bg-white/90 border border-white/20 p-4 rounded-xl flex-row items-center justify-center active:bg-gray-50 shadow-sm opacity-60"
+                                className="w-full border border-gray-200/50 p-4 rounded-2xl flex-row items-center justify-center active:bg-gray-100/50 opacity-60"
+                                style={{ backgroundColor: 'transparent' }}
                             >
                                 <Ionicons name="logo-google" size={20} color="#DB4437" style={{ marginRight: 12 }} />
                                 <Text className="font-bold text-gray-500 text-lg">Sign in with Google</Text>
@@ -274,7 +275,8 @@ export default function Login() {
                                     setMode("email");
                                     setResendTimer(0);
                                 }}
-                                className="w-full bg-blue-600/10 border border-blue-500/20 p-4 rounded-xl flex-row items-center justify-center active:bg-blue-600/20 shadow-lg backdrop-blur-md"
+                                className="w-full border-2 border-blue-600/20 p-4 rounded-2xl flex-row items-center justify-center active:bg-blue-600/10"
+                                style={{ backgroundColor: 'transparent' }}
                             >
                                 <Ionicons name="mail" size={20} color="#2563eb" style={{ marginRight: 12 }} />
                                 <Text className="font-bold text-blue-700 text-lg">Continue with Email</Text>
