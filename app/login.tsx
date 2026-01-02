@@ -245,10 +245,10 @@ export default function Login() {
                         className="w-full max-w-sm items-center"
                     >
                         <View className="mb-12 items-center bg-white/80 p-6 rounded-3xl shadow-sm backdrop-blur-md w-full">
-                            <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-4 shadow-sm overflow-hidden border border-gray-100/50">
+                            <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-4 shadow-sm overflow-hidden border border-gray-100/50 p-2">
                                 <Image
                                     source={require('../assets/logo_premium.png')}
-                                    className="w-full h-full"
+                                    style={{ width: '100%', height: '100%', borderRadius: 12 }}
                                     resizeMode="contain"
                                 />
                             </View>

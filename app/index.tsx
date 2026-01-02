@@ -147,10 +147,10 @@ export default function Home() {
                         {/* Step 0: Welcome Intro */}
                         {tourStep === 0 && (
                             <>
-                                <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50">
+                                <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50 p-2">
                                     <Image
                                         source={require('../assets/logo_premium.png')}
-                                        className="w-full h-full"
+                                        style={{ width: '100%', height: '100%', borderRadius: 12 }}
                                         resizeMode="contain"
                                     />
                                 </View>
