@@ -35,7 +35,7 @@ jobs:
         run: npm install -g eas-cli
 
       - name: Sync Expo Environment
-        run: npx expo install --check --fix
+        run: npx expo install --check
 
       - name: Build APK with EAS
         run: eas build --platform android --profile preview --non-interactive --local

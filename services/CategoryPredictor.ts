@@ -51,7 +51,18 @@ export function predictCategory(
         // Add the category name itself as a keyword
         const allKeywords = [...keywords, cat.name.toLowerCase()];
 
-        if (allKeywords.some(k => text.includes(k) || k.includes(text))) {
+        // Priority 1: Exact word match in description
+        if (allKeywords.some(k => text.split(' ').includes(k))) {
+            return cat.name;
+        }
+
+        // Priority 2: Description starts with keyword or keyword starts with description (prefix matching)
+        if (allKeywords.some(k => k.startsWith(text) || text.startsWith(k))) {
+            return cat.name;
+        }
+
+        // Priority 3: Fuzzy inclusion (only for longer strings to avoid false positives)
+        if (text.length > 3 && allKeywords.some(k => text.includes(k))) {
             return cat.name;
         }
     }
