@@ -1,9 +1,10 @@
-import { View, Text, Pressable, TextInput, ActivityIndicator, Alert, ImageBackground, Keyboard, Image } from "react-native";
+import { View, Text, Pressable, TextInput, ActivityIndicator, Alert, ImageBackground, Keyboard, Image, StyleSheet } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../store/AuthContext";
 import { Stack } from "expo-router";
+import { FloatingBackground } from "../components/FloatingBackground";
 
 export default function Login() {
     const { sendOtp, verifyOtp, signInWithGoogle } = useAuth();
@@ -104,21 +105,24 @@ export default function Login() {
     };
 
     return (
-        <View className="flex-1 bg-[#1a2130]">
-            <ImageBackground
-                source={require('../assets/images/ledger_bg_premium.png')}
-                className="flex-1 items-center justify-center p-6"
-                resizeMode="cover"
-                style={{ width: '100%', height: '100%' }}
-            >
-                <Stack.Screen options={{ headerShown: false }} />
+        <View className="flex-1 bg-slate-50">
+            <View style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]} pointerEvents="none">
+                <Image
+                    source={require('../assets/images/premium_ledger_bg.png')}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', opacity: 0.08 }}
+                    resizeMode="cover"
+                />
+            </View>
+            <FloatingBackground />
+            <Stack.Screen options={{ headerShown: false }} />
+            <View className="flex-1 items-center justify-center p-6">
 
                 {/* OTP Mode */}
                 {mode === "otp" && (
                     <Animated.View
                         entering={FadeIn.duration(300)}
                         exiting={FadeOut.duration(200)}
-                        className="w-full max-w-sm bg-white/90 p-6 rounded-3xl shadow-xl backdrop-blur-xl"
+                        className="w-full max-w-sm bg-white/90 p-6 rounded-3xl shadow-xl backdrop-blur-xl border border-white/20"
                     >
                         <Pressable onPress={() => {
                             setMode("email");
@@ -185,7 +189,7 @@ export default function Login() {
                     <Animated.View
                         entering={FadeIn.duration(300)}
                         exiting={FadeOut.duration(200)}
-                        className="w-full max-w-sm bg-white/90 p-6 rounded-3xl shadow-xl backdrop-blur-xl"
+                        className="w-full max-w-sm bg-white/90 p-6 rounded-3xl shadow-xl backdrop-blur-xl border border-white/20"
                     >
                         <Pressable onPress={() => {
                             setMode("landing");
@@ -244,7 +248,7 @@ export default function Login() {
                         exiting={FadeOut.duration(200)}
                         className="w-full max-w-sm items-center"
                     >
-                        <View className="mb-12 items-center bg-white/80 p-6 rounded-3xl shadow-sm backdrop-blur-md w-full">
+                        <View className="mb-12 items-center bg-white/80 p-6 rounded-3xl shadow-sm backdrop-blur-md w-full border border-white/40">
                             <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-4 shadow-sm overflow-hidden border border-gray-100/50 p-2">
                                 <Image
                                     source={require('../assets/logo_premium.png')}
@@ -252,17 +256,17 @@ export default function Login() {
                                     resizeMode="contain"
                                 />
                             </View>
-                            <Text className="text-3xl font-bold text-gray-800">DailyXpense</Text>
-                            <Text className="text-gray-500 mt-2 text-center">Track your spending, master your budget.</Text>
+                            <Text className="text-3xl font-bold text-gray-800 tracking-tight">DailyXpense</Text>
+                            <Text className="text-gray-500 mt-2 text-center font-medium">Track your spending, master your budget.</Text>
                         </View>
 
                         <View className="w-full max-w-sm gap-4">
                             <Pressable
                                 onPress={() => Alert.alert("Coming Soon", "Google Sign-In is currently under development.")}
-                                className="w-full bg-white border border-gray-200 p-4 rounded-xl flex-row items-center justify-center active:bg-gray-50 shadow-sm opacity-60"
+                                className="w-full bg-white/90 border border-white/20 p-4 rounded-xl flex-row items-center justify-center active:bg-gray-50 shadow-sm opacity-60"
                             >
                                 <Ionicons name="logo-google" size={20} color="#DB4437" style={{ marginRight: 12 }} />
-                                <Text className="font-bold text-gray-500 text-lg">Sign in with Google (Coming Soon)</Text>
+                                <Text className="font-bold text-gray-500 text-lg">Sign in with Google</Text>
                             </Pressable>
 
                             <Pressable
@@ -270,19 +274,19 @@ export default function Login() {
                                     setMode("email");
                                     setResendTimer(0);
                                 }}
-                                className="w-full bg-gray-100 p-4 rounded-xl flex-row items-center justify-center active:bg-gray-200"
+                                className="w-full bg-blue-600/10 border border-blue-500/20 p-4 rounded-xl flex-row items-center justify-center active:bg-blue-600/20 shadow-lg backdrop-blur-md"
                             >
-                                <Ionicons name="mail-outline" size={20} color="#374151" style={{ marginRight: 12 }} />
-                                <Text className="font-bold text-gray-700 text-lg">Continue with Email</Text>
+                                <Ionicons name="mail" size={20} color="#2563eb" style={{ marginRight: 12 }} />
+                                <Text className="font-bold text-blue-700 text-lg">Continue with Email</Text>
                             </Pressable>
                         </View>
 
                         <View className="absolute -bottom-20 items-center w-full">
-                            <Text className="text-xs text-center text-gray-400">Developed with ❤️ by Mei</Text>
+                            <Text className="text-xs text-center text-gray-400 font-bold tracking-widest uppercase">Developed by Mei</Text>
                         </View>
                     </Animated.View>
                 )}
-            </ImageBackground>
+            </View>
         </View>
     );
 }
