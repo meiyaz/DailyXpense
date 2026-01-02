@@ -107,9 +107,9 @@ export default function Settings() {
     };
 
     useEffect(() => {
-        // We allow the module to load now, even in Expo Go Android, 
-        // because we want Local Notifications (reminders) to work.
-        // Web: We also want to attempt to load it.
+        // We delay notification setup to when it's actually toggled or needed.
+        // In Expo Go 54, just requiring the module triggers a push usage warning.
+        /*
         try {
             const Notifications = require('expo-notifications');
             Notifications.setNotificationHandler({
@@ -125,15 +125,19 @@ export default function Settings() {
             });
 
             registerForPushNotificationsAsync();
-        } catch (e) { /* Notification setup failed */ }
+        } catch (e) { } 
+        */
     }, []);
 
     useEffect(() => {
+        // DISABLED FOR EXPO GO STABILITY
+        /*
         if (notificationsEnabled) {
             schedulePushNotification(reminderTime);
         } else {
             safeCancelNotifications();
         }
+        */
     }, [notificationsEnabled, reminderTime]);
 
     async function safeCancelNotifications() {

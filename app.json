@@ -7,14 +7,14 @@
     "orientation": "portrait",
     "icon": "./assets/logo_premium.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
     "splash": {
       "image": "./assets/logo_premium.png",
       "resizeMode": "contain",
       "backgroundColor": "#1a2130"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "private": true
     },
     "android": {
       "adaptiveIcon": {
