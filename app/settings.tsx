@@ -530,14 +530,7 @@ export default function Settings() {
 
                     <PremiumSection setShowExportModal={setShowExportModal} />
 
-                    <AccountSection
-                        onDeleteData={() => {
-                            Alert.alert("Caution", "This will permanently erase all your expense data!", [
-                                { text: "Cancel", style: "cancel" },
-                                { text: "Delete Everything", style: "destructive", onPress: () => { /* Logic to clear DB */ } }
-                            ]);
-                        }}
-                    />
+                    <AccountSection />
 
                     <Text className="text-center text-xs text-gray-400 pb-10 mt-auto">Developed with ❤️ by Mei</Text>
                 </View>
