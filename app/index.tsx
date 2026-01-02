@@ -144,8 +144,12 @@ export default function Home() {
                         {/* Step 0: Welcome Intro */}
                         {tourStep === 0 && (
                             <>
-                                <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center mb-6">
-                                    <Ionicons name="sparkles" size={40} color="#2563EB" />
+                                <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50">
+                                    <Image
+                                        source={require('../assets/logo_premium.png')}
+                                        className="w-full h-full"
+                                        resizeMode="contain"
+                                    />
                                 </View>
                                 <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Welcome aboard!</Text>
                                 <Text className="text-gray-500 mb-8 text-center leading-6">

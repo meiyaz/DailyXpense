@@ -23,7 +23,11 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.dailyxpense.app"
+      "package": "com.dailyxpense.app",
+      "notification": {
+        "icon": "./assets/logo_premium.png",
+        "color": "#2563eb"
+      }
     },
     "web": {
       "favicon": "./assets/logo_premium.png"
