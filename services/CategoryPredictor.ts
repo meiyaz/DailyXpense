@@ -45,25 +45,34 @@ export function predictCategory(
         }
     }
 
-    // 2. Keyword Matching
-    for (const cat of typeCategories) {
-        const keywords = KEYWORD_MAP[cat.name] || [];
-        // Add the category name itself as a keyword
-        const allKeywords = [...keywords, cat.name.toLowerCase()];
+    // 2. Global Keyword Matching (Prioritized)
+    const categoryKeywords = typeCategories.map(cat => ({
+        cat,
+        allKeywords: [...(KEYWORD_MAP[cat.name] || []), cat.name.toLowerCase()]
+    }));
 
-        // Priority 1: Exact word match in description
-        if (allKeywords.some(k => text.split(' ').includes(k))) {
+    // Priority 1: Exact word match across ALL categories
+    for (const { cat, allKeywords } of categoryKeywords) {
+        if (allKeywords.some(k => text.split(' ').includes(k) || text === k)) {
             return cat.name;
         }
+    }
 
-        // Priority 2: Description starts with keyword or keyword starts with description (prefix matching)
-        if (allKeywords.some(k => k.startsWith(text) || text.startsWith(k))) {
-            return cat.name;
+    // Priority 2: Prefix match across ALL categories (e.g. "pet" for "petrol")
+    if (text.length >= 2) {
+        for (const { cat, allKeywords } of categoryKeywords) {
+            if (allKeywords.some(k => k.startsWith(text) || (text.startsWith(k) && k.length > 3))) {
+                return cat.name;
+            }
         }
+    }
 
-        // Priority 3: Fuzzy inclusion (only for longer strings to avoid false positives)
-        if (text.length > 3 && allKeywords.some(k => text.includes(k))) {
-            return cat.name;
+    // Priority 3: Fuzzy inclusion
+    if (text.length > 3) {
+        for (const { cat, allKeywords } of categoryKeywords) {
+            if (allKeywords.some(k => text.includes(k) && k.length > 3)) {
+                return cat.name;
+            }
         }
     }
 

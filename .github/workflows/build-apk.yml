@@ -31,21 +31,19 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
-
       - name: Sync Expo Environment
         run: npx expo install --check
 
       - name: Build APK with EAS
-        run: eas build --platform android --profile preview --non-interactive --local
+        run: npx eas-cli build --platform android --profile preview --non-interactive --local --verbose
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.daemon=false -Dkotlin.daemon.jvm.options=-Xmx1g"
           EAS_NO_VCS: 1
+          CI: true
 
       - name: Rename APK
         run: |
