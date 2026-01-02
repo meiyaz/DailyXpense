@@ -29,36 +29,32 @@ export function predictCategory(
     const typeCategories = categories.filter(c => (c.type || 'expense') === type);
     if (typeCategories.length === 0) return undefined;
 
-    // 1. Check History (Exact match or starts with)
-    // Find the most recent expense of the SAME TYPE that matches this description
-    const historyMatch = recentExpenses
-        .filter(e => e.type === type)
-        .find(e =>
-            e.description.toLowerCase() === text ||
-            (text.length > 3 && e.description.toLowerCase().includes(text))
-        );
-
-    if (historyMatch) {
-        // Verify this category still exists in settings and is the right type
-        if (typeCategories.some(c => c.name === historyMatch.category)) {
-            return historyMatch.category;
+    // 1. History Exact Match (Highest Priority - User Habit)
+    const historyExactMatch = recentExpenses.find(e =>
+        e.type === type && e.description.toLowerCase() === text
+    );
+    if (historyExactMatch) {
+        if (typeCategories.some(c => c.name === historyExactMatch.category)) {
+            return historyExactMatch.category;
         }
     }
 
-    // 2. Global Keyword Matching (Prioritized)
+    // Prepare Keywords
     const categoryKeywords = typeCategories.map(cat => ({
         cat,
         allKeywords: [...(KEYWORD_MAP[cat.name] || []), cat.name.toLowerCase()]
     }));
 
-    // Priority 1: Exact word match across ALL categories
+    // 2. Keyword Exact Match (System Certainty)
     for (const { cat, allKeywords } of categoryKeywords) {
-        if (allKeywords.some(k => text.split(' ').includes(k) || text === k)) {
+        if (allKeywords.some(k => text === k || text.split(' ').includes(k))) {
             return cat.name;
         }
     }
 
-    // Priority 2: Prefix match across ALL categories (e.g. "pet" for "petrol")
+    // 3. Keyword Prefix/Strong Match (e.g. "pet" -> "petrol")
+    // Prioritizing this over history fuzzy match fixes issues where 1 bad history entry 
+    // biases prediction for a clear keyword prefix.
     if (text.length >= 2) {
         for (const { cat, allKeywords } of categoryKeywords) {
             if (allKeywords.some(k => k.startsWith(text) || (text.startsWith(k) && k.length > 3))) {
@@ -67,7 +63,19 @@ export function predictCategory(
         }
     }
 
-    // Priority 3: Fuzzy inclusion
+    // 4. History Fuzzy Match (Fallback Learning)
+    if (text.length > 3) {
+        const historyFuzzyMatch = recentExpenses.find(e =>
+            e.type === type && e.description.toLowerCase().includes(text)
+        );
+        if (historyFuzzyMatch) {
+            if (typeCategories.some(c => c.name === historyFuzzyMatch.category)) {
+                return historyFuzzyMatch.category;
+            }
+        }
+    }
+
+    // 5. Keyword Fuzzy Inclusion (Weakest)
     if (text.length > 3) {
         for (const { cat, allKeywords } of categoryKeywords) {
             if (allKeywords.some(k => text.includes(k) && k.length > 3)) {
