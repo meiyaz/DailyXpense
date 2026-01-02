@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColorScheme } from "nativewind";
-import { useColorScheme as useRNColorScheme, Platform } from "react-native";
+import { useColorScheme as useRNColorScheme, Platform, AppState, AppStateStatus } from "react-native";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./AuthContext";
 import { db } from "../db/client";
@@ -26,6 +26,7 @@ interface SettingsContextType {
     reminderTime: string;
     appLockEnabled: boolean;
     securityPin: string | null;
+    biometricsEnabled: boolean;
     theme: 'system' | 'light' | 'dark' | 'custom';
     accentColor: 'emerald' | 'rose' | 'amber' | 'violet' | 'cyan';
     lastSyncTime: number | null;
@@ -43,6 +44,7 @@ interface SettingsContextType {
         reminderTime: string;
         appLockEnabled: boolean;
         securityPin: string | null;
+        biometricsEnabled: boolean;
         theme: 'system' | 'light' | 'dark' | 'custom';
         accentColor: 'emerald' | 'rose' | 'amber' | 'violet' | 'cyan';
         lastSyncTime: number | null;
@@ -89,6 +91,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const [reminderTime, setReminderTime] = useState("20:00");
     const [appLockEnabled, setAppLockEnabled] = useState(false);
     const [securityPin, setSecurityPin] = useState<string | null>(null);
+    const [biometricsEnabled, setBiometricsEnabled] = useState(false);
     const [theme, setTheme] = useState<'system' | 'light' | 'dark' | 'custom'>('system');
     const [accentColor, setAccentColor] = useState<'emerald' | 'rose' | 'amber' | 'violet' | 'cyan'>('emerald');
     const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
@@ -96,6 +99,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const [isPremium, setIsPremium] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isAppUnlocked, setIsAppUnlocked] = useState(false);
+    const [lastBackgroundTime, setLastBackgroundTime] = useState<number | null>(null);
 
     useEffect(() => {
         if (userId) loadSettings();
@@ -109,6 +113,31 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             setColorScheme(theme);
         }
     }, [theme, systemScheme, setColorScheme]);
+
+    // Background Auto-Lock logic with 30s Grace Period
+    useEffect(() => {
+        if (Platform.OS === 'web') return;
+
+        const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+            if (nextAppState === 'background') {
+                // Store the time we went to background
+                setLastBackgroundTime(Date.now());
+            } else if (nextAppState === 'active') {
+                if (appLockEnabled && lastBackgroundTime) {
+                    const elapsed = Date.now() - lastBackgroundTime;
+                    // Lock if gone for more than 30 seconds
+                    if (elapsed > 30000) {
+                        setIsAppUnlocked(false);
+                    }
+                }
+                setLastBackgroundTime(null);
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [appLockEnabled, lastBackgroundTime]);
 
     const loadSettings = async () => {
         setIsLoading(true);
@@ -178,10 +207,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         const alock = s.appLockEnabled ?? s.app_lock_enabled;
         const isEnabled = alock === true || alock === 1;
         setAppLockEnabled(isEnabled);
-        if (!isEnabled) setIsAppUnlocked(true);
+        // Only set to true if lock is disabled. If enabled, it MUST be false initially to show lock screen
+        setIsAppUnlocked(!isEnabled);
 
         const pin = s.securityPin ?? s.security_pin;
         setSecurityPin(pin || null);
+
+        const bio = s.biometricsEnabled ?? s.biometrics_enabled;
+        setBiometricsEnabled(bio === true || bio === 1);
 
         const themeVal = s.theme || 'system';
         setTheme(themeVal);
@@ -314,7 +347,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             const merged = {
                 currency, name, avatar, categories,
                 budget, notificationsEnabled, reminderTime,
-                appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount, isPremium,
+                appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium,
                 ...newSettings
             };
             // 1. Save Local (Fast)
@@ -335,8 +368,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (updates.budget !== undefined) setBudget(updates.budget);
         if (updates.notificationsEnabled !== undefined) setNotificationsEnabled(updates.notificationsEnabled);
         if (updates.reminderTime !== undefined) setReminderTime(updates.reminderTime);
-        if (updates.appLockEnabled !== undefined) setAppLockEnabled(updates.appLockEnabled);
+        if (updates.appLockEnabled !== undefined) {
+            setAppLockEnabled(updates.appLockEnabled);
+            // If turning OFF, unlock everything immediately
+            if (!updates.appLockEnabled) setIsAppUnlocked(true);
+            // If turning ON, they are already authorized in settings, so keep it true for this session
+            else setIsAppUnlocked(true);
+        }
         if (updates.securityPin !== undefined) setSecurityPin(updates.securityPin);
+        if (updates.biometricsEnabled !== undefined) setBiometricsEnabled(updates.biometricsEnabled);
 
         if (updates.theme !== undefined) {
             setTheme(updates.theme);
@@ -380,7 +420,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         <SettingsContext.Provider value={{
             currency, name, avatar, categories,
             budget, notificationsEnabled, reminderTime,
-            appLockEnabled, securityPin, theme, accentColor, lastSyncTime, maxAmount, isPremium,
+            appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium,
             isLoading, isAppUnlocked,
             updateSettings, addCategory, updateCategory, deleteCategory, setIsAppUnlocked
         }}>

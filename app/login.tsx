@@ -3,20 +3,24 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../store/AuthContext";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useSettings } from "../store/SettingsContext";
-import { useColorScheme as useRNColorScheme } from "react-native";
+import * as LocalAuthentication from "expo-local-authentication";
+import { useColorScheme as useRNColorScheme, Platform } from "react-native";
 import { FloatingBackground } from "../components/FloatingBackground";
 
 export default function Login() {
     const { sendOtp, verifyOtp, signInWithGoogle } = useAuth();
-    const { theme } = useSettings();
+    const { theme, securityPin, updateSettings, setIsAppUnlocked } = useSettings();
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
+    const router = useRouter();
 
-    const [mode, setMode] = useState<"landing" | "email" | "otp">("landing");
+    const [mode, setMode] = useState<"landing" | "email" | "otp" | "setup_pin" | "confirm_pin">("landing");
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState("");
+    const [pin, setPin] = useState("");
+    const [confirmPin, setConfirmPin] = useState("");
     const [loading, setLoading] = useState(false);
     const [resendTimer, setResendTimer] = useState(0);
     const [emailError, setEmailError] = useState("");
@@ -41,10 +45,23 @@ export default function Login() {
 
     // Auto-verify when 6 digits are entered
     useEffect(() => {
-        if (otp.length === 6 && !loading) {
+        if (otp.length === 6 && !loading && mode === "otp") {
             handleVerifyOtp();
         }
-    }, [otp]);
+    }, [otp, mode]);
+
+    // Auto-advance PIN setup
+    useEffect(() => {
+        if (mode === "setup_pin" && pin.length === 4) {
+            setMode("confirm_pin");
+        }
+    }, [pin, mode]);
+
+    useEffect(() => {
+        if (mode === "confirm_pin" && confirmPin.length === 4) {
+            handleCompletePinSetup();
+        }
+    }, [confirmPin, mode]);
 
     const handleSendOtp = async (isResend = false) => {
         const cleanEmail = email.trim().toLowerCase();
@@ -94,12 +111,65 @@ export default function Login() {
 
         setLoading(true);
         try {
-            const { error } = await verifyOtp(cleanEmail, cleanOtp);
+            const { error, session } = await verifyOtp(cleanEmail, cleanOtp);
             if (error) {
                 Alert.alert("Verification Failed", error.message || JSON.stringify(error));
+            } else if (session) {
+                // Check if we need to set up a PIN (Native only)
+                if (Platform.OS !== 'web' && !securityPin) {
+                    setMode("setup_pin");
+                } else {
+                    setIsAppUnlocked(true);
+                    router.replace("/");
+                }
             }
         } catch (e: any) {
             Alert.alert("Error", e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCompletePinSetup = async () => {
+        if (pin !== confirmPin) {
+            Alert.alert("Error", "PINs do not match. Please try again.");
+            setPin("");
+            setConfirmPin("");
+            setMode("setup_pin");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // Check for biometrics
+            const hasHardware = await LocalAuthentication.hasHardwareAsync();
+            const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+            let useBiometrics = false;
+            if (hasHardware && isEnrolled) {
+                const result = await new Promise((resolve) => {
+                    Alert.alert(
+                        "Enable Biometrics",
+                        "Would you like to use FaceID or Fingerprint for faster access?",
+                        [
+                            { text: "Later", onPress: () => resolve(false) },
+                            { text: "Enable", onPress: () => resolve(true) }
+                        ]
+                    );
+                });
+                useBiometrics = !!result;
+            }
+
+            updateSettings({
+                securityPin: pin,
+                biometricsEnabled: useBiometrics,
+                appLockEnabled: true
+            });
+
+            setIsAppUnlocked(true);
+            router.replace("/");
+        } catch (e: any) {
+            Alert.alert("Error", "Failed to save security settings.");
         } finally {
             setLoading(false);
         }
@@ -142,8 +212,18 @@ export default function Login() {
                     {mode !== "landing" && (
                         <Pressable
                             onPress={() => {
-                                setMode(mode === "otp" ? "email" : "landing");
-                                if (mode === "otp") setResendTimer(0);
+                                if (mode === "otp") {
+                                    setMode("email");
+                                    setResendTimer(0);
+                                } else if (mode === "setup_pin") {
+                                    setMode("otp");
+                                    setPin("");
+                                } else if (mode === "confirm_pin") {
+                                    setMode("setup_pin");
+                                    setConfirmPin("");
+                                } else {
+                                    setMode("landing");
+                                }
                             }}
                             className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center active:bg-gray-100"
                         >
@@ -221,11 +301,11 @@ export default function Login() {
                                 <Text className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Check Email</Text>
                                 <Text className="text-gray-400 text-base mb-8">Verification code sent to <Text className="text-gray-900 font-bold">{email}</Text></Text>
 
-                                <View className="flex-row justify-between relative h-16">
+                                <View className="flex-row justify-between relative h-14">
                                     {[0, 1, 2, 3, 4, 5].map((i) => (
                                         <View
                                             key={i}
-                                            className={`w-[45px] h-14 border-b-2 items-center justify-center ${otp.length === i ? 'border-blue-600' : 'border-gray-100'}`}
+                                            className={`w-[45px] h-12 border-b-2 items-center justify-center ${otp.length === i ? 'border-blue-600' : 'border-gray-100'}`}
                                         >
                                             <Text className="text-3xl font-black text-gray-900 italic">
                                                 {otp[i] || ""}
@@ -255,6 +335,78 @@ export default function Login() {
                                 </View>
                             </Animated.View>
                         )}
+
+                        {mode === "setup_pin" && (
+                            <Animated.View entering={FadeIn.duration(400)}>
+                                <Text className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Create a PIN</Text>
+                                <Text className="text-gray-400 text-base mb-8">Set a 4-digit code for quick mobile access.</Text>
+
+                                <View className="flex-row justify-between relative h-14 px-8">
+                                    {[0, 1, 2, 3].map((i) => (
+                                        <View
+                                            key={i}
+                                            className={`w-12 h-12 rounded-2xl border-2 items-center justify-center ${pin.length === i ? 'border-blue-600 bg-blue-50/50' : 'border-gray-100'}`}
+                                        >
+                                            <View className={`w-3 h-3 rounded-full ${pin.length > i ? 'bg-gray-900' : 'bg-transparent'}`} />
+                                        </View>
+                                    ))}
+                                    <TextInput
+                                        className="absolute inset-0 opacity-0 w-full h-full"
+                                        keyboardType="number-pad"
+                                        maxLength={4}
+                                        value={pin}
+                                        onChangeText={setPin}
+                                        autoFocus
+                                    />
+                                </View>
+
+                                <Pressable
+                                    onPress={() => {
+                                        setIsAppUnlocked(true);
+                                        router.replace("/");
+                                    }}
+                                    className="mt-10 self-center"
+                                >
+                                    <Text className="text-gray-400 font-bold text-sm">Set up later</Text>
+                                </Pressable>
+                            </Animated.View>
+                        )}
+
+                        {mode === "confirm_pin" && (
+                            <Animated.View entering={FadeIn.duration(400)}>
+                                <Text className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Confirm PIN</Text>
+                                <Text className="text-gray-400 text-base mb-8">Please repeat your security code.</Text>
+
+                                <View className="flex-row justify-between relative h-14 px-8">
+                                    {[0, 1, 2, 3].map((i) => (
+                                        <View
+                                            key={i}
+                                            className={`w-12 h-12 rounded-2xl border-2 items-center justify-center ${confirmPin.length === i ? 'border-blue-600 bg-blue-50/50' : 'border-gray-100'}`}
+                                        >
+                                            <View className={`w-3 h-3 rounded-full ${confirmPin.length > i ? 'bg-gray-900' : 'bg-transparent'}`} />
+                                        </View>
+                                    ))}
+                                    <TextInput
+                                        className="absolute inset-0 opacity-0 w-full h-full"
+                                        keyboardType="number-pad"
+                                        maxLength={4}
+                                        value={confirmPin}
+                                        onChangeText={setConfirmPin}
+                                        autoFocus
+                                    />
+                                </View>
+
+                                <Pressable
+                                    onPress={() => {
+                                        setIsAppUnlocked(true);
+                                        router.replace("/");
+                                    }}
+                                    className="mt-10 self-center"
+                                >
+                                    <Text className="text-gray-400 font-bold text-sm">Skip for now</Text>
+                                </Pressable>
+                            </Animated.View>
+                        )}
                     </View>
                 </View>
 
@@ -280,7 +432,12 @@ export default function Login() {
                         </View>
                     ) : (
                         <Pressable
-                            onPress={mode === "email" ? () => handleSendOtp(false) : handleVerifyOtp}
+                            onPress={() => {
+                                if (mode === "email") handleSendOtp(false);
+                                else if (mode === "otp") handleVerifyOtp();
+                                else if (mode === "setup_pin") setMode("confirm_pin");
+                                else if (mode === "confirm_pin") handleCompletePinSetup();
+                            }}
                             disabled={loading}
                             className={`w-full bg-blue-600 h-16 rounded-2xl items-center justify-center shadow-xl shadow-blue-500/30 active:scale-[0.98] ${loading ? 'opacity-70' : ''}`}
                         >
@@ -288,7 +445,9 @@ export default function Login() {
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <Text className="font-bold text-white text-xl">
-                                    {mode === "email" ? "Send Code" : "Verify & Enter"}
+                                    {mode === "email" ? "Send Code" :
+                                        mode === "otp" ? "Verify & Enter" :
+                                            mode === "setup_pin" ? "Continue" : "Confirm PIN"}
                                 </Text>
                             )}
                         </Pressable>

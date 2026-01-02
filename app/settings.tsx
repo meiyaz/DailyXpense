@@ -478,51 +478,31 @@ export default function Settings() {
                             setTempPickerDate(getDateFromTimeStr(reminderTime));
                             setShowTimePicker(true);
                         }}
-                        onAppLockPress={async () => {
-                            if (Platform.OS === 'web') {
-                                if (appLockEnabled) {
-                                    updateSettings({ appLockEnabled: false, securityPin: null });
-                                } else {
-                                    setIsSettingNewPin(true);
-                                    setTempPin("");
-                                    setShowPinModal(true);
-                                }
-                            } else {
-                                if (!appLockEnabled) {
-                                    const result = await LocalAuthentication.authenticateAsync({
-                                        promptMessage: 'Authenticate to enable App Lock',
-                                    });
-                                    if (result.success) {
-                                        updateSettings({ appLockEnabled: true });
-                                    }
-                                } else {
-                                    updateSettings({ appLockEnabled: false });
-                                }
-                            }
+                        onAppLockPress={() => {
+                            setTempPin("");
+                            setShowPinModal(true);
                         }}
                         onAppLockSwitch={async (val) => {
-                            if (Platform.OS === 'web') {
-                                if (val) {
-                                    if (!securityPin) {
-                                        setIsSettingNewPin(true);
-                                        setTempPin("");
-                                        setShowPinModal(true);
+                            if (!val) {
+                                // Disable everything security related
+                                updateSettings({ appLockEnabled: false, biometricsEnabled: false });
+                            } else {
+                                // Enabling
+                                if (!securityPin) {
+                                    // Must have a PIN first
+                                    setTempPin("");
+                                    setShowPinModal(true);
+                                } else {
+                                    if (Platform.OS !== 'web') {
+                                        const result = await LocalAuthentication.authenticateAsync({
+                                            promptMessage: 'Authenticate to enable App Lock',
+                                        });
+                                        if (result.success) {
+                                            updateSettings({ appLockEnabled: true });
+                                        }
                                     } else {
                                         updateSettings({ appLockEnabled: true });
                                     }
-                                } else {
-                                    updateSettings({ appLockEnabled: false, securityPin: null });
-                                }
-                            } else {
-                                if (val) {
-                                    const result = await LocalAuthentication.authenticateAsync({
-                                        promptMessage: 'Authenticate to enable App Lock',
-                                    });
-                                    if (result.success) {
-                                        updateSettings({ appLockEnabled: true });
-                                    }
-                                } else {
-                                    updateSettings({ appLockEnabled: false });
                                 }
                             }
                         }}

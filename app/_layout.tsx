@@ -1,6 +1,6 @@
 import "../global.css";
 import { StatusBar } from "expo-status-bar";
-import { View, useColorScheme as useRNColorScheme } from "react-native";
+import { View, useColorScheme as useRNColorScheme, Platform } from "react-native";
 import { Stack, useRouter, useSegments, useRootNavigationState } from "expo-router";
 import { useEffect, useState } from "react";
 import { ExpenseProvider } from "../store/ExpenseContext";
@@ -11,7 +11,7 @@ import { migrateDb } from "../db/client";
 import LockScreen from "../components/LockScreen";
 
 function RootStack() {
-    const { theme, accentColor, appLockEnabled, isAppUnlocked, isLoading: settingsLoading } = useSettings();
+    const { theme, accentColor, appLockEnabled, isAppUnlocked, securityPin, isLoading: settingsLoading } = useSettings();
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
 
@@ -45,8 +45,9 @@ function RootStack() {
         return <View style={{ flex: 1, backgroundColor: isDark ? 'black' : 'white' }} />;
     }
 
-    // INTERCEPT: App Lock
-    if (appLockEnabled && !isAppUnlocked) {
+    // INTERCEPT: App Lock (Only if authenticated and not on the login screen)
+    const inAuthGroup = segments[0] === 'login';
+    if (isAuthenticated && !inAuthGroup && appLockEnabled && !isAppUnlocked) {
         return <LockScreen />;
     }
 
