@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextInput, Alert, Animated } from "react-native";
+import { View, Text, Pressable, TextInput, Alert, Animated, useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Expense, useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
@@ -18,7 +18,9 @@ interface ExpenseListItemProps {
 
 export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStart, onEditEnd }: ExpenseListItemProps) {
     const { deleteExpense, updateExpense } = useExpenses();
-    const { currency, categories, maxAmount } = useSettings();
+    const { currency, categories, maxAmount, theme } = useSettings();
+    const systemScheme = useColorScheme();
+    const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
     // Removed local isEditing state, relying on props or internal handle if optional.
     // However, to support parent control, we use the prop. 
     // If not provided (legacy), we could have fallback, but we updated parent.
@@ -127,7 +129,7 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
 
                 {/* ROW 1: Description */}
                 <TextInput
-                    className="text-gray-900 dark:text-white font-bold text-base p-2 bg-white dark:bg-gray-800 rounded-lg mb-3"
+                    className="text-gray-900 dark:text-white font-bold text-base p-2 bg-white dark:bg-gray-800 rounded-lg mb-3 border border-gray-100 dark:border-gray-700"
                     value={description}
                     onChangeText={setDescription}
                     placeholder="Description"
@@ -135,34 +137,57 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                 />
 
                 {/* ROW 1.5: Type Toggle */}
-                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                {/* ROW 1.5: Type Toggle */}
+                {/* Improved visual                {/* ROW 1.5: Type Toggle */}
+                <View style={{
+                    flexDirection: 'row',
+                    backgroundColor: isDark ? '#1f2937' : '#e0e7ff',
+                    padding: 2,
+                    borderRadius: 10,
+                    marginBottom: 12,
+                    borderWidth: 1,
+                    borderColor: isDark ? '#374151' : '#c7d2fe'
+                }}>
                     <Pressable
                         onPress={() => setType('expense')}
                         style={{
                             flex: 1,
-                            paddingVertical: 6,
+                            paddingVertical: 8,
                             alignItems: 'center',
+                            justifyContent: 'center',
                             borderRadius: 8,
-                            borderWidth: 1,
-                            borderColor: type === 'expense' ? '#fecaca' : '#374151',
-                            backgroundColor: type === 'expense' ? '#fef2f2' : '#1f2937',
+                            backgroundColor: type === 'expense' ? (isDark ? '#374151' : '#ffffff') : 'transparent',
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: type === 'expense' ? 0.05 : 0,
+                            shadowRadius: 2,
+                            elevation: type === 'expense' ? 2 : 0,
                         }}
                     >
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: type === 'expense' ? '#ef4444' : '#6b7280' }}>EXPENSE</Text>
+                        <View className="flex-row items-center gap-2">
+                            {/* Optional: Add small icons to balance visual weight if text is glitchy? No, keep simple text first. */}
+                            <Text style={{ fontWeight: '700', color: type === 'expense' ? '#ef4444' : (isDark ? '#9ca3af' : '#6b7280') }}>Expense</Text>
+                        </View>
                     </Pressable>
                     <Pressable
                         onPress={() => setType('income')}
                         style={{
                             flex: 1,
-                            paddingVertical: 6,
+                            paddingVertical: 8,
                             alignItems: 'center',
+                            justifyContent: 'center',
                             borderRadius: 8,
-                            borderWidth: 1,
-                            borderColor: type === 'income' ? '#bbf7d0' : '#374151',
-                            backgroundColor: type === 'income' ? '#f0fdf4' : '#1f2937',
+                            backgroundColor: type === 'income' ? (isDark ? '#374151' : '#ffffff') : 'transparent',
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: type === 'income' ? 0.05 : 0,
+                            shadowRadius: 2,
+                            elevation: type === 'income' ? 2 : 0,
                         }}
                     >
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: type === 'income' ? '#22c55e' : '#6b7280' }}>INCOME</Text>
+                        <View className="flex-row items-center gap-2">
+                            <Text style={{ fontWeight: '700', color: type === 'income' ? '#22c55e' : (isDark ? '#9ca3af' : '#6b7280') }}>Income</Text>
+                        </View>
                     </Pressable>
                 </View>
 
@@ -175,10 +200,10 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
                         onPress={() => amountInputRef.current?.focus()}
                         className="flex-1 bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700"
                     >
-                        <View className="flex-row items-center justify-end px-3 py-2.5">
+                        <View className="flex-row items-center justify-end px-3 py-2">
                             <TextInput
                                 ref={amountInputRef}
-                                className="font-bold text-lg text-gray-900 dark:text-white min-w-[80px] text-right p-0"
+                                className="font-bold text-base text-gray-900 dark:text-white min-w-[80px] text-right p-0"
                                 value={amount}
                                 onChangeText={handleAmountChange}
                                 keyboardType="numeric"

@@ -192,12 +192,12 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
                             <Pressable
                                 key={fmt.id}
                                 onPress={() => setExportFormat(fmt.id as any)}
-                                className={`flex-1 flex-row items-center justify-center px-2 py-4 rounded-xl border-2 relative ${fmt.id === 'pdf'
+                                className={`flex-1 flex-row items-center justify-center px-2 py-4 rounded-xl border-2 relative ${fmt.id === 'pdf' && !isPremium
                                     ? (exportFormat === fmt.id ? 'bg-blue-600 border-yellow-400' : 'bg-white dark:bg-gray-800 border-yellow-400')
                                     : (exportFormat === fmt.id ? 'bg-blue-600 border-blue-600' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700')
                                     }`}
                             >
-                                {fmt.id === 'pdf' && (
+                                {fmt.id === 'pdf' && !isPremium && (
                                     <View className="absolute -top-2.5 -right-1.5 bg-yellow-400 border border-yellow-500 px-2 py-0.5 rounded-full shadow-sm z-10">
                                         <Text className="text-[8px] font-black text-yellow-900 tracking-tighter uppercase">PRO</Text>
                                     </View>

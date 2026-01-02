@@ -1,7 +1,7 @@
 import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert, Image, StyleSheet, useColorScheme as useRNColorScheme } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { Audio } from 'expo-av';
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
 import { ExpenseListItem } from "../components/ExpenseListItem";
@@ -13,8 +13,11 @@ import ExportModal from "../components/ExportModal";
 import { FloatingBackground } from "../components/FloatingBackground";
 
 export default function Home() {
+    // Hooks & State
     const { expenses } = useExpenses();
-    const { name, categories, updateSettings, theme, isLoading: settingsLoading } = useSettings();
+    const router = useRouter();
+    const { name, categories, updateSettings, theme, isLoading: settingsLoading, isPremium, avatar: settingsAvatar } = useSettings();
+
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
 
@@ -36,7 +39,6 @@ export default function Home() {
                 { shouldPlay: true, volume: 0.4 }
             );
             await sound.playAsync();
-            // Automatically unload sound after playing
             sound.setOnPlaybackStatusUpdate((status) => {
                 if (status.isLoaded && status.didJustFinish) {
                     sound.unloadAsync();
@@ -47,7 +49,6 @@ export default function Home() {
         }
     };
 
-    // Ideally: if name is missing, start tour. Logic:
     useEffect(() => {
         if (settingsLoading) return;
 
@@ -58,9 +59,8 @@ export default function Home() {
         if (!hasName) {
             if (!isNicknameModalVisible) setIsNicknameModalVisible(true);
         } else if (!isNicknameModalVisible && !showWelcomeBack && !isDND) {
-            // Returning user - Show welcome back briefly if we just loaded
             setShowWelcomeBack(true);
-            playWelcomeSound(); // Trigger sound
+            playWelcomeSound();
             const timer = setTimeout(() => setShowWelcomeBack(false), 3000);
             return () => clearTimeout(timer);
         }
@@ -75,44 +75,32 @@ export default function Home() {
         setIsNicknameModalVisible(false);
     };
 
-
-
-    // Helper to determine if avatar is an icon or emoji
     const isIcon = (str: string) => str && (str.includes("-") || str === "person" || str === "person-circle" || str === "happy" || str === "glasses" || str === "woman" || str === "man" || str === "pricetag");
     const isImage = (str: string) => str && (str.startsWith('data:image') || str.startsWith('file://') || str.startsWith('http'));
 
-    const avatar = useSettings().avatar || "👤";
+    const avatar = settingsAvatar || "👤";
 
     const vibeData = useMemo(() => {
         const hour = new Date().getHours();
         if (hour >= 5 && hour < 12) return { title: `Good Morning, ${name}!`, vibe: "☀️ Sun's up! Record your morning coffee." };
         if (hour >= 12 && hour < 17) return { title: `Good Afternoon, ${name}!`, vibe: "🌤️ Lunch time? Track those wins." };
         if (hour >= 17 && hour < 24) return { title: `Good Evening, ${name}!`, vibe: "🌆 Winding down? Review your day." };
-        return { title: `Hello, ${name}!`, vibe: "🌙 Happy Tracking!" }; // Fallback
+        return { title: `Hello, ${name}!`, vibe: "🌙 Happy Tracking!" };
     }, [name]);
 
     const greeting = name ? `Hello, ${name}!` : "DailyXpense";
 
-    // Sort categories by recent usage (last 15 expenses)
     const orderedCategories = useMemo(() => {
-        // 1. Get recent 15 expenses
         const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         const recent15 = sortedExpenses.slice(0, 15);
-
-        // 2. Count usage
         const counts: Record<string, number> = {};
         recent15.forEach(e => {
-            if (e.category) {
-                counts[e.category] = (counts[e.category] || 0) + 1;
-            }
+            if (e.category) counts[e.category] = (counts[e.category] || 0) + 1;
         });
-
-        // 3. Sort categories
         return [...categories].sort((a, b) => {
             const countA = counts[a.name] || 0;
             const countB = counts[b.name] || 0;
-            if (countB !== countA) return countB - countA;
-            return 0;
+            return countB - countA;
         });
     }, [expenses, categories]);
 
@@ -121,9 +109,7 @@ export default function Home() {
             setSelectedCategories([]);
         } else {
             setSelectedCategories(prev => {
-                if (prev.includes(catName)) {
-                    return [];
-                }
+                if (prev.includes(catName)) return [];
                 return [catName];
             });
         }
@@ -131,7 +117,6 @@ export default function Home() {
 
     return (
         <View className="flex-1 bg-white dark:bg-black">
-            {/* Subtle Premium Background - TRUE FULL SCREEN */}
             <View style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]} pointerEvents="none">
                 <Image
                     source={require('../assets/images/premium_ledger_bg.jpg')}
@@ -141,7 +126,6 @@ export default function Home() {
             </View>
 
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
-                {/* Welcome Back Overlay */}
                 {showWelcomeBack && name && (
                     <Animated.View
                         entering={FadeIn.delay(500).duration(800)}
@@ -151,15 +135,9 @@ export default function Home() {
                     >
                         <View className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-xl shadow-lg border border-blue-500/20 backdrop-blur-md flex-row items-center">
                             <View className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center mr-2">
-                                {isImage(avatar) ? (
-                                    <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />
-                                ) : isIcon(avatar) ? (
-                                    <Ionicons name={avatar as any} size={12} color="#2563eb" />
-                                ) : (
-                                    <View className="items-center justify-center">
-                                        <Text style={{ fontSize: 12 }}>{avatar || "👤"}</Text>
-                                    </View>
-                                )}
+                                <Text style={{ fontSize: 12 }}>{isImage(avatar) || isIcon(avatar) ? "" : avatar}</Text>
+                                {isImage(avatar) && <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />}
+                                {isIcon(avatar) && <Ionicons name={avatar as any} size={12} color="#2563eb" />}
                             </View>
                             <View>
                                 <Text className="text-gray-900 dark:text-white font-bold text-[12px]">{vibeData.title}</Text>
@@ -179,11 +157,23 @@ export default function Home() {
                             <Pressable onPress={() => setShowExportModal(true)} className="w-10 h-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full items-center justify-center shadow-sm active:bg-gray-50 dark:active:bg-gray-800">
                                 <Ionicons name="share-outline" size={20} color="#10b981" />
                             </Pressable>
-                            <Link href="/dashboard" asChild>
-                                <Pressable className="w-10 h-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full items-center justify-center shadow-sm active:bg-gray-50 dark:active:bg-gray-800">
-                                    <Ionicons name="stats-chart" size={20} color="#3b82f6" />
-                                </Pressable>
-                            </Link>
+
+                            <Pressable
+                                onPress={() => {
+                                    if (isPremium) {
+                                        router.push('/dashboard');
+                                    } else {
+                                        Alert.alert("Premium Feature", "The Analytics Dashboard is available exclusively to Pro members.", [
+                                            { text: "Cancel", style: "cancel" },
+                                            { text: "Upgrade", style: "default", onPress: () => router.push("/settings") }
+                                        ]);
+                                    }
+                                }}
+                                className="w-10 h-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full items-center justify-center shadow-sm active:bg-gray-50 dark:active:bg-gray-800"
+                            >
+                                <Ionicons name={isPremium ? "stats-chart" : "lock-closed"} size={16} color={isPremium ? "#3b82f6" : "#9ca3af"} />
+                            </Pressable>
+
                             <Link href="/settings" asChild>
                                 <Pressable className="w-11 h-11 bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-blue-900/30 rounded-full items-center justify-center shadow-md active:bg-gray-50 dark:active:bg-gray-800 relative">
                                     {isImage(avatar) ? (
@@ -366,7 +356,6 @@ export default function Home() {
                 <AddExpense />
             </SafeAreaView>
 
-            {/* Modals outside SafeAreaView */}
             <ExportModal
                 visible={showExportModal}
                 onClose={() => setShowExportModal(false)}
@@ -380,7 +369,6 @@ export default function Home() {
             >
                 <View className="flex-1 justify-center items-center bg-black/80 px-4">
                     <View className="bg-white p-8 rounded-3xl w-full max-w-xs items-center shadow-xl">
-
                         {tourStep === 0 && (
                             <>
                                 <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50 p-2">
@@ -413,7 +401,6 @@ export default function Home() {
                                         <Text className="text-xl font-bold text-gray-900 mb-2 text-center">First things first</Text>
                                         <Text className="text-gray-500 text-center">What should we call you?</Text>
                                     </View>
-
                                     <TextInput
                                         className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg mb-6 text-gray-900 text-center font-bold"
                                         placeholder="Your Nickname"

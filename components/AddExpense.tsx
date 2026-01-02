@@ -168,23 +168,31 @@ export function AddExpense() {
                                     </View>
 
                                     {/* Type Toggle */}
-                                    <View style={{ flexDirection: 'row', backgroundColor: isDark ? '#1f2937' : '#f3f4f6', padding: 4, borderRadius: 12 }}>
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        backgroundColor: isDark ? '#1f2937' : '#e0e7ff',
+                                        padding: 2,
+                                        borderRadius: 10,
+                                        borderWidth: 1,
+                                        borderColor: isDark ? '#374151' : '#c7d2fe'
+                                    }}>
                                         <Pressable
                                             onPress={() => setType('expense')}
                                             style={{
                                                 flex: 1,
                                                 paddingVertical: 8,
                                                 alignItems: 'center',
+                                                justifyContent: 'center',
                                                 borderRadius: 8,
                                                 backgroundColor: type === 'expense' ? (isDark ? '#374151' : '#ffffff') : 'transparent',
                                                 shadowColor: '#000',
                                                 shadowOffset: { width: 0, height: 1 },
-                                                shadowOpacity: type === 'expense' ? 0.1 : 0,
+                                                shadowOpacity: type === 'expense' ? 0.05 : 0,
                                                 shadowRadius: 2,
                                                 elevation: type === 'expense' ? 2 : 0,
                                             }}
                                         >
-                                            <Text style={{ fontWeight: '600', color: type === 'expense' ? '#ef4444' : '#6b7280' }}>Expense</Text>
+                                            <Text style={{ fontWeight: '700', color: type === 'expense' ? '#ef4444' : (isDark ? '#9ca3af' : '#6b7280') }}>Expense</Text>
                                         </Pressable>
                                         <Pressable
                                             onPress={() => setType('income')}
@@ -192,16 +200,17 @@ export function AddExpense() {
                                                 flex: 1,
                                                 paddingVertical: 8,
                                                 alignItems: 'center',
+                                                justifyContent: 'center',
                                                 borderRadius: 8,
                                                 backgroundColor: type === 'income' ? (isDark ? '#374151' : '#ffffff') : 'transparent',
                                                 shadowColor: '#000',
                                                 shadowOffset: { width: 0, height: 1 },
-                                                shadowOpacity: type === 'income' ? 0.1 : 0,
+                                                shadowOpacity: type === 'income' ? 0.05 : 0,
                                                 shadowRadius: 2,
                                                 elevation: type === 'income' ? 2 : 0,
                                             }}
                                         >
-                                            <Text style={{ fontWeight: '600', color: type === 'income' ? '#22c55e' : '#6b7280' }}>Income</Text>
+                                            <Text style={{ fontWeight: '700', color: type === 'income' ? '#22c55e' : (isDark ? '#9ca3af' : '#6b7280') }}>Income</Text>
                                         </Pressable>
                                     </View>
                                 </View>
