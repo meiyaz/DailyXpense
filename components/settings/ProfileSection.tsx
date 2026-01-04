@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, Pressable, TouchableOpacity, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../store/AuthContext";
 import { useSettings } from "../../store/SettingsContext";
@@ -28,7 +29,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     setShowAvatarPicker
 }) => {
     const { user } = useAuth();
-    const { name, avatar } = useSettings();
+    const { name, avatar, isPremium } = useSettings();
 
     const isIcon = (str: string) => str && (str.includes("-") || str === "person" || str === "person-circle" || str === "happy" || str === "glasses" || str === "woman" || str === "man" || str === "pricetag");
     const isImage = (str: string) => str && (str.startsWith('data:image') || str.startsWith('file://') || str.startsWith('http'));
@@ -37,17 +38,17 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         <View className="items-center mb-8 mt-2">
             <TouchableOpacity
                 onPress={() => setShowAvatarPicker(true)}
-                className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full items-center justify-center mb-3 border-2 border-blue-100 dark:border-blue-900/30 relative"
+                className={`w-20 h-20 rounded-full items-center justify-center mb-3 border-2 relative ${isPremium ? 'border-amber-400 dark:border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'}`}
             >
                 {isImage(avatar) ? (
                     <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />
                 ) : isIcon(avatar) || PROFILE_ICONS.includes(avatar) ? (
-                    <Ionicons name={avatar as any} size={40} color="#2563eb" />
+                    <Ionicons name={avatar as any} size={40} color={isPremium ? "#d97706" : "#2563eb"} />
                 ) : (
                     <Text className="text-4xl">{avatar || "👤"}</Text>
                 )}
 
-                <View className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-1.5 border-2 border-white dark:border-black">
+                <View className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-1.5 border-2 border-white dark:border-black shadow-sm z-20">
                     <Ionicons name="pencil" size={10} color="white" />
                 </View>
             </TouchableOpacity>

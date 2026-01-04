@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, useWindowDimensions, StyleSheet, TouchableOpacity, Image, Modal, TouchableWithoutFeedback, useColorScheme as useRNColorScheme } from "react-native";
+import { View, Text, ScrollView, useWindowDimensions, StyleSheet, TouchableOpacity, Image, Modal, TouchableWithoutFeedback, useColorScheme as useRNColorScheme, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState, useMemo } from "react";
@@ -256,10 +256,10 @@ export default function Dashboard() {
                                     <LineChart
                                         areaChart
                                         curved
-                                        data={chartData.trendData}
+                                        data={isPremium ? chartData.trendData : [{ value: 50 }, { value: 80 }, { value: 40 }, { value: 70 }, { value: 60 }, { value: 90 }, { value: 50 }]}
                                         width={windowWidth - 122}
                                         height={160}
-                                        spacing={(windowWidth - 140) / Math.max(1, chartData.trendData.length - 1)}
+                                        spacing={(windowWidth - 140) / 6}
                                         initialSpacing={15}
                                         color="#3b82f6"
                                         thickness={4}
@@ -310,18 +310,18 @@ export default function Dashboard() {
                                             donut
                                             radius={65}
                                             innerRadius={50}
-                                            data={chartData.pieData}
+                                            data={isPremium ? chartData.pieData : [{ value: 40, color: '#93c5fd' }, { value: 30, color: '#3b82f6' }, { value: 30, color: '#1d4ed8' }]}
                                             centerLabelComponent={() => (
                                                 <Text style={{ fontSize: 12, fontWeight: '900', color: isDark ? '#fff' : '#1e293b' }}>
-                                                    {Math.round((financials.expense / (financials.income || financials.expense || 1)) * 100)}%
+                                                    {isPremium ? `${Math.round((financials.expense / (financials.income || financials.expense || 1)) * 100)}%` : '??%'}
                                                 </Text>
                                             )}
                                         />
                                         <View style={styles.pieLegend}>
-                                            {chartData.pieData.slice(0, 3).map((item, idx) => (
+                                            {(isPremium ? chartData.pieData : [{ name: 'Category A', color: '#93c5fd' }, { name: 'Category B', color: '#3b82f6' }, { name: 'Category C', color: '#1d4ed8' }]).slice(0, 3).map((item, idx) => (
                                                 <View key={idx} style={styles.legendRow}>
                                                     <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                                                    <Text style={styles.legendName} numberOfLines={1}>{item.name}</Text>
+                                                    <Text style={styles.legendName} numberOfLines={1}>{isPremium ? item.name : '??????'}</Text>
                                                 </View>
                                             ))}
                                         </View>
@@ -337,7 +337,7 @@ export default function Dashboard() {
 
                     {/* Pro Gating Overlay */}
                     {!isPremium && (
-                        <BlurView intensity={isDark ? 30 : 20} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
+                        <BlurView intensity={Platform.OS === 'android' ? 100 : 80} tint={isDark ? 'systemThickMaterialDark' : 'systemThickMaterialLight'} style={StyleSheet.absoluteFill}>
                             <View style={styles.proOverlay}>
                                 <LinearGradient
                                     colors={isDark ? ['#1e3a8a', '#1e40af'] : ['#eff6ff', '#dbeafe']}

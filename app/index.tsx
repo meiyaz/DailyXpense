@@ -184,33 +184,19 @@ export default function Home() {
                             </Pressable>
 
                             <Pressable
-                                onPress={() => {
-                                    if (isPremium) {
-                                        router.push('/dashboard');
-                                    } else {
-                                        showCustomAlert(
-                                            "Premium Feature",
-                                            "The Analytics Dashboard is available exclusively to Pro members.",
-                                            "lock-closed",
-                                            [
-                                                { text: "Cancel", style: "cancel" },
-                                                { text: "Upgrade", style: "default", onPress: () => router.push("/settings") }
-                                            ]
-                                        );
-                                    }
-                                }}
+                                onPress={() => router.push('/dashboard')}
                                 className="w-10 h-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full items-center justify-center shadow-sm active:bg-gray-50 dark:active:bg-gray-800"
                             >
-                                <Ionicons name={isPremium ? "stats-chart" : "lock-closed"} size={16} color={isPremium ? "#3b82f6" : "#9ca3af"} />
+                                <Ionicons name="stats-chart" size={16} color="#3b82f6" />
                             </Pressable>
 
                             <Link href="/settings" asChild>
-                                <Pressable className="w-11 h-11 bg-white dark:bg-gray-900 border-2 border-blue-100 dark:border-blue-900/30 rounded-full items-center justify-center shadow-md active:bg-gray-50 dark:active:bg-gray-800 relative">
+                                <Pressable className={`w-11 h-11 border-2 rounded-full items-center justify-center shadow-md active:bg-gray-50 dark:active:bg-gray-800 relative ${isPremium ? 'border-amber-400 dark:border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'}`}>
                                     {isImage(avatar) ? (
                                         <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />
                                     ) : isIcon(avatar) ? (
-                                        <View className="w-full h-full items-center justify-center bg-blue-50 dark:bg-blue-900/20 rounded-full">
-                                            <Ionicons name={avatar as any} size={22} color="#2563eb" />
+                                        <View className={`w-full h-full items-center justify-center rounded-full ${isPremium ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                                            <Ionicons name={avatar as any} size={22} color={isPremium ? "#d97706" : "#2563eb"} />
                                         </View>
                                     ) : (
                                         <Text className="text-2xl">{avatar || "👤"}</Text>
@@ -384,7 +370,7 @@ export default function Home() {
                     <View className="h-10" />
                 </ScrollView>
                 <AddExpense />
-            </SafeAreaView>
+            </SafeAreaView >
 
             <ExportModal
                 visible={showExportModal}
@@ -404,6 +390,6 @@ export default function Home() {
                 buttons={alertConfig.buttons}
                 onClose={closeAlert}
             />
-        </View>
+        </View >
     );
 }

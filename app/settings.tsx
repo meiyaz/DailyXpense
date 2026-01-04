@@ -342,7 +342,7 @@ export default function Settings() {
                         }}
                     />
 
-                    <PremiumSection />
+                    <PremiumSection showCustomAlert={showCustomAlert} />
 
                     <AccountSection />
 
