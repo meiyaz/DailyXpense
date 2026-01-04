@@ -17,25 +17,25 @@ export const SmartInsights = () => {
 
     const getGradientColors = (insight: Insight): readonly [string, string] => {
         if (insight.type === 'alert' || (insight.type === 'velocity' && insight.sentiment === 'negative')) {
-            return isDark ? ['#7f1d1d', '#991b1b'] as const : ['#fee2e2', '#fecaca'] as const; // Red-ish
+            return isDark ? ['#ef4444' + '20', '#ef4444' + '05'] as const : ['#fee2e2', '#fff1f1'] as const;
         }
         if (insight.type === 'velocity' && insight.sentiment === 'positive') {
-            return isDark ? ['#064e3b', '#065f46'] as const : ['#d1fae5', '#a7f3d0'] as const; // Green-ish
+            return isDark ? ['#10b981' + '20', '#10b981' + '05'] as const : ['#d1fae5', '#f0fdf4'] as const;
         }
-        return isDark ? ['#1e3a8a', '#1e40af'] as const : ['#eff6ff', '#dbeafe'] as const; // Blue-ish
+        return isDark ? ['#3b82f6' + '20', '#3b82f6' + '05'] as const : ['#eff6ff', '#f8fafc'] as const;
     };
 
     const getIconColor = (insight: Insight) => {
-        if (insight.type === 'alert' || (insight.type === 'velocity' && insight.sentiment === 'negative')) return '#ef4444';
-        if (insight.type === 'velocity' && insight.sentiment === 'positive') return '#10b981';
-        return '#3b82f6';
+        if (insight.type === 'alert' || (insight.type === 'velocity' && insight.sentiment === 'negative')) return isDark ? '#f87171' : '#dc2626';
+        if (insight.type === 'velocity' && insight.sentiment === 'positive') return isDark ? '#34d399' : '#059669';
+        return isDark ? '#60a5fa' : '#2563eb';
     };
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="sparkles" size={18} color="#8b5cf6" />
-                <Text style={[styles.title, isDark && styles.textLight]}>Smart Insights</Text>
+                <Ionicons name="sparkles" size={16} color="#8b5cf6" />
+                <Text style={[styles.title, isDark && styles.textLight]}>AI Insights</Text>
             </View>
 
             <View style={styles.content}>
@@ -48,17 +48,16 @@ export const SmartInsights = () => {
                             style={styles.gradientBg}
                         />
                         <View style={styles.cardContent}>
-                            <View style={styles.iconContainer}>
-                                <Ionicons name={insight.icon as any} size={28} color={getIconColor(insight)} />
+                            <View style={[styles.iconContainer, isDark && styles.iconContainerDark]}>
+                                <Ionicons name={insight.icon as any} size={24} color={getIconColor(insight)} />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text style={[styles.cardTitle, isDark && styles.textLight]} numberOfLines={1}>{insight.title}</Text>
                                 <Text style={[styles.cardMessage, isDark && styles.subTextLight]} numberOfLines={2}>{insight.message}</Text>
                                 {!!insight.details && (
-                                    <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }}>
-                                        <Ionicons name="information-circle-outline" size={12} color={isDark ? '#9ca3af' : '#6b7280'} style={{ marginRight: 4 }} />
-                                        <Text style={{ fontSize: 11, fontWeight: '600', color: isDark ? '#9ca3af' : '#6b7280' }}>
-                                            {insight.details}
+                                    <View style={{ marginTop: 6, flexDirection: 'row', alignItems: 'center' }}>
+                                        <Text style={{ fontSize: 10, fontWeight: '700', color: isDark ? '#9ca3af' : '#6b7280', opacity: 0.8 }}>
+                                            • {insight.details}
                                         </Text>
                                     </View>
                                 )}
@@ -73,45 +72,45 @@ export const SmartInsights = () => {
 
 const styles = StyleSheet.create({
     container: {
-        marginBottom: 24,
+        marginBottom: 20,
         width: '100%',
-        maxWidth: 600,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 12,
         paddingHorizontal: 4,
-        gap: 8
+        gap: 6
     },
     title: {
-        fontSize: 20,
-        fontWeight: '800',
-        color: '#1f2937',
-        letterSpacing: -0.5,
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#6b7280',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
     textLight: {
         color: '#f3f4f6',
     },
     subTextLight: {
-        color: '#d1d5db',
+        color: '#9ca3af',
     },
     content: {
-        gap: 16,
+        gap: 12,
     },
     card: {
         width: '100%',
-        borderRadius: 24,
+        borderRadius: 20,
         backgroundColor: 'white',
         overflow: 'hidden',
         position: 'relative',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.05)'
+        borderColor: 'rgba(0,0,0,0.03)'
     },
     cardDark: {
         backgroundColor: '#111827',
@@ -123,36 +122,39 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        opacity: 0.15, // More subtle for large cards
+        opacity: 0.6,
     },
     cardContent: {
-        padding: 20,
+        padding: 16,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
+        gap: 12,
     },
     iconContainer: {
-        width: 56,
-        height: 56,
-        borderRadius: 18,
-        backgroundColor: 'rgba(255,255,255,0.9)',
+        width: 48,
+        height: 48,
+        borderRadius: 14,
+        backgroundColor: '#ffffff',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowRadius: 2,
+    },
+    iconContainerDark: {
+        backgroundColor: '#1f2937',
     },
     cardTitle: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '700',
         color: '#111827',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     cardMessage: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '500',
         color: '#4b5563',
-        lineHeight: 20,
+        lineHeight: 18,
     }
 });
