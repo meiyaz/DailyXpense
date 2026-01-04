@@ -118,31 +118,15 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({
                     </View>
                 </View>
 
-                {/* Cloud Sync Pro (Coming Soon) */}
-                <View className="flex-row items-center justify-between p-3 border-b border-amber-50 dark:border-amber-900/10 opacity-60">
-                    <View className="flex-row items-center">
-                        <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
-                            <Ionicons name="sync-outline" size={14} color="#f59e0b" />
-                        </View>
-                        <View>
-                            <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Cloud Sync Pro</Text>
-                            <Text className="text-[10px] text-gray-400">Real-time sync across all devices</Text>
-                        </View>
-                    </View>
-                    <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
-                        <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">SOON</Text>
-                    </View>
-                </View>
-
-                {/* Auto Backup (Coming Soon) */}
+                {/* Automatic Cloud Sync (Coming Soon) */}
                 <View className="flex-row items-center justify-between p-3 opacity-60">
                     <View className="flex-row items-center">
                         <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
                             <Ionicons name="cloud-done-outline" size={14} color="#f59e0b" />
                         </View>
                         <View>
-                            <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Auto-Cloud Backup</Text>
-                            <Text className="text-[10px] text-gray-400">Scheduled secure backups</Text>
+                            <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Automatic Cloud Sync</Text>
+                            <Text className="text-[10px] text-gray-400">Real-time sync & secure backups</Text>
                         </View>
                     </View>
                     <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">

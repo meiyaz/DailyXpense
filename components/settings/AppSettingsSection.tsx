@@ -95,7 +95,7 @@ export const AppSettingsSection: React.FC<AppSettingsSectionProps> = ({
                             <Ionicons name="cloud-upload-outline" size={14} color="#2563eb" />
                         </View>
                         <View>
-                            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Sync Cloud</Text>
+                            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">Cloud Sync</Text>
                             {lastSyncTime && (
                                 <Text className="text-[10px] text-gray-400">
                                     Synced {new Date(lastSyncTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

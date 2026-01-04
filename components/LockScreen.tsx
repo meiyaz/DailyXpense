@@ -249,8 +249,9 @@ export default function LockScreen() {
                                 <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{val}</Text>
                             </TouchableOpacity>
                         ))}
-                        {/* Zero Button */}
-                        <View className="w-20 h-20" /> {/* Left Spacer */}
+
+                        {/* Zero Button Container */}
+                        <View className="w-20 h-20" />
 
                         <TouchableOpacity
                             onPress={() => {
@@ -259,7 +260,6 @@ export default function LockScreen() {
                                 } else if (mode === 'reset_pin') {
                                     if (newPin.length < 4) setNewPin(newPin + '0');
                                 } else {
-                                    // Entry mode
                                     handlePinPress('0');
                                 }
                             }}
@@ -268,7 +268,6 @@ export default function LockScreen() {
                             <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">0</Text>
                         </TouchableOpacity>
 
-                        {/* Backspace Button */}
                         <TouchableOpacity
                             onPress={handleDelete}
                             className="w-20 h-20 items-center justify-center rounded-full active:bg-gray-100 dark:active:bg-gray-800"
