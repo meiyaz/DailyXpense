@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { AppState } from "react-native";
 import { addEventListener } from '@react-native-community/netinfo';
 import { useSettings } from "./SettingsContext";
 import { db, migrateDb } from "../db/client";
@@ -75,19 +76,40 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
         init();
     }, [userId]);
 
-    // Network Listener
+    // Network Listener & AppState/Unlock Listener
     useEffect(() => {
-        if (Platform.OS === 'web') return;
+        // Network listener
+        if (Platform.OS !== 'web') {
+            const unsubscribeNet = addEventListener((state) => {
+                if (state.isConnected) {
+                    SyncService.sync().then(() => loadExpenses());
+                }
+            });
+            return () => unsubscribeNet();
+        }
+    }, []);
 
-        const unsubscribe = addEventListener((state) => {
-            if (state.isConnected) {
-                // Try to sync when back online (SyncService checks settings)
-                SyncService.sync().then(() => loadExpenses());
+    // AppState & Unlock Listener
+    useEffect(() => {
+        // Reload when app comes to foreground or unlocks
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState === 'active') {
+                loadExpenses();
             }
         });
 
-        return () => unsubscribe();
+        return () => {
+            subscription.remove();
+        };
     }, []);
+
+    // Reload when explicitly unlocked (if handled within app lifecycle)
+    const { isAppUnlocked } = useSettings();
+    useEffect(() => {
+        if (isAppUnlocked) {
+            loadExpenses();
+        }
+    }, [isAppUnlocked]);
 
     const loadExpenses = async () => {
         try {
