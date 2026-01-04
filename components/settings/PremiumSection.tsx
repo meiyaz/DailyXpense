@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Switch } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../../store/SettingsContext";
 
@@ -118,8 +118,8 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({
                     </View>
                 </View>
 
-                {/* Automatic Cloud Sync (Coming Soon) */}
-                <View className="flex-row items-center justify-between p-3 opacity-60">
+                {/* Automatic Cloud Sync */}
+                <View className="flex-row items-center justify-between p-3">
                     <View className="flex-row items-center">
                         <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
                             <Ionicons name="cloud-done-outline" size={14} color="#f59e0b" />
@@ -129,9 +129,22 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({
                             <Text className="text-[10px] text-gray-400">Real-time sync & secure backups</Text>
                         </View>
                     </View>
-                    <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
-                        <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">SOON</Text>
-                    </View>
+                    {isPremium ? (
+                        <View className="flex-row items-center">
+                            <Switch
+                                value={settings?.automaticCloudSync ?? true}
+                                onValueChange={(val) => updateSettings({ automaticCloudSync: val })}
+                                trackColor={{ false: '#d1d5db', true: '#f59e0b' }}
+                                thumbColor={'white'}
+                                style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                            />
+                        </View>
+                    ) : (
+                        <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded flex-row items-center gap-1">
+                            <Ionicons name="lock-closed" size={8} color="#d97706" />
+                            <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">PRO</Text>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>

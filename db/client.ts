@@ -76,6 +76,10 @@ if (Platform.OS === 'web') {
     try {
       await expoDb.execAsync("ALTER TABLE settings ADD COLUMN is_premium INTEGER DEFAULT 0");
     } catch (e) { }
+
+    try {
+      await expoDb.execAsync("ALTER TABLE settings ADD COLUMN automatic_cloud_sync INTEGER DEFAULT 1");
+    } catch (e) { }
   };
 }
 

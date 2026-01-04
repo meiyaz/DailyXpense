@@ -35,6 +35,7 @@ export const settings = sqliteTable('settings', {
   syncStatus: text('sync_status', { enum: ['PENDING', 'SYNCED'] }).default('PENDING').notNull(),
   maxAmount: real('max_amount'),
   isPremium: integer('is_premium', { mode: 'boolean' }).default(false),
+  automaticCloudSync: integer('automatic_cloud_sync', { mode: 'boolean' }).default(true),
 });
 
 export type Expense = typeof expenses.$inferSelect;

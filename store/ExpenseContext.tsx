@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { addEventListener } from '@react-native-community/netinfo';
 import { useSettings } from "./SettingsContext";
 import { db, migrateDb } from "../db/client";
 import { expenses as expensesSchema } from "../db/schema";
@@ -47,7 +48,7 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
             try {
                 // STEP 2: Handle Native initialization (Local DB migration & Sync Service)
                 await migrateDb(); // Ensure table exists
-                SyncService.init();
+                // SyncService.init() removed; handled by useEffect below
 
                 // NATIVE MIGRATION: If we just logged in, move offline expenses to this user
                 if (userId !== "offline_user") {
@@ -73,6 +74,20 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
         };
         init();
     }, [userId]);
+
+    // Network Listener
+    useEffect(() => {
+        if (Platform.OS === 'web') return;
+
+        const unsubscribe = addEventListener((state) => {
+            if (state.isConnected) {
+                // Try to sync when back online (SyncService checks settings)
+                SyncService.sync().then(() => loadExpenses());
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const loadExpenses = async () => {
         try {

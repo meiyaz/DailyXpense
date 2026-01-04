@@ -35,6 +35,7 @@ interface SettingsContextType {
     lastSyncTime: number | null;
     maxAmount: number;
     isPremium: boolean;
+    automaticCloudSync: boolean;
     isLoading: boolean;
     isAppUnlocked: boolean;
     setIsAppUnlocked: (unlocked: boolean) => void;
@@ -54,6 +55,7 @@ interface SettingsContextType {
         lastSyncTime: number | null;
         maxAmount: number;
         isPremium: boolean;
+        automaticCloudSync: boolean;
     }>) => void;
     addCategory: (name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
     updateCategory: (id: string, name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
@@ -103,6 +105,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
     const [maxAmount, setMaxAmount] = useState(1000000); // Default 10L
     const [isPremium, setIsPremium] = useState(false);
+    const [automaticCloudSync, setAutomaticCloudSync] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isAppUnlocked, setIsAppUnlocked] = useState(false);
     const [lastBackgroundTime, setLastBackgroundTime] = useState<number | null>(null);
@@ -237,6 +240,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         const premium = s.isPremium ?? s.is_premium;
         setIsPremium(premium === true || premium === 1);
 
+        const autoSync = s.automaticCloudSync ?? s.automatic_cloud_sync;
+        // Default to FALSE to avoid forcing free users into auto-sync they can't disable
+        // Only allow TRUE if they are premium
+        const premiumStatus = premium === true || premium === 1;
+        setAutomaticCloudSync((autoSync === true || autoSync === 1) && premiumStatus);
+
         // Handle booleans (SQLite stores 0/1, Supabase bool)
         const notif = s.notificationsEnabled ?? s.notifications_enabled;
         setNotificationsEnabled(notif === true || notif === 1);
@@ -320,6 +329,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                 categories: payload.categories,
                 maxAmount: payload.max_amount,
                 isPremium: payload.is_premium,
+                automaticCloudSync: payload.automatic_cloud_sync,
                 deleted: false
             }).onConflictDoUpdate({
                 target: settingsSchema.id,
@@ -339,6 +349,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                     categories: payload.categories,
                     maxAmount: payload.max_amount,
                     isPremium: payload.is_premium,
+                    automaticCloudSync: payload.automatic_cloud_sync,
                     updatedAt: now,
                     syncStatus: 'PENDING'
                 }
@@ -370,6 +381,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             categories: JSON.stringify(merged.categories),
             max_amount: merged.maxAmount,
             is_premium: merged.isPremium,
+            automatic_cloud_sync: merged.automaticCloudSync,
             updated_at: now.toISOString(),
             sync_status: 'PENDING'
         };
@@ -399,7 +411,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             const merged = {
                 currency, locale, name, avatar, categories,
                 budget, notificationsEnabled, reminderTime,
-                appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium,
+                appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium, automaticCloudSync,
                 ...newSettings
             };
             // 1. Save Local (Fast)
@@ -459,6 +471,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (updates.maxAmount !== undefined) setMaxAmount(updates.maxAmount);
         if (updates.isPremium !== undefined) setIsPremium(updates.isPremium);
 
+        if (updates.automaticCloudSync !== undefined) {
+            setAutomaticCloudSync(updates.automaticCloudSync);
+        }
+
         saveSettings(updates);
     };
 
@@ -488,7 +504,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         <SettingsContext.Provider value={{
             currency, locale, name, avatar, categories,
             budget, notificationsEnabled, reminderTime,
-            appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium,
+            appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium, automaticCloudSync,
             isLoading, isAppUnlocked,
             updateSettings, addCategory, updateCategory, deleteCategory, setIsAppUnlocked,
             scheduleNotification: (t, b) => scheduleLocalNotification(t, b)

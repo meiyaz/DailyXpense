@@ -17,10 +17,21 @@ export const SyncService = {
         });
     },
 
-    async sync() {
+    async sync(options: { force?: boolean } = {}) {
         // Starting sync...
         try {
-            await this.pushChanges();
+            // Check Auto-Sync Setting if not forced
+            if (!options.force) {
+                const settings = await db.query.settings.findFirst();
+                // Default to true if missing, or check exact value
+                // Logic: If settings exists AND automaticCloudSync is explicitly false, then skip.
+                if (settings && settings.automaticCloudSync === false) {
+                    console.log('Auto-Sync skipped (disabled in settings)');
+                    return;
+                }
+            }
+
+            await this.pushChanges({ force: true });
             await this.pullChanges();
             // Sync complete
         } catch (e: any) {
@@ -28,8 +39,17 @@ export const SyncService = {
         }
     },
 
-    async pushChanges() {
-        // 1. Get pending changes
+    async pushChanges(options: { force?: boolean } = {}) {
+        // 1. Check Auto-Sync Setting if not forced
+        if (!options.force) {
+            const settings = await db.query.settings.findFirst();
+            if (settings && settings.automaticCloudSync === false) {
+                console.log('Push skipped (disabled in settings)');
+                return;
+            }
+        }
+
+        // 2. Get pending changes
         const pendingExpenses = await db.query.expenses.findMany({
             where: eq(expenses.syncStatus, 'PENDING'),
         });

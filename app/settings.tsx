@@ -8,9 +8,9 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useSettings } from "../store/SettingsContext";
+import { SyncService } from "../services/SyncService";
 import { registerForPushNotificationsAsync, isNotificationSupported } from "../lib/notifications";
 import { useState } from "react";
-
 
 import ExportModal from "../components/ExportModal";
 import { SafeTimePicker } from "../components/SafeTimePicker";
@@ -102,13 +102,17 @@ export default function Settings() {
 
     const [isSyncing, setIsSyncing] = useState(false);
 
-    const handleSync = () => {
+    const handleSync = async () => {
         setIsSyncing(true);
-        // Simulate sync delay
-        setTimeout(() => {
-            setIsSyncing(false);
+        try {
+            await SyncService.sync({ force: true });
             showCustomAlert("Sync Complete", "Your data has been successfully synced to the cloud.", "cloud-done");
-        }, 2000);
+        } catch (e) {
+            console.error(e);
+            showCustomAlert("Sync Failed", "Please check your internet connection.", "alert-circle");
+        } finally {
+            setIsSyncing(false);
+        }
     };
 
     const handleToggleNotifications = async (value: boolean) => {
