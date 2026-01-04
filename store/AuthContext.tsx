@@ -28,16 +28,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // STEP 1: Initialize Auth State (Check for active session)
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        // STEP 1: Initialize Auth State (Check for active session)
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+            if (error) {
+                console.error("Error restoring session:", error.message);
+                // If session is invalid, ensure we start clean
+            }
             setSession(session);
             setUser(session?.user ?? null);
+            setIsLoading(false);
+        }).catch((err) => {
+            console.error("Unexpected error restoring session:", err);
             setIsLoading(false);
         });
 
         // STEP 2: Listen for Live Auth Changes (Login/Logout/Session updates)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            // Handle Token Refresh Failures (common cause of infinite loading or crashes on old tokens)
+            if (event as string === 'TOKEN_REFRESH_FAILED') {
+                console.log("Token refresh failed, forcing sign out.");
+                await supabase.auth.signOut();
+                setSession(null);
+                setUser(null);
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setUser(null);
+            } else {
+                setSession(session);
+                setUser(session?.user ?? null);
+            }
             setIsLoading(false);
         });
 

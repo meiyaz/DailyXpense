@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextInput, Alert, Animated, useColorScheme } from "react-native";
+import { View, Text, Pressable, TextInput, useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Expense, useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
@@ -19,7 +19,7 @@ interface ExpenseListItemProps {
 
 export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStart, onEditEnd }: ExpenseListItemProps) {
     const { deleteExpense, updateExpense } = useExpenses();
-    const { currency, categories, maxAmount, theme } = useSettings();
+    const { categories, maxAmount, theme } = useSettings();
     const systemScheme = useColorScheme();
     const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
     // Removed local isEditing state, relying on props or internal handle if optional.

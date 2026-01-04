@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable, useWindowDimensions, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, useWindowDimensions, StyleSheet, TouchableOpacity } from "react-native";
 import { useState, useMemo } from "react";
 import { useExpenses, Expense } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
@@ -152,23 +152,7 @@ export default function Dashboard() {
     const { width: windowWidth } = useWindowDimensions();
     const chartWidth = Math.min(windowWidth - 48, 600);
 
-    // Top Categories Logic (Expenses Only)
-    const spendingByTag = useMemo(() => {
-        const tags: Record<string, number> = {};
-        expenses
-            .filter(e => e.type !== 'income') // Explicitly exclude income
-            .forEach(e => {
-                const t = e.category || "Uncategorized";
-                tags[t] = (tags[t] || 0) + e.amount;
-            });
-        return Object.entries(tags)
-            .sort((a, b) => b[1] - a[1]) // Sort desc
-            .slice(0, 5)
-            .map(([tag, amount]) => {
-                const cat = categories.find(c => c.name === tag);
-                return { tag, amount, color: cat ? cat.color : "#9ca3af" };
-            });
-    }, [expenses, categories]);
+
 
     const styles = StyleSheet.create({
         // ... existing styles ...

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, TextInput, Modal, Alert, Image, StyleSheet, useColorScheme as useRNColorScheme } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, StyleSheet, useColorScheme as useRNColorScheme } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { Audio } from 'expo-av';
 import { Link, useRouter, usePathname } from "expo-router";
@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useMemo, useEffect } from "react";
 import ExportModal from "../components/ExportModal";
-import { FloatingBackground } from "../components/FloatingBackground";
+
 import { CustomAlert } from "../components/ui/CustomAlert";
 
 export default function Home() {
@@ -84,14 +84,7 @@ export default function Home() {
         }
     }, [name, settingsLoading, pathname]);
 
-    const handleSaveNickname = () => {
-        if (!newNickname.trim()) {
-            showCustomAlert("Required", "Please enter a nickname.", "alert-circle");
-            return;
-        }
-        updateSettings({ name: newNickname.trim() });
-        setIsNicknameModalVisible(false);
-    };
+
 
     const isIcon = (str: string) => str && (str.includes("-") || str === "person" || str === "person-circle" || str === "happy" || str === "glasses" || str === "woman" || str === "man" || str === "pricetag");
     const isImage = (str: string) => str && (str.startsWith('data:image') || str.startsWith('file://') || str.startsWith('http'));

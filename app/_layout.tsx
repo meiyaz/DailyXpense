@@ -1,8 +1,8 @@
 import "../global.css";
 import { StatusBar } from "expo-status-bar";
-import { View, useColorScheme as useRNColorScheme, Platform } from "react-native";
+import { View, useColorScheme as useRNColorScheme, Platform, DimensionValue } from "react-native";
 import { Stack, useRouter, useSegments, useRootNavigationState } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ExpenseProvider } from "../store/ExpenseContext";
 import { SettingsProvider, useSettings } from "../store/SettingsContext";
 import { AuthProvider, useAuth } from "../store/AuthContext";
@@ -11,7 +11,7 @@ import { migrateDb } from "../db/client";
 import LockScreen from "../components/LockScreen";
 
 function RootStack() {
-    const { theme, accentColor, appLockEnabled, isAppUnlocked, securityPin, isLoading: settingsLoading } = useSettings();
+    const { theme, appLockEnabled, isAppUnlocked, isLoading: settingsLoading } = useSettings();
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
 
@@ -54,7 +54,7 @@ function RootStack() {
     // Web-Optimized Layout: Clean, centered, tablet-width column
     const webContainerStyle = Platform.OS === 'web' ? {
         maxWidth: 800,
-        width: '100%',
+        width: '100%' as DimensionValue,
         alignSelf: 'center' as const,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 0 },
@@ -69,7 +69,7 @@ function RootStack() {
 
     return (
         <View style={[{ flex: 1, backgroundColor: isDark ? 'black' : 'white' }, webWrapperStyle]}>
-            <View style={[{ flex: 1, width: '100%', backgroundColor: isDark ? 'black' : 'white' }, webContainerStyle]}>
+            <View style={[{ flex: 1, width: '100%' as DimensionValue, backgroundColor: isDark ? 'black' : 'white' }, webContainerStyle]}>
                 <Stack screenOptions={{
                     contentStyle: { backgroundColor: isDark ? 'black' : 'white' },
                     animation: 'slide_from_right',

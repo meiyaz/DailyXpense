@@ -11,10 +11,10 @@ import { FloatingBackground } from "../components/FloatingBackground";
 import { CustomAlert } from "../components/ui/CustomAlert";
 
 export default function Login() {
-    const { sendOtp, verifyOtp, signInWithGoogle } = useAuth();
+    const { sendOtp, verifyOtp } = useAuth();
     const { theme, securityPin, updateSettings, setIsAppUnlocked } = useSettings();
     const systemScheme = useRNColorScheme();
-    const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
+
     const router = useRouter();
 
     const [mode, setMode] = useState<"landing" | "email" | "otp" | "setup_pin" | "confirm_pin">("landing");
@@ -191,17 +191,7 @@ export default function Login() {
         }
     };
 
-    const handleGoogleSignIn = async () => {
-        setLoading(true);
-        try {
-            const { error } = await signInWithGoogle();
-            if (error) showCustomAlert("Google Sign-In Failed", error.message, "logo-google");
-        } catch (e: any) {
-            showCustomAlert("Error", e.message, "alert-circle");
-        } finally {
-            setLoading(false);
-        }
-    };
+
 
     return (
         <View className="flex-1 bg-white">

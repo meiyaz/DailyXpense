@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Pressable, Platform, Animated, KeyboardAvoidingView, Modal, useColorScheme } from "react-native";
+import { View, Text, TextInput, Pressable, Platform, KeyboardAvoidingView, Modal, useColorScheme } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
@@ -10,7 +10,7 @@ import { CustomAlert } from "./ui/CustomAlert";
 
 export function AddExpense() {
     const { addExpense, expenses } = useExpenses();
-    const { currency, categories, updateSettings, theme, maxAmount } = useSettings();
+    const { categories, theme, maxAmount } = useSettings();
     const systemScheme = useColorScheme();
     const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
 
@@ -163,7 +163,7 @@ export function AddExpense() {
                 onRequestClose={() => setIsExpanded(false)}
             >
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{ flex: 1 }}
                 >
                     <Pressable

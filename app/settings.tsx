@@ -2,14 +2,14 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 
-import { View, Text, Switch, Modal, TextInput, Alert, ScrollView, Pressable, TouchableOpacity, FlatList, useColorScheme as useRNColorScheme, Image } from "react-native";
+import { View, Text, Modal, TextInput, ScrollView, Pressable, TouchableOpacity, FlatList, useColorScheme as useRNColorScheme } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useSettings } from "../store/SettingsContext";
-import { useState, useRef, useEffect } from "react";
-import { useExpenses } from "../store/ExpenseContext";
+import { useState, useEffect } from "react";
+
 import { useAuth } from "../store/AuthContext";
 
 import ExportModal from "../components/ExportModal";
@@ -43,7 +43,7 @@ const PROFILE_ICONS = [
     "glasses", "shirt", "happy", "star", "heart"
 ];
 
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 
 const CURRENCIES = [
     { symbol: "₹", name: "INR" },
@@ -55,21 +55,17 @@ const CURRENCIES = [
 
 export default function Settings() {
     const router = useRouter();
+    const { signOut, user } = useAuth();
     const {
-        currency, budget, theme,
+        currency, theme,
         notificationsEnabled, reminderTime,
-        appLockEnabled, securityPin,
+        securityPin,
         avatar, name,
-        categories,
         updateSettings,
         addCategory,
         updateCategory,
         deleteCategory,
-        lastSyncTime,
-        maxAmount
     } = useSettings();
-    const { expenses } = useExpenses();
-    const { signOut, user } = useAuth();
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
 
@@ -111,6 +107,8 @@ export default function Settings() {
     const [showMaxAmountModal, setShowMaxAmountModal] = useState(false);
     const [tempMaxAmount, setTempMaxAmount] = useState("");
 
+
+
     const getDateFromTimeStr = (timeStr: string) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
         const date = new Date();
@@ -118,12 +116,8 @@ export default function Settings() {
         return date;
     };
 
-
-
     const [showPinModal, setShowPinModal] = useState(false);
     const [tempPin, setTempPin] = useState("");
-    const [isSettingNewPin, setIsSettingNewPin] = useState(false);
-
 
     const [isSyncing, setIsSyncing] = useState(false);
 
@@ -136,138 +130,13 @@ export default function Settings() {
         }, 2000);
     };
 
-    useEffect(() => {
-        // We delay notification setup to when it's actually toggled or needed.
-        // In Expo Go 54, just requiring the module triggers a push usage warning.
-        /*
-        try {
-            const Notifications = require('expo-notifications');
-            Notifications.setNotificationHandler({
-                handleNotification: async () => ({
-                    shouldShowAlert: true,
-                    shouldPlaySound: true,
-                    shouldSetBadge: false,
-                    shouldShowBanner: true,
-                    shouldShowList: true,
-                    shouldShowFastResponse: true,
-                    priority: Notifications.AndroidNotificationPriority.HIGH,
-                }),
-            });
-
-            registerForPushNotificationsAsync();
-        } catch (e) { } 
-        */
-    }, []);
-
-    useEffect(() => {
-        // DISABLED FOR EXPO GO STABILITY
-        /*
-        if (notificationsEnabled) {
-            schedulePushNotification(reminderTime);
+    const handleToggleNotifications = async (value: boolean) => {
+        if (value) {
+            updateSettings({ notificationsEnabled: true });
         } else {
-            safeCancelNotifications();
+            updateSettings({ notificationsEnabled: false });
         }
-        */
-    }, [notificationsEnabled, reminderTime]);
-
-    async function safeCancelNotifications() {
-        if (Platform.OS === 'web') return; // Not supported on Web via Expo without SW
-        try {
-            const Notifications = require('expo-notifications');
-            await Notifications.cancelAllScheduledNotificationsAsync();
-        } catch (e) {
-        }
-    }
-
-    async function schedulePushNotification(timeStr: string) {
-        await safeCancelNotifications();
-
-        const [hours, minutes] = timeStr.split(':').map(Number);
-
-        // Web Fallback: Use standard Browser Notification API if available
-        if (Platform.OS === 'web') {
-            if ("Notification" in window && Notification.permission === "granted") {
-                // We can't easily "schedule" a daily background job on simple web without Service Worker.
-                // Best we can do is show a "Reminder Set" toast or just log it.
-                // For now, we avoid the crash.
-                // Web Reminder scheduled (simulated)
-            }
-            return;
-        }
-
-        try {
-            const Notifications = require('expo-notifications');
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: "DailyXpense Reminder 📝",
-                    body: "Don't forget to log your expenses for today!",
-                    sound: 'default',
-                },
-                trigger: {
-                    hour: hours,
-                    minute: minutes,
-                    type: Notifications.SchedulableTriggerInputTypes.DAILY
-                },
-            });
-        } catch (e) { /* silent fail */ }
-    }
-
-    async function registerForPushNotificationsAsync() {
-        // Web: Use standard browser permission request
-        if (Platform.OS === 'web') {
-            if ("Notification" in window) {
-                const permission = await Notification.requestPermission();
-                if (permission !== "granted") {
-                    // Web Notification permission denied
-                    return;
-                }
-            }
-            return;
-        }
-
-        try {
-            const Notifications = require('expo-notifications');
-            const Device = require('expo-device');
-            const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
-
-            if (Platform.OS === 'android') {
-                await Notifications.setNotificationChannelAsync('default', {
-                    name: 'default',
-                    importance: Notifications.AndroidImportance.MAX,
-                    vibrationPattern: [0, 250, 250, 250],
-                    lightColor: '#FF231F7C',
-                });
-            }
-
-            // On Web, Device.isDevice might be false or true depending on context, 
-            // but we want to try requesting permissions anyway if the browser supports it.
-            if (Device.isDevice || (Platform.OS as string) === 'web') {
-                const { status: existingStatus } = await Notifications.getPermissionsAsync();
-                let finalStatus = existingStatus;
-                if (existingStatus !== 'granted') {
-                    const { status } = await Notifications.requestPermissionsAsync();
-                    finalStatus = status;
-                }
-                if (finalStatus !== 'granted') {
-                    // Notification permission not granted
-                    return;
-                }
-
-                // CRITICAL FIX: Do NOT try to get push token in Expo Go on Android
-                // This is what causes the crash. We stop here.
-                if (Platform.OS === 'android' && isExpoGo) {
-                    // Skipping Push Token generation in Expo Go Android
-                    return;
-                }
-
-                // For Web, we stop here (Local Notifications only) unless we configure VAPID.
-                if ((Platform.OS as string) === 'web') return;
-
-                // If we were in a real build, we would get the token here:
-                // const token = await Notifications.getExpoPushTokenAsync(...);
-            }
-        } catch (e) { /* Notification registration failed */ }
-    }
+    };
 
 
 
@@ -341,7 +210,7 @@ export default function Settings() {
 
 
     // Helper to determine if avatar is an icon or emoji
-    const isIcon = (str: string) => AVAILABLE_ICONS.includes(str) || PROFILE_ICONS.includes(str) || str.includes("-") || str === "pricetag";
+
     const isImage = (str: string) => str && (str.startsWith('data:image') || str.startsWith('file://') || str.startsWith('http'));
 
     const pickImage = async (useCamera: boolean = false) => {
@@ -389,47 +258,7 @@ export default function Settings() {
         }
     };
 
-    const handleToggleNotifications = async (value: boolean) => {
-        if (Platform.OS === 'web') {
-            if (value) showCustomAlert("Coming Soon", "Web notifications are currently under development.", "construct");
-            updateSettings({ notificationsEnabled: false });
-            return;
-        }
 
-        if (value) {
-            // User wants to enable
-            try {
-                const Notifications = require('expo-notifications');
-                const { status } = await Notifications.getPermissionsAsync();
-                let finalStatus = status;
-
-                if (status !== 'granted') {
-                    const { status: newStatus } = await Notifications.requestPermissionsAsync();
-                    finalStatus = newStatus;
-                }
-
-                if (finalStatus === 'granted') {
-                    // Permission granted, enable notifications
-                    // Ensure time is set to default 8:00 PM if missing
-                    if (!reminderTime) {
-                        updateSettings({ notificationsEnabled: true, reminderTime: "20:00" });
-                    } else {
-                        updateSettings({ notificationsEnabled: true });
-                    }
-                } else {
-                    // Permission denied, force disable
-                    showCustomAlert("Permission Required", "Please enable notifications in your device settings to receive reminders.", "notifications-off");
-                    updateSettings({ notificationsEnabled: false });
-                }
-            } catch (e) {
-                // Error checking permissions
-                updateSettings({ notificationsEnabled: false });
-            }
-        } else {
-            // User wants to disable
-            updateSettings({ notificationsEnabled: false });
-        }
-    };
 
     return (
         <View className="flex-1 bg-gray-50 dark:bg-black">

@@ -1,4 +1,4 @@
-import { Modal, View, Text, Pressable, ScrollView, TouchableOpacity, TextInput, Alert, FlatList, useColorScheme as useRNColorScheme } from "react-native";
+import { Modal, View, Text, Pressable, ScrollView, TouchableOpacity, TextInput, FlatList, useColorScheme as useRNColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../store/SettingsContext";
 import { useExpenses } from "../store/ExpenseContext";
