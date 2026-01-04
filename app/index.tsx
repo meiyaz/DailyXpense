@@ -12,6 +12,7 @@ import { useState, useMemo, useEffect } from "react";
 import ExportModal from "../components/ExportModal";
 
 import { CustomAlert } from "../components/ui/CustomAlert";
+import { OnboardingTour } from "../components/OnboardingTour";
 
 let hasShownWelcomeSession = false;
 
@@ -30,8 +31,7 @@ export default function Home() {
     const [isFilterExpanded, setIsFilterExpanded] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [isNicknameModalVisible, setIsNicknameModalVisible] = useState(false);
-    const [newNickname, setNewNickname] = useState("");
-    const [tourStep, setTourStep] = useState(0);
+
     const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
     const [showWelcomeBack, setShowWelcomeBack] = useState(false);
 
@@ -381,192 +381,10 @@ export default function Home() {
                 onClose={() => setShowExportModal(false)}
             />
 
-            {Platform.OS === 'web' ? (
-                (isNicknameModalVisible && pathname === '/') && (
-                    <View
-                        className="justify-center items-center bg-black/80 px-4"
-                        style={[StyleSheet.absoluteFill, { zIndex: 9999 }]}
-                    >
-                        <View className="bg-white p-8 rounded-3xl w-full max-w-xs items-center shadow-xl">
-                            {tourStep === 0 && (
-                                <>
-                                    <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50 p-2">
-                                        <Image
-                                            source={require('../assets/logo_premium.jpg')}
-                                            style={{ width: '100%', height: '100%', borderRadius: 12 }}
-                                            resizeMode="contain"
-                                        />
-                                    </View>
-                                    <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Welcome aboard!</Text>
-                                    <Text className="text-gray-500 mb-8 text-center leading-6">
-                                        I'm your new finance assistant. Let's get you set up in seconds.
-                                    </Text>
-                                    <Pressable
-                                        onPress={() => setTourStep(1)}
-                                        className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
-                                    >
-                                        <Text className="font-bold text-white text-lg">Let's Go</Text>
-                                    </Pressable>
-                                </>
-                            )}
-
-                            {tourStep === 1 && (
-                                <>
-                                    <View className="w-full">
-                                        <View className="items-center mb-6">
-                                            <View className="w-16 h-16 bg-purple-100 rounded-full items-center justify-center mb-4">
-                                                <Ionicons name="person" size={30} color="#9333ea" />
-                                            </View>
-                                            <Text className="text-xl font-bold text-gray-900 mb-2 text-center">First things first</Text>
-                                            <Text className="text-gray-500 text-center">What should we call you?</Text>
-                                        </View>
-                                        <TextInput
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg mb-6 text-gray-900 text-center font-bold"
-                                            placeholder="Your Nickname"
-                                            value={newNickname}
-                                            onChangeText={setNewNickname}
-                                            autoFocus
-                                        />
-                                        <Pressable
-                                            onPress={() => {
-                                                if (newNickname.trim().length > 0) {
-                                                    updateSettings({ name: newNickname.trim() });
-                                                    setTourStep(2);
-                                                } else {
-                                                    showCustomAlert("Required", "Please enter a name", "alert-circle");
-                                                }
-                                            }}
-                                            className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
-                                        >
-                                            <Text className="font-bold text-white text-lg">Next</Text>
-                                        </Pressable>
-                                    </View>
-                                </>
-                            )}
-
-                            {tourStep === 2 && (
-                                <>
-                                    <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-6">
-                                        <Ionicons name="add" size={40} color="#059669" />
-                                    </View>
-                                    <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Quick Tip</Text>
-                                    <Text className="text-gray-500 mb-8 text-center leading-6">
-                                        Tap the <Text className="font-bold text-blue-600">+</Text> button at the bottom anytime to track a new expense instantly.
-                                    </Text>
-                                    <Pressable
-                                        onPress={() => setIsNicknameModalVisible(false)}
-                                        className="w-full bg-gray-900 p-4 rounded-xl items-center active:bg-gray-800 shadow-lg"
-                                    >
-                                        <Text className="font-bold text-white text-lg">Got it!</Text>
-                                    </Pressable>
-                                </>
-                            )}
-
-                            <View className="flex-row gap-2 mt-8">
-                                {[0, 1, 2].map(step => (
-                                    <View
-                                        key={step}
-                                        className={`h-2 rounded-full transition-all duration-300 ${tourStep === step ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'}`}
-                                    />
-                                ))}
-                            </View>
-                        </View>
-                    </View>
-                )) : (
-                <Modal
-                    visible={isNicknameModalVisible && pathname === '/'}
-                    transparent={true}
-                    animationType="fade"
-                    onRequestClose={() => { }}
-                >
-                    <View className="flex-1 justify-center items-center bg-black/80 px-4">
-                        <View className="bg-white p-8 rounded-3xl w-full max-w-xs items-center shadow-xl">
-                            {tourStep === 0 && (
-                                <>
-                                    <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50 p-2">
-                                        <Image
-                                            source={require('../assets/logo_premium.jpg')}
-                                            style={{ width: '100%', height: '100%', borderRadius: 12 }}
-                                            resizeMode="contain"
-                                        />
-                                    </View>
-                                    <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Welcome aboard!</Text>
-                                    <Text className="text-gray-500 mb-8 text-center leading-6">
-                                        I'm your new finance assistant. Let's get you set up in seconds.
-                                    </Text>
-                                    <Pressable
-                                        onPress={() => setTourStep(1)}
-                                        className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
-                                    >
-                                        <Text className="font-bold text-white text-lg">Let's Go</Text>
-                                    </Pressable>
-                                </>
-                            )}
-
-                            {tourStep === 1 && (
-                                <>
-                                    <View className="w-full">
-                                        <View className="items-center mb-6">
-                                            <View className="w-16 h-16 bg-purple-100 rounded-full items-center justify-center mb-4">
-                                                <Ionicons name="person" size={30} color="#9333ea" />
-                                            </View>
-                                            <Text className="text-xl font-bold text-gray-900 mb-2 text-center">First things first</Text>
-                                            <Text className="text-gray-500 text-center">What should we call you?</Text>
-                                        </View>
-                                        <TextInput
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg mb-6 text-gray-900 text-center font-bold"
-                                            placeholder="Your Nickname"
-                                            value={newNickname}
-                                            onChangeText={setNewNickname}
-                                            autoFocus
-                                        />
-                                        <Pressable
-                                            onPress={() => {
-                                                if (newNickname.trim().length > 0) {
-                                                    updateSettings({ name: newNickname.trim() });
-                                                    setTourStep(2);
-                                                } else {
-                                                    showCustomAlert("Required", "Please enter a name", "alert-circle");
-                                                }
-                                            }}
-                                            className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
-                                        >
-                                            <Text className="font-bold text-white text-lg">Next</Text>
-                                        </Pressable>
-                                    </View>
-                                </>
-                            )}
-
-                            {tourStep === 2 && (
-                                <>
-                                    <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-6">
-                                        <Ionicons name="add" size={40} color="#059669" />
-                                    </View>
-                                    <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Quick Tip</Text>
-                                    <Text className="text-gray-500 mb-8 text-center leading-6">
-                                        Tap the <Text className="font-bold text-blue-600">+</Text> button at the bottom anytime to track a new expense instantly.
-                                    </Text>
-                                    <Pressable
-                                        onPress={() => setIsNicknameModalVisible(false)}
-                                        className="w-full bg-gray-900 p-4 rounded-xl items-center active:bg-gray-800 shadow-lg"
-                                    >
-                                        <Text className="font-bold text-white text-lg">Got it!</Text>
-                                    </Pressable>
-                                </>
-                            )}
-
-                            <View className="flex-row gap-2 mt-8">
-                                {[0, 1, 2].map(step => (
-                                    <View
-                                        key={step}
-                                        className={`h-2 rounded-full transition-all duration-300 ${tourStep === step ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'}`}
-                                    />
-                                ))}
-                            </View>
-                        </View>
-                    </View>
-                </Modal>
-            )}
+            <OnboardingTour
+                visible={isNicknameModalVisible && pathname === '/'}
+                onComplete={() => setIsNicknameModalVisible(false)}
+            />
 
             <CustomAlert
                 visible={alertConfig.visible}

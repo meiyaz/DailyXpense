@@ -34,6 +34,13 @@ export default function LockScreen() {
     const [newPin, setNewPin] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
+    const [showKeypad, setShowKeypad] = useState(!biometricsEnabled || Platform.OS === 'web');
+
+    useEffect(() => {
+        if (biometricsEnabled && Platform.OS !== 'web') {
+            setShowKeypad(false);
+        }
+    }, [biometricsEnabled]);
 
     useEffect(() => {
         if (Platform.OS !== 'web' && appLockEnabled && biometricsEnabled && mode === 'entry') {
@@ -181,99 +188,107 @@ export default function LockScreen() {
                 </Text>
                 <Text className="text-gray-500 dark:text-gray-400 mt-2 text-center">
                     {mode === 'entry'
-                        ? (Platform.OS === 'web' || !securityPin ? "Enter your security PIN to continue" : "Use biometrics or enter PIN")
+                        ? (!showKeypad ? "Unlock with Biometrics" : "Enter your security PIN")
                         : (mode === 'recovery_otp' ? `Enter the code sent to ${user?.email}` : "Choose a new 4-digit security PIN")}
                 </Text>
             </View>
 
-            {/* PIN/OTP Dots */}
-            <View className="flex-row gap-4 mb-12">
-                {Array.from({ length: mode === 'recovery_otp' ? 6 : 4 }).map((_, i) => {
-                    let active = false;
-                    if (mode === 'entry') active = pin.length > i;
-                    else if (mode === 'recovery_otp') active = otp.length > i;
-                    else if (mode === 'reset_pin') active = newPin.length > i;
-
-                    return (
-                        <View
-                            key={i}
-                            className={`w-4 h-4 rounded-full border-2 ${active
-                                ? 'bg-blue-600 border-blue-600'
-                                : 'border-gray-300 dark:border-gray-700'
-                                } ${error && mode === 'entry' ? 'border-red-500 bg-red-500' : ''}`}
-                        />
-                    );
-                })}
-            </View>
-
-            {/* Number Pad */}
-            <View className="flex-row flex-wrap justify-between w-full max-w-[280px]">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((val) => (
+            {/* Biometric-Only View */}
+            {mode === 'entry' && !showKeypad && Platform.OS !== 'web' ? (
+                <View className="items-center w-full">
                     <TouchableOpacity
-                        key={val}
-                        onPress={() => {
-                            if (mode === 'recovery_otp') {
-                                if (otp.length < 6) setOtp(otp + val);
-                            } else {
-                                handlePinPress(val.toString());
-                            }
-                        }}
-                        className="w-20 h-20 items-center justify-center mb-4 rounded-full bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800"
+                        onPress={authenticateNative}
+                        className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full items-center justify-center mb-8 shadow-sm active:scale-95 transition-transform"
                     >
-                        <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{val}</Text>
+                        <Ionicons name="finger-print" size={48} color="#2563eb" />
                     </TouchableOpacity>
-                ))}
-                {mode === 'entry' && (!biometricsEnabled || Platform.OS === 'web') ? (
+
                     <TouchableOpacity
-                        onPress={() => {
-                            if (Platform.OS === 'web') {
-                                showCustomAlert("Not Supported", "Biometric authentication is not available on the web version.", "finger-print");
-                            } else {
-                                showCustomAlert("Disabled", "Biometrics are currently disabled. You can enable them in Settings.", "finger-print");
-                            }
-                        }}
-                        className="w-20 h-20 items-center justify-center rounded-full opacity-30"
+                        onPress={() => setShowKeypad(true)}
+                        className="py-3 px-6"
                     >
-                        <Ionicons name="finger-print" size={28} color="#9ca3af" />
+                        <Text className="text-blue-600 dark:text-blue-400 font-semibold text-base">Use PIN instead</Text>
                     </TouchableOpacity>
-                ) : (
-                    <TouchableOpacity
-                        onPress={() => {
-                            if (mode === 'entry') authenticateNative();
-                            else if (mode === 'recovery_otp') {
-                                if (otp.length < 6) setOtp(otp + '0');
-                            } else {
-                                handlePinPress('0');
-                            }
-                        }}
-                        className={`w-20 h-20 items-center justify-center rounded-full ${mode !== 'entry' ? 'bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800' : ''}`}
-                    >
-                        {mode === 'entry' ? (
-                            <Ionicons name="finger-print" size={28} color="#2563eb" />
-                        ) : (
+                </View>
+            ) : (
+                <>
+                    {/* PIN/OTP Dots */}
+                    <View className="flex-row gap-4 mb-12">
+                        {Array.from({ length: mode === 'recovery_otp' ? 6 : 4 }).map((_, i) => {
+                            let active = false;
+                            if (mode === 'entry') active = pin.length > i;
+                            else if (mode === 'recovery_otp') active = otp.length > i;
+                            else if (mode === 'reset_pin') active = newPin.length > i;
+
+                            return (
+                                <View
+                                    key={i}
+                                    className={`w-4 h-4 rounded-full border-2 ${active
+                                        ? 'bg-blue-600 border-blue-600'
+                                        : 'border-gray-300 dark:border-gray-700'
+                                        } ${error && mode === 'entry' ? 'border-red-500 bg-red-500' : ''}`}
+                                />
+                            );
+                        })}
+                    </View>
+
+                    {/* Number Pad */}
+                    <View className="flex-row flex-wrap justify-between w-full max-w-[280px]">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((val) => (
+                            <TouchableOpacity
+                                key={val}
+                                onPress={() => {
+                                    if (mode === 'recovery_otp') {
+                                        if (otp.length < 6) setOtp(otp + val);
+                                    } else {
+                                        handlePinPress(val.toString());
+                                    }
+                                }}
+                                className="w-20 h-20 items-center justify-center mb-4 rounded-full bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800"
+                            >
+                                <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{val}</Text>
+                            </TouchableOpacity>
+                        ))}
+                        {/* Zero Button */}
+                        <View className="w-20 h-20" /> {/* Left Spacer */}
+
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (mode === 'recovery_otp') {
+                                    if (otp.length < 6) setOtp(otp + '0');
+                                } else if (mode === 'reset_pin') {
+                                    if (newPin.length < 4) setNewPin(newPin + '0');
+                                } else {
+                                    // Entry mode
+                                    handlePinPress('0');
+                                }
+                            }}
+                            className="w-20 h-20 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800"
+                        >
                             <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">0</Text>
-                        )}
-                    </TouchableOpacity>
-                )}
+                        </TouchableOpacity>
 
-                {mode === 'entry' ? (
-                    <TouchableOpacity
-                        onPress={() => handlePinPress('0')}
-                        className="w-20 h-20 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800"
-                    >
-                        <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">0</Text>
-                    </TouchableOpacity>
-                ) : (
-                    <View className="w-20 h-20" /> // Spacer
-                )}
+                        {/* Backspace Button */}
+                        <TouchableOpacity
+                            onPress={handleDelete}
+                            className="w-20 h-20 items-center justify-center rounded-full active:bg-gray-100 dark:active:bg-gray-800"
+                        >
+                            <Ionicons name="backspace-outline" size={28} color="#9ca3af" />
+                        </TouchableOpacity>
+                    </View>
 
-                <TouchableOpacity
-                    onPress={handleDelete}
-                    className="w-20 h-20 items-center justify-center rounded-full active:bg-gray-100 dark:active:bg-gray-800"
-                >
-                    <Ionicons name="backspace-outline" size={28} color="#9ca3af" />
-                </TouchableOpacity>
-            </View>
+                    {/* Biometric Trigger (Separate from Keypad) */}
+                    {mode === 'entry' && biometricsEnabled && Platform.OS !== 'web' && (
+                        <TouchableOpacity
+                            onPress={authenticateNative}
+                            className="mt-4 flex-row items-center justify-center px-6 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-full"
+                        >
+                            <Ionicons name="finger-print" size={20} color="#2563eb" style={{ marginRight: 8 }} />
+                            <Text className="text-blue-600 dark:text-blue-400 font-semibold">Use Biometrics</Text>
+                        </TouchableOpacity>
+                    )}
+                </>
+            )}
 
             {/* Recovery Actions */}
             <View className="mt-12 items-center">

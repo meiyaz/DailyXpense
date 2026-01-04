@@ -11,7 +11,7 @@ import { migrateDb } from "../db/client";
 import LockScreen from "../components/LockScreen";
 
 function RootStack() {
-    const { theme, appLockEnabled, isAppUnlocked, isLoading: settingsLoading } = useSettings();
+    const { theme, appLockEnabled, isAppUnlocked, isLoading: settingsLoading, name } = useSettings();
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
 
@@ -26,8 +26,8 @@ function RootStack() {
     useEffect(() => {
         if (isLoading || !navigationState?.key) return;
 
-        // If app is locked AND user is authenticated, we don't redirect to login yet, LockScreen handles it
-        if (isAuthenticated && appLockEnabled && !isAppUnlocked) return;
+        // If app is locked AND user is authenticated AND setup is done (has name), we don't redirect to login yet, LockScreen handles it
+        if (isAuthenticated && appLockEnabled && !isAppUnlocked && name) return;
 
         const inAuthGroup = segments[0] === 'login';
 
@@ -39,15 +39,15 @@ function RootStack() {
                 router.replace('/');
             }
         });
-    }, [isAuthenticated, isLoading, segments, appLockEnabled, isAppUnlocked, navigationState?.key]);
+    }, [isAuthenticated, isLoading, segments, appLockEnabled, isAppUnlocked, navigationState?.key, name]);
 
     if (isLoading) {
         return <View style={{ flex: 1, backgroundColor: isDark ? 'black' : 'white' }} />;
     }
 
-    // INTERCEPT: App Lock (Only if authenticated and not on the login screen)
+    // INTERCEPT: App Lock (Only if authenticated, not on login, locked, AND setup is complete)
     const inAuthGroup = segments[0] === 'login';
-    if (isAuthenticated && !inAuthGroup && appLockEnabled && !isAppUnlocked) {
+    if (isAuthenticated && !inAuthGroup && appLockEnabled && !isAppUnlocked && name) {
         return <LockScreen />;
     }
 

@@ -328,7 +328,8 @@ export default function Settings() {
                         }}
                         onAppLockSwitch={async (val) => {
                             if (!val) {
-                                updateSettings({ appLockEnabled: false, biometricsEnabled: false });
+                                // Don't auto-disable biometrics preference. It just won't be used while app lock is off.
+                                updateSettings({ appLockEnabled: false });
                             } else {
                                 if (!securityPin) {
                                     setTempPin("");
