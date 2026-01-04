@@ -79,18 +79,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return { error: null, session: data.session };
         }
 
-
         // Try 'signup' fallback
         const { data: signupData, error: signupError } = await supabase.auth.verifyOtp({
             email,
             token,
             type: 'signup',
         });
-
-        if (!signupError && signupData.session) {
-            return { error: null, session: signupData.session };
-        }
-
 
         if (!signupError && signupData.session) {
             return { error: null, session: signupData.session };

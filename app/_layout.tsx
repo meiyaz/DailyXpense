@@ -26,8 +26,8 @@ function RootStack() {
     useEffect(() => {
         if (isLoading || !navigationState?.key) return;
 
-        // If app is locked, we don't redirect to login yet, LockScreen handles it
-        if (appLockEnabled && !isAppUnlocked) return;
+        // If app is locked AND user is authenticated, we don't redirect to login yet, LockScreen handles it
+        if (isAuthenticated && appLockEnabled && !isAppUnlocked) return;
 
         const inAuthGroup = segments[0] === 'login';
 

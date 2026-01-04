@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Platform, ActivityIndicator, Dimensions } from 'react-native';
+import { ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSettings } from '../store/SettingsContext';
@@ -128,7 +129,7 @@ export default function LockScreen() {
         try {
             const { error } = await verifyOtp(user.email, otp);
             if (error) {
-                showCustomAlert("Verification Failed", "The code you entered is invalid or expired.", "close-circle");
+                showCustomAlert("Verification Failed", error.message || "The code you entered is invalid or expired.", "close-circle");
             } else {
                 setMode('reset_pin');
                 setNewPin('');
@@ -148,7 +149,11 @@ export default function LockScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white dark:bg-black items-center justify-center p-10">
+        <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}
+            className="flex-1 bg-white dark:bg-black"
+            showsVerticalScrollIndicator={false}
+        >
             {loading && (
                 <View className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 items-center justify-center">
                     <ActivityIndicator size="large" color="#2563eb" />
@@ -210,27 +215,38 @@ export default function LockScreen() {
                         <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{val}</Text>
                     </TouchableOpacity>
                 ))}
-                <TouchableOpacity
-                    onPress={() => {
-                        if (mode === 'entry') authenticateNative();
-                        else if (mode === 'recovery_otp') {
-                            if (otp.length < 6) setOtp(otp + '0');
-                        } else {
-                            handlePinPress('0');
-                        }
-                    }}
-                    className="w-20 h-20 items-center justify-center rounded-full"
-                >
-                    {mode === 'entry' ? (
-                        Platform.OS !== 'web' && (
+                {mode === 'entry' && (!biometricsEnabled || Platform.OS === 'web') ? (
+                    <TouchableOpacity
+                        onPress={() => {
+                            if (Platform.OS === 'web') {
+                                showCustomAlert("Not Supported", "Biometric authentication is not available on the web version.", "finger-print");
+                            } else {
+                                showCustomAlert("Disabled", "Biometrics are currently disabled. You can enable them in Settings.", "finger-print");
+                            }
+                        }}
+                        className="w-20 h-20 items-center justify-center rounded-full opacity-30"
+                    >
+                        <Ionicons name="finger-print" size={28} color="#9ca3af" />
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        onPress={() => {
+                            if (mode === 'entry') authenticateNative();
+                            else if (mode === 'recovery_otp') {
+                                if (otp.length < 6) setOtp(otp + '0');
+                            } else {
+                                handlePinPress('0');
+                            }
+                        }}
+                        className={`w-20 h-20 items-center justify-center rounded-full ${mode !== 'entry' ? 'bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800' : ''}`}
+                    >
+                        {mode === 'entry' ? (
                             <Ionicons name="finger-print" size={28} color="#2563eb" />
-                        )
-                    ) : (
-                        <View className="w-20 h-20 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800">
+                        ) : (
                             <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">0</Text>
-                        </View>
-                    )}
-                </TouchableOpacity>
+                        )}
+                    </TouchableOpacity>
+                )}
 
                 {mode === 'entry' ? (
                     <TouchableOpacity
@@ -277,30 +293,6 @@ export default function LockScreen() {
                 )}
             </View>
 
-            {/* Logout Option as last resort */}
-            {mode !== 'entry' && (
-                <TouchableOpacity
-                    className="mt-8"
-                    onPress={() => {
-                        showCustomAlert(
-                            "Sign Out",
-                            "Are you sure you want to sign out? You will need to login again with your email.",
-                            "log-out",
-                            [
-                                { text: "Cancel", style: "cancel" },
-                                {
-                                    text: "Sign Out", style: "destructive", onPress: async () => {
-                                        await signOut();
-                                        // layout handles redirection
-                                    }
-                                }
-                            ]
-                        );
-                    }}
-                >
-                    <Text className="text-red-400 font-medium text-xs uppercase tracking-widest">or sign out</Text>
-                </TouchableOpacity>
-            )}
 
             <CustomAlert
                 visible={alertConfig.visible}
@@ -310,6 +302,6 @@ export default function LockScreen() {
                 buttons={alertConfig.buttons}
                 onClose={closeAlert}
             />
-        </View>
+        </ScrollView>
     );
 }
