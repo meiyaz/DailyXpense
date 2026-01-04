@@ -233,7 +233,7 @@ export default function LockScreen() {
                     </View>
 
                     {/* Number Pad */}
-                    <View className="flex-row flex-wrap justify-between w-full max-w-[280px]">
+                    <View className="flex-row flex-wrap justify-center gap-4 w-full max-w-[300px]">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((val) => (
                             <TouchableOpacity
                                 key={val}
@@ -244,13 +244,13 @@ export default function LockScreen() {
                                         handlePinPress(val.toString());
                                     }
                                 }}
-                                className="w-20 h-20 items-center justify-center mb-4 rounded-full bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800"
+                                className="w-20 h-20 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800"
                             >
                                 <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{val}</Text>
                             </TouchableOpacity>
                         ))}
 
-                        {/* Zero Button Container */}
+                        {/* Empty Space */}
                         <View className="w-20 h-20" />
 
                         <TouchableOpacity

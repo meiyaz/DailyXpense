@@ -99,6 +99,8 @@ export default function Settings() {
 
     const [showPinModal, setShowPinModal] = useState(false);
     const [tempPin, setTempPin] = useState("");
+    const [confirmPin, setConfirmPin] = useState("");
+    const [pinStep, setPinStep] = useState<'enter' | 'confirm'>('enter');
 
     const [isSyncing, setIsSyncing] = useState(false);
 
@@ -316,6 +318,8 @@ export default function Settings() {
                         }}
                         onAppLockPress={() => {
                             setTempPin("");
+                            setConfirmPin("");
+                            setPinStep('enter');
                             setShowPinModal(true);
                         }}
                         onAppLockSwitch={async (val) => {
@@ -326,17 +330,19 @@ export default function Settings() {
                                         promptMessage: 'Authenticate to disable App Lock',
                                     });
                                     if (result.success) {
-                                        updateSettings({ appLockEnabled: false });
+                                        updateSettings({ appLockEnabled: false, securityPin: null });
                                     }
                                 } else {
                                     // Web or no PIN - allow direct disable
-                                    updateSettings({ appLockEnabled: false });
+                                    updateSettings({ appLockEnabled: false, securityPin: null });
                                 }
                             } else {
                                 // Enable App Lock
                                 if (!securityPin) {
                                     // No PIN set, show setup modal
                                     setTempPin("");
+                                    setConfirmPin("");
+                                    setPinStep('enter');
                                     setShowPinModal(true);
                                 } else {
                                     // PIN already exists, just enable
@@ -597,43 +603,74 @@ export default function Settings() {
             >
                 <Pressable className="flex-1 bg-black/60 justify-center items-center" onPress={() => setShowPinModal(false)}>
                     <Pressable className="bg-white dark:bg-gray-900 p-6 rounded-3xl w-[80%] shadow-2xl" onPress={(e) => e.stopPropagation()}>
-                        <Text className="text-lg font-bold text-center mb-2 text-gray-800 dark:text-white">{securityPin ? "Change PIN" : "Set New PIN"}</Text>
-                        <Text className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">Enter a 4-digit PIN to secure your data.</Text>
+                        <Text className="text-lg font-bold text-center mb-2 text-gray-800 dark:text-white">
+                            {pinStep === 'enter' ? (securityPin ? "Change PIN" : "Set New PIN") : "Confirm PIN"}
+                        </Text>
+                        <Text className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
+                            {pinStep === 'enter' ? "Enter a 4-digit PIN to secure your data." : "Re-enter your PIN to confirm."}
+                        </Text>
 
                         <View className="flex-row items-center bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3 mb-6 justify-center">
                             <TextInput
                                 className="text-3xl font-bold text-gray-900 dark:text-white text-center w-full tracking-widest"
-                                value={tempPin}
-                                onChangeText={setTempPin}
+                                value={pinStep === 'enter' ? tempPin : confirmPin}
+                                onChangeText={pinStep === 'enter' ? setTempPin : setConfirmPin}
                                 placeholder="••••"
                                 placeholderTextColor="#9ca3af"
                                 maxLength={4}
                                 keyboardType="numeric"
                                 secureTextEntry
                                 autoFocus
+                                caretHidden={true}
                             />
                         </View>
 
                         <View className="flex-row gap-3">
                             <Pressable
-                                onPress={() => setShowPinModal(false)}
+                                onPress={() => {
+                                    setShowPinModal(false);
+                                    setTempPin("");
+                                    setConfirmPin("");
+                                    setPinStep('enter');
+                                }}
                                 className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-xl items-center"
                             >
                                 <Text className="font-bold text-gray-600 dark:text-gray-300">Cancel</Text>
                             </Pressable>
                             <Pressable
                                 onPress={() => {
-                                    if (tempPin.length === 4) {
-                                        updateSettings({ securityPin: tempPin, appLockEnabled: true });
-                                        setShowPinModal(false);
-                                        showCustomAlert("Success", "App Lock is now enabled with your new PIN.", "lock-closed");
+                                    if (pinStep === 'enter') {
+                                        // First step: validate and move to confirm
+                                        if (tempPin.length === 4) {
+                                            setPinStep('confirm');
+                                            setConfirmPin("");
+                                        } else {
+                                            showCustomAlert("Invalid PIN", "Please enter a 4-digit PIN.", "close-circle");
+                                        }
                                     } else {
-                                        showCustomAlert("Invalid PIN", "Please enter a 4-digit PIN.", "close-circle");
+                                        // Second step: validate match and save
+                                        if (confirmPin.length === 4) {
+                                            if (tempPin === confirmPin) {
+                                                updateSettings({ securityPin: tempPin, appLockEnabled: true });
+                                                setShowPinModal(false);
+                                                setTempPin("");
+                                                setConfirmPin("");
+                                                setPinStep('enter');
+                                                showCustomAlert("Success", "App Lock is now enabled with your new PIN.", "lock-closed");
+                                            } else {
+                                                showCustomAlert("PIN Mismatch", "The PINs you entered don't match. Please try again.", "close-circle");
+                                                setPinStep('enter');
+                                                setTempPin("");
+                                                setConfirmPin("");
+                                            }
+                                        } else {
+                                            showCustomAlert("Invalid PIN", "Please enter a 4-digit PIN.", "close-circle");
+                                        }
                                     }
                                 }}
                                 className="flex-1 bg-primary p-3 rounded-xl items-center"
                             >
-                                <Text className="font-bold text-white">Set PIN</Text>
+                                <Text className="font-bold text-white">{pinStep === 'enter' ? 'Next' : 'Confirm'}</Text>
                             </Pressable>
                         </View>
                     </Pressable>

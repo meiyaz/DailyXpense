@@ -15,6 +15,8 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ visible, onCompl
     const [step, setStep] = useState(0);
     const [nickname, setNickname] = useState("");
     const [pin, setPin] = useState("");
+    const [confirmPin, setConfirmPin] = useState("");
+    const [pinSubStep, setPinSubStep] = useState<'enter' | 'confirm'>('enter');
     const [alertConfig, setAlertConfig] = useState({
         visible: false,
         title: "",
@@ -78,11 +80,32 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ visible, onCompl
     };
 
     const setAppLock = () => {
-        if (pin.length === 4) {
-            updateSettings({ securityPin: pin, appLockEnabled: true });
-            setStep(step + 1);
+        if (pinSubStep === 'enter') {
+            // First step: validate and move to confirm
+            if (pin.length === 4) {
+                setPinSubStep('confirm');
+                setConfirmPin("");
+            } else {
+                showCustomAlert("Invalid PIN", "Please enter a 4-digit PIN.", "alert-circle");
+            }
         } else {
-            showCustomAlert("Invalid PIN", "Please enter a 4-digit PIN.", "alert-circle");
+            // Second step: validate match and save
+            if (confirmPin.length === 4) {
+                if (pin === confirmPin) {
+                    updateSettings({ securityPin: pin, appLockEnabled: true });
+                    setStep(step + 1);
+                    setPin("");
+                    setConfirmPin("");
+                    setPinSubStep('enter');
+                } else {
+                    showCustomAlert("PIN Mismatch", "The PINs you entered don't match. Please try again.", "close-circle");
+                    setPinSubStep('enter');
+                    setPin("");
+                    setConfirmPin("");
+                }
+            } else {
+                showCustomAlert("Invalid PIN", "Please enter a 4-digit PIN.", "alert-circle");
+            }
         }
     };
 
@@ -166,15 +189,19 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ visible, onCompl
                         <View className="w-16 h-16 bg-rose-100 rounded-full items-center justify-center mb-4">
                             <Ionicons name="lock-closed" size={30} color="#e11d48" />
                         </View>
-                        <Text className="text-xl font-bold text-gray-900 mb-2 text-center">Secure your Data</Text>
-                        <Text className="text-gray-500 text-center">Set a 4-digit PIN to lock the app?</Text>
+                        <Text className="text-xl font-bold text-gray-900 mb-2 text-center">
+                            {pinSubStep === 'enter' ? 'Secure your Data' : 'Confirm PIN'}
+                        </Text>
+                        <Text className="text-gray-500 text-center">
+                            {pinSubStep === 'enter' ? 'Set a 4-digit PIN to lock the app?' : 'Re-enter your PIN to confirm.'}
+                        </Text>
                     </View>
 
                     <TextInput
                         className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg mb-6 text-gray-900 text-center font-bold tracking-widest"
                         placeholder="••••"
-                        value={pin}
-                        onChangeText={setPin}
+                        value={pinSubStep === 'enter' ? pin : confirmPin}
+                        onChangeText={pinSubStep === 'enter' ? setPin : setConfirmPin}
                         keyboardType="numeric"
                         secureTextEntry
                         maxLength={4}
@@ -185,10 +212,15 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ visible, onCompl
                         onPress={setAppLock}
                         className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200 mb-3"
                     >
-                        <Text className="font-bold text-white text-lg">Set PIN</Text>
+                        <Text className="font-bold text-white text-lg">{pinSubStep === 'enter' ? 'Next' : 'Confirm'}</Text>
                     </Pressable>
                     <Pressable
-                        onPress={() => setStep(step + 1)}
+                        onPress={() => {
+                            setStep(step + 1);
+                            setPin("");
+                            setConfirmPin("");
+                            setPinSubStep('enter');
+                        }}
                         className="w-full bg-gray-100 p-4 rounded-xl items-center active:bg-gray-200"
                     >
                         <Text className="font-bold text-gray-500">Skip</Text>
