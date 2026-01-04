@@ -311,7 +311,7 @@ export default function Login() {
                                             key={i}
                                             className={`w-[45px] h-12 border-b-2 items-center justify-center ${otp.length === i ? 'border-blue-600' : 'border-gray-100'}`}
                                         >
-                                            <Text className="text-3xl font-black text-gray-900 italic">
+                                            <Text className="text-3xl font-black text-gray-900">
                                                 {otp[i] || ""}
                                             </Text>
                                         </View>
@@ -442,8 +442,8 @@ export default function Login() {
                                 else if (mode === "setup_pin") setMode("confirm_pin");
                                 else if (mode === "confirm_pin") handleCompletePinSetup();
                             }}
-                            disabled={loading}
-                            className={`w-full bg-blue-600 h-16 rounded-2xl items-center justify-center shadow-xl shadow-blue-500/30 active:scale-[0.98] ${loading ? 'opacity-70' : ''}`}
+                            disabled={loading || (mode === "email" && !email.trim().toLowerCase().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))}
+                            className={`w-full bg-blue-600 h-16 rounded-2xl items-center justify-center shadow-xl shadow-blue-500/30 active:scale-[0.98] ${loading || (mode === "email" && !email.trim().toLowerCase().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) ? 'opacity-40' : ''}`}
                         >
                             {loading ? (
                                 <ActivityIndicator color="white" />

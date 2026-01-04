@@ -72,8 +72,6 @@ export default function Home() {
         if (settingsLoading) return;
 
         const hasName = name && name.trim() !== "";
-        const hour = new Date().getHours();
-        const isDND = hour >= 0 && hour < 5;
 
         // Only enforce nickname on Home Screen
         if (!hasName && pathname === '/') {
@@ -87,7 +85,7 @@ export default function Home() {
                 }, delay);
                 return () => clearTimeout(timer);
             }
-        } else if (!isNicknameModalVisible && !isDND) {
+        } else if (!isNicknameModalVisible) {
             if (hasShownWelcomeSession)
                 return;
 

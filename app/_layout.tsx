@@ -31,24 +31,21 @@ function RootStack() {
 
         const inAuthGroup = segments[0] === 'login';
 
-        // Stabilize transitions with requestAnimationFrame to ensure navigator readiness
-        requestAnimationFrame(() => {
+        // Stabilize transitions with a generous timeout to ensure navigator readiness
+        const timeout = setTimeout(() => {
             if (!isAuthenticated && !inAuthGroup) {
-                // If there's a modal (like Settings), dismiss it first
-                if (router.canDismiss()) {
-                    router.dismissAll();
-                    // DOUBLE FRAME PROTECTION: Wait one more frame after dismissal for the stack to fully stabilize
-                    requestAnimationFrame(() => {
-                        router.replace('/login');
-                    });
-                } else {
-                    router.replace('/login');
-                }
+                // Force redirect to login if not authenticated
+                // We use navigate() instead of replace() here as it's often more 
+                // resilient when transitioning away from modal states.
+                router.navigate('/login');
             } else if (isAuthenticated && inAuthGroup) {
-                router.replace('/');
+                // User is authenticated but still on login, return home
+                router.navigate('/');
             }
-        });
-    }, [isAuthenticated, isLoading, segments, appLockEnabled, biometricsEnabled, isAppUnlocked, navigationState?.key, name]);
+        }, 150);
+
+        return () => clearTimeout(timeout);
+    }, [isAuthenticated, isLoading, segments, navigationState?.key, name]);
 
     if (isLoading) {
         return <View style={{ flex: 1, backgroundColor: isDark ? 'black' : 'white' }} />;
