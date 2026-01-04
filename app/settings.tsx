@@ -1,6 +1,6 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 
-import { Platform } from 'react-native';
+import { Platform, Linking } from 'react-native';
 
 import { View, Text, Modal, TextInput, ScrollView, Pressable, TouchableOpacity, FlatList, useColorScheme as useRNColorScheme } from "react-native";
 import { Stack, useRouter } from "expo-router";
@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useSettings } from "../store/SettingsContext";
+import { registerForPushNotificationsAsync, isNotificationSupported } from "../lib/notifications";
 import { useState } from "react";
 
 
@@ -112,7 +113,44 @@ export default function Settings() {
 
     const handleToggleNotifications = async (value: boolean) => {
         if (value) {
-            updateSettings({ notificationsEnabled: true });
+            if (!isNotificationSupported()) {
+                updateSettings({ notificationsEnabled: false });
+                showCustomAlert(
+                    "Not Supported",
+                    "Notifications are currently unavailable in the Android Expo Go app due to platform restrictions. Please use a Development Build.",
+                    "construct",
+                    [{ text: "OK", style: "default" }]
+                );
+                return;
+            }
+
+            const granted = await registerForPushNotificationsAsync();
+            if (granted) {
+                updateSettings({ notificationsEnabled: true });
+                // Optional: Immediate feedback
+                // scheduleNotification("Notifications Enabled", "You're all set!");
+            } else {
+                updateSettings({ notificationsEnabled: false });
+                const alertButtons = [
+                    { text: "Cancel", style: "cancel" }
+                ] as any[];
+
+                if (Platform.OS !== 'web') {
+                    alertButtons.push({ text: "Open Settings", onPress: () => Linking.openSettings() });
+                } else {
+                    // For web, maybe just a helpful message in the alerts content, but we can't deep-link to browser settings easily.
+                    // The alert message already says "enable in system settings".
+                }
+
+                showCustomAlert(
+                    "Permission Required",
+                    Platform.OS === 'web'
+                        ? "Notifications are blocked. Please click the lock icon in your address bar to allow them."
+                        : "Please enable notifications in your system settings to receive reminders.",
+                    "settings",
+                    alertButtons
+                );
+            }
         } else {
             updateSettings({ notificationsEnabled: false });
         }
@@ -280,10 +318,7 @@ export default function Settings() {
                     <SecuritySection
                         handleToggleNotifications={handleToggleNotifications}
                         onTimePickerPress={() => {
-                            if (Platform.OS === 'web') {
-                                showCustomAlert("Coming Soon", "Web notifications are currently under development.", "construct");
-                                return;
-                            }
+                            // Web is now supported via lib/notifications
                             setTempPickerDate(getDateFromTimeStr(reminderTime));
                             setShowTimePicker(true);
                         }}

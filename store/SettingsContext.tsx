@@ -8,6 +8,7 @@ import { db } from "../db/client";
 import { settings as settingsSchema } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { hashPin } from "../lib/crypto";
+import { registerForPushNotificationsAsync, checkPermissionStatus, scheduleLocalNotification } from "../lib/notifications";
 
 export interface Category {
     id: string;
@@ -57,6 +58,7 @@ interface SettingsContextType {
     addCategory: (name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
     updateCategory: (id: string, name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
     deleteCategory: (id: string) => void;
+    scheduleNotification: (title: string, body: string) => Promise<void>; // Exposed for manual triggering
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -117,6 +119,39 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             setColorScheme(theme);
         }
     }, [theme, systemScheme, setColorScheme]);
+
+    // Verify Notifications Permission on Resume (or Load)
+    useEffect(() => {
+        const checkPerms = async () => {
+            // If app thinks notifications are ON, but OS says NO, we must sync state.
+            // But we don't want to auto-disable it immediately on load creating UI jump.
+            // Be careful here.
+            // Strategy: If notificationsEnabled is TRUE, check real permission.
+            // If real permission is FALSE, set notificationsEnabled = FALSE.
+            if (notificationsEnabled) {
+                const hasPerm = await checkPermissionStatus();
+                if (!hasPerm) {
+                    // Silent sync: User has revoked permission outside app (or re-installed).
+                    // We update state to false so toggle is OFF. User must toggle ON to re-trigger prompt.
+                    setNotificationsEnabled(false);
+                    // Optionally update DB? Maybe not strictly necessary to spam DB call here,
+                    // but good for consistency. We'll skip DB save for now to avoid side-effects during render cycles
+                    // unless user explicitly interacts, but local state MUST reflect reality.
+                }
+            }
+        };
+
+        checkPerms();
+
+        // Also check on app foregrounding
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState === 'active') {
+                checkPerms();
+            }
+        });
+
+        return () => subscription.remove();
+    }, [notificationsEnabled]); // Re-run if enabled changes (though mainly we care about resume)
 
     // Background Auto-Lock logic with 30s Grace Period
     useEffect(() => {
@@ -384,7 +419,22 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (updates.name !== undefined) setName(updates.name);
         if (updates.avatar !== undefined) setAvatar(updates.avatar);
         if (updates.budget !== undefined) setBudget(updates.budget);
-        if (updates.notificationsEnabled !== undefined) setNotificationsEnabled(updates.notificationsEnabled);
+        if (updates.budget !== undefined) setBudget(updates.budget);
+
+        if (updates.notificationsEnabled !== undefined) {
+            // Logic: If turning ON, we must request/check permission first.
+            if (updates.notificationsEnabled === true) {
+                // We're inside a sync function but need async, so we'll fire and forget the permission check
+                // OR we handle it optimistically. Better to force the UI check in 'app/settings.tsx' 
+                // BUT current architecture puts all logic here.
+                // We will blindly set it here, but relied on the useEffect 'checkPerms' or the UI to handle the heavy lifting.
+                // Actually, let's keep it simple: State is source of truth.
+                setNotificationsEnabled(true);
+            } else {
+                setNotificationsEnabled(false);
+            }
+        }
+
         if (updates.reminderTime !== undefined) setReminderTime(updates.reminderTime);
         if (updates.appLockEnabled !== undefined) {
             setAppLockEnabled(updates.appLockEnabled);
@@ -440,7 +490,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             budget, notificationsEnabled, reminderTime,
             appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium,
             isLoading, isAppUnlocked,
-            updateSettings, addCategory, updateCategory, deleteCategory, setIsAppUnlocked
+            updateSettings, addCategory, updateCategory, deleteCategory, setIsAppUnlocked,
+            scheduleNotification: (t, b) => scheduleLocalNotification(t, b)
         }}>
             {children}
         </SettingsContext.Provider>

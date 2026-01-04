@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Platform, Pressable, View, Text, ScrollView } from 'react-native';
+import { Modal, Platform, Pressable, View, Text, ScrollView, StyleSheet } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 interface SafeTimePickerProps {
@@ -17,19 +17,24 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
         if (!visible) return null;
 
         return (
-            <Modal
-                transparent={true}
-                visible={visible}
-                animationType="fade"
-                onRequestClose={onClose}
+            <View
+                style={{
+                    ...StyleSheet.absoluteFillObject,
+                    position: 'fixed', // Web specific: ensures it covers window regardless of parent overflow
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 99999,
+                    elevation: 5,
+                } as any}
             >
                 <View
                     style={{
-                        flex: 1,
+                        ...StyleSheet.absoluteFillObject,
                         backgroundColor: 'rgba(0,0,0,0.6)',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        zIndex: 9999
                     }}
                 >
                     <Pressable onPress={onClose} style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} />
@@ -77,6 +82,7 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                                                     newDate.setHours(newH24);
                                                     onChange({ type: 'set', nativeEvent: {} } as any, newDate);
                                                 }}
+                                                style={Platform.OS === 'web' ? { cursor: 'pointer' } as any : undefined}
                                                 className={`h-10 items-center justify-center ${isSelected ? 'bg-blue-100 dark:bg-blue-900/40' : ''}`}
                                             >
                                                 <Text className={`text-lg font-bold ${isSelected ? 'text-primary' : 'text-gray-400'}`}>
@@ -101,6 +107,7 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                                                 newDate.setMinutes(parseInt(m));
                                                 onChange({ type: 'set', nativeEvent: {} } as any, newDate);
                                             }}
+                                            style={Platform.OS === 'web' ? { cursor: 'pointer' } as any : undefined}
                                             className={`h-10 items-center justify-center ${date.getMinutes() === parseInt(m) ? 'bg-blue-100 dark:bg-blue-900/40' : ''}`}
                                         >
                                             <Text className={`text-lg font-bold ${date.getMinutes() === parseInt(m) ? 'text-primary' : 'text-gray-400'}`}>
@@ -130,6 +137,7 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                                                     }
                                                     onChange({ type: 'set', nativeEvent: {} } as any, newDate);
                                                 }}
+                                                style={Platform.OS === 'web' ? { cursor: 'pointer' } as any : undefined}
                                                 className={`h-10 items-center justify-center ${isSelected ? 'bg-blue-100 dark:bg-blue-900/40' : ''}`}
                                             >
                                                 <Text className={`text-lg font-bold ${isSelected ? 'text-primary' : 'text-gray-400'}`}>
@@ -158,7 +166,7 @@ export function SafeTimePicker({ visible, date, theme, onClose, onChange, onSave
                         </View>
                     </Pressable>
                 </View>
-            </Modal>
+            </View>
         );
     }
 

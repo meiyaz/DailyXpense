@@ -1,4 +1,4 @@
-import { Modal, View, Text, Pressable, StyleSheet } from "react-native";
+import { Modal, View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { ZoomIn, ZoomOut } from "react-native-reanimated";
 
@@ -87,7 +87,8 @@ export function CustomAlert({ visible, title, message, icon, buttons = [{ text: 
 
 const styles = StyleSheet.create({
     backdrop: {
-        flex: 1,
+        ...StyleSheet.absoluteFillObject, // Ensures it fills screen on Web
+        zIndex: 999,
         backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'center',
         alignItems: 'center',
@@ -99,5 +100,9 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         padding: 24,
         alignItems: 'center',
+        ...Platform.select({
+            web: { backgroundColor: 'white' },
+            default: {}
+        })
     }
 });

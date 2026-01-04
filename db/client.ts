@@ -53,11 +53,16 @@ if (Platform.OS === 'web') {
         updated_at INTEGER NOT NULL,
         sync_status TEXT DEFAULT 'PENDING' NOT NULL,
         max_amount REAL,
-        is_premium INTEGER DEFAULT 0 -- Added in V4
+        is_premium INTEGER DEFAULT 0, -- Added in V4
+        locale TEXT DEFAULT 'en-IN' -- Added in V5
       );
     `);
 
     // STEP 3: Handle Incremental Schema Updates (Manual Migrations)
+    try {
+      await expoDb.execAsync("ALTER TABLE settings ADD COLUMN locale TEXT DEFAULT 'en-IN'");
+    } catch (e) { }
+
     try {
       await expoDb.execAsync("ALTER TABLE expenses ADD COLUMN type TEXT DEFAULT 'expense'");
     } catch (e) {
