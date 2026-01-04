@@ -134,7 +134,7 @@ export default function Login() {
                     setMode("setup_pin");
                 } else {
                     setIsAppUnlocked(true);
-                    router.replace("/");
+                    // Redirect handled by _layout.tsx
                 }
             }
         } catch (e: any) {
@@ -182,7 +182,7 @@ export default function Login() {
             });
 
             setIsAppUnlocked(true);
-            router.replace("/");
+            // Redirect handled by _layout.tsx
         } catch (e: any) {
             showCustomAlert("Error", "Failed to save security settings.", "alert-circle");
         } finally {

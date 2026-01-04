@@ -60,6 +60,7 @@ interface SettingsContextType {
     addCategory: (name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
     updateCategory: (id: string, name: string, color: string, icon: string, type?: 'expense' | 'income') => void;
     deleteCategory: (id: string) => void;
+    resetToDefaults: () => void;
     scheduleNotification: (title: string, body: string) => Promise<void>; // Exposed for manual triggering
 }
 
@@ -181,8 +182,27 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         };
     }, [appLockEnabled, lastBackgroundTime]);
 
+    const resetToDefaults = () => {
+        setCurrency("₹");
+        setLocale("en-IN");
+        setName("");
+        setAvatar("👤");
+        setCategories(DEFAULT_CATEGORIES);
+        setBudget(0);
+        setNotificationsEnabled(false);
+        setReminderTime("20:00");
+        setAppLockEnabled(false);
+        setSecurityPin(null);
+        setBiometricsEnabled(false);
+        setTheme('system');
+        setAccentColor('emerald');
+        setIsPremium(false);
+        setAutomaticCloudSync(false);
+    };
+
     const loadSettings = async () => {
         setIsLoading(true);
+        resetToDefaults(); // Purge stale data before loading new user settings
         try {
             let loadedSettings: any = null;
 
@@ -315,16 +335,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
     const saveToLocalDb = async (payload: any) => {
         const now = new Date();
-        // Upsert to SQLite
-        // sqlite doesn't have UPSERT in generic SQL easily without syntax check, 
-        // but Drizzle insert().onConflictDoUpdate() works
         try {
             await db.insert(settingsSchema).values({
                 ...payload,
-                userId: userId, // Fix: Explicitly map userId for Drizzle
+                userId: userId,
                 locale: payload.locale,
                 updatedAt: now,
-                notificationsEnabled: payload.notifications_enabled, // map back to camel for Drizzle
+                notificationsEnabled: payload.notifications_enabled,
                 reminderTime: payload.reminder_time,
                 appLockEnabled: payload.app_lock_enabled,
                 securityPin: payload.security_pin,
@@ -338,7 +355,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             }).onConflictDoUpdate({
                 target: settingsSchema.id,
                 set: {
-                    userId: userId, // Fix: Explicitly map userId for Drizzle
+                    userId: userId,
                     currency: payload.currency,
                     locale: payload.locale,
                     name: payload.name,
@@ -367,10 +384,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const saveSettingsToDb = async (merged: any) => {
         const now = new Date();
         const isWeb = Platform.OS === 'web';
-
-        // Prepare Payload (Snake Case for DBs)
         const payload = {
-            id: userId, // Ensure one row per user
+            id: userId,
             user_id: userId,
             currency: merged.currency,
             locale: merged.locale,
@@ -393,20 +408,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         };
 
         try {
-            // 1. Sync to Supabase (All Platforms)
-            // ONLY if logged in (not offline_user)
             if (userId !== "offline_user") {
                 const { error } = await supabase.from('settings').upsert(payload);
-
-                if (error) {
-                    console.error("Supabase settings sync error", error);
-                }
+                if (error) console.error("Supabase settings sync error", error);
             }
-
-            // 2. Save to Local DB (Native Only)
-            if (!isWeb) {
-                await saveToLocalDb(payload);
-            }
+            if (!isWeb) await saveToLocalDb(payload);
         } catch (e) {
             console.error("Failed to save settings to DB", e);
         }
@@ -420,12 +426,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                 appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium, automaticCloudSync,
                 ...newSettings
             };
-            // 1. Save Local (Fast)
             await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
-
-            // 2. Persist to DB (Async)
             saveSettingsToDb(merged);
-
         } catch (e) {
             console.error("Failed to save settings", e);
         }
@@ -437,50 +439,24 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (updates.name !== undefined) setName(updates.name);
         if (updates.avatar !== undefined) setAvatar(updates.avatar);
         if (updates.budget !== undefined) setBudget(updates.budget);
-        if (updates.budget !== undefined) setBudget(updates.budget);
-
-        if (updates.notificationsEnabled !== undefined) {
-            // Logic: If turning ON, we must request/check permission first.
-            if (updates.notificationsEnabled === true) {
-                // We're inside a sync function but need async, so we'll fire and forget the permission check
-                // OR we handle it optimistically. Better to force the UI check in 'app/settings.tsx' 
-                // BUT current architecture puts all logic here.
-                // We will blindly set it here, but relied on the useEffect 'checkPerms' or the UI to handle the heavy lifting.
-                // Actually, let's keep it simple: State is source of truth.
-                setNotificationsEnabled(true);
-            } else {
-                setNotificationsEnabled(false);
-            }
-        }
-
+        if (updates.notificationsEnabled !== undefined) setNotificationsEnabled(updates.notificationsEnabled);
         if (updates.reminderTime !== undefined) setReminderTime(updates.reminderTime);
         if (updates.appLockEnabled !== undefined) {
             setAppLockEnabled(updates.appLockEnabled);
-            // If turning OFF, unlock everything immediately
-            if (!updates.appLockEnabled) setIsAppUnlocked(true);
-            // If turning ON, they are already authorized in settings, so keep it true for this session
-            else setIsAppUnlocked(true);
+            setIsAppUnlocked(true);
         }
         if (updates.securityPin !== undefined) setSecurityPin(updates.securityPin);
         if (updates.biometricsEnabled !== undefined) setBiometricsEnabled(updates.biometricsEnabled);
-
         if (updates.theme !== undefined) {
             setTheme(updates.theme);
-            setTheme(updates.theme);
             if (updates.theme !== 'system') {
-                setColorScheme(updates.theme === 'custom' ? 'light' : updates.theme);
+                setColorScheme(updates.theme === 'custom' ? 'light' : updates.theme as 'light' | 'dark');
             }
         }
-
         if (updates.accentColor !== undefined) setAccentColor(updates.accentColor);
-
         if (updates.maxAmount !== undefined) setMaxAmount(updates.maxAmount);
         if (updates.isPremium !== undefined) setIsPremium(updates.isPremium);
-
-        if (updates.automaticCloudSync !== undefined) {
-            setAutomaticCloudSync(updates.automaticCloudSync);
-        }
-
+        if (updates.automaticCloudSync !== undefined) setAutomaticCloudSync(updates.automaticCloudSync);
         saveSettings(updates);
     };
 
@@ -492,9 +468,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     };
 
     const updateCategory = (id: string, name: string, color: string, icon: string, type: 'expense' | 'income' = 'expense') => {
-        const updated = categories.map(c =>
-            c.id === id ? { ...c, name, color, icon, type } : c
-        );
+        const updated = categories.map(c => c.id === id ? { ...c, name, color, icon, type } : c);
         setCategories(updated);
         saveSettings({ categories: updated });
     };
@@ -512,7 +486,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             budget, notificationsEnabled, reminderTime,
             appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium, automaticCloudSync,
             isLoading, isAppUnlocked,
-            updateSettings, addCategory, updateCategory, deleteCategory, setIsAppUnlocked,
+            updateSettings, addCategory, updateCategory, deleteCategory, resetToDefaults, setIsAppUnlocked,
             scheduleNotification: (t, b) => scheduleLocalNotification(t, b)
         }}>
             {children}

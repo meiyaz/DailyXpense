@@ -31,10 +31,19 @@ function RootStack() {
 
         const inAuthGroup = segments[0] === 'login';
 
-        // Use requestAnimationFrame to ensure the navigator is ready for the action
+        // Stabilize transitions with requestAnimationFrame to ensure navigator readiness
         requestAnimationFrame(() => {
             if (!isAuthenticated && !inAuthGroup) {
-                router.replace('/login');
+                // If there's a modal (like Settings), dismiss it first
+                if (router.canDismiss()) {
+                    router.dismissAll();
+                    // DOUBLE FRAME PROTECTION: Wait one more frame after dismissal for the stack to fully stabilize
+                    requestAnimationFrame(() => {
+                        router.replace('/login');
+                    });
+                } else {
+                    router.replace('/login');
+                }
             } else if (isAuthenticated && inAuthGroup) {
                 router.replace('/');
             }

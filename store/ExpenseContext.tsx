@@ -24,6 +24,7 @@ interface ExpenseContextType {
     addExpense: (expense: Omit<Expense, "id">) => void;
     deleteExpense: (id: string) => void;
     updateExpense: (id: string, updates: Partial<Expense>) => void;
+    resetExpenses: () => Promise<void>;
     isLoading: boolean;
 }
 
@@ -319,9 +320,32 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
             console.error("Failed to update expense", e);
         }
     };
+    const resetExpenses = async () => {
+        try {
+            if (Platform.OS === 'web') {
+                const { error } = await supabase
+                    .from('expenses')
+                    .update({ deleted: true, updated_at: new Date().toISOString() })
+                    .eq('user_id', userId);
+                if (error) console.error("Supabase reset error:", error);
+                setExpenses([]);
+                return;
+            }
+
+            // Local Reset: Mark all for the user as deleted
+            await db.update(expensesSchema)
+                .set({ deleted: true, syncStatus: 'PENDING', updatedAt: new Date() })
+                .where(eq(expensesSchema.userId, userId));
+
+            setExpenses([]);
+            SyncService.pushChanges();
+        } catch (e) {
+            console.error("Failed to reset expenses", e);
+        }
+    };
 
     return (
-        <ExpenseContext.Provider value={{ expenses, addExpense, deleteExpense, updateExpense, isLoading }}>
+        <ExpenseContext.Provider value={{ expenses, addExpense, deleteExpense, updateExpense, resetExpenses, isLoading }}>
             {children}
         </ExpenseContext.Provider>
     );

@@ -1,6 +1,6 @@
 import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, StyleSheet, useColorScheme as useRNColorScheme, Platform } from "react-native";
 import Animated, { Keyframe } from "react-native-reanimated";
-import { Audio } from 'expo-av';
+import { useAudioPlayer } from 'expo-audio';
 import { Link, useRouter, usePathname } from "expo-router";
 import { useExpenses } from "../store/ExpenseContext";
 import { useSettings } from "../store/SettingsContext";
@@ -8,6 +8,7 @@ import { ExpenseListItem } from "../components/ExpenseListItem";
 import { AddExpense } from "../components/AddExpense";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../store/AuthContext";
 import { useState, useMemo, useEffect } from "react";
 import ExportModal from "../components/ExportModal";
 
@@ -21,6 +22,7 @@ export default function Home() {
     const { expenses } = useExpenses();
     const router = useRouter();
     const pathname = usePathname();
+    const { user } = useAuth();
     const { name, categories, theme, isLoading: settingsLoading, isPremium, avatar: settingsAvatar } = useSettings();
 
     const systemScheme = useRNColorScheme();
@@ -31,9 +33,10 @@ export default function Home() {
     const [isFilterExpanded, setIsFilterExpanded] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [isNicknameModalVisible, setIsNicknameModalVisible] = useState(false);
-
     const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
-    const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+    const [isOnboardingWelcomeBack, setIsOnboardingWelcomeBack] = useState(false);
+    const [visibleKey, setVisibleKey] = useState(0);
+    const player = useAudioPlayer('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
     // Custom Alert State
     const [alertConfig, setAlertConfig] = useState({
@@ -53,20 +56,17 @@ export default function Home() {
     // Sound Logic
     const playWelcomeSound = async () => {
         try {
-            const { sound } = await Audio.Sound.createAsync(
-                { uri: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3' },
-                { shouldPlay: true, volume: 0.4 }
-            );
-            await sound.playAsync();
-            sound.setOnPlaybackStatusUpdate((status) => {
-                if (status.isLoaded && status.didJustFinish) {
-                    sound.unloadAsync();
-                }
-            });
+            player.play();
         } catch (e) {
             console.warn("Could not play welcome sound", e);
         }
     };
+
+    useEffect(() => {
+        if (!user) {
+            hasShownWelcomeSession = false;
+        }
+    }, [user]);
 
     useEffect(() => {
         if (settingsLoading) return;
@@ -77,18 +77,27 @@ export default function Home() {
 
         // Only enforce nickname on Home Screen
         if (!hasName && pathname === '/') {
-            if (!isNicknameModalVisible) setIsNicknameModalVisible(true);
-        } else if (!isNicknameModalVisible && !showWelcomeBack && !isDND) {
+            if (!isNicknameModalVisible) {
+                // If we are authenticated, wait a bit for cloud sync before assuming it's a new user
+                const delay = user ? 300 : 0;
+                const timer = setTimeout(() => {
+                    setIsOnboardingWelcomeBack(false);
+                    setIsNicknameModalVisible(true);
+                    setVisibleKey(v => v + 1);
+                }, delay);
+                return () => clearTimeout(timer);
+            }
+        } else if (!isNicknameModalVisible && !isDND) {
             if (hasShownWelcomeSession)
                 return;
 
             hasShownWelcomeSession = true;
-            setShowWelcomeBack(true);
+            setIsOnboardingWelcomeBack(true);
+            setIsNicknameModalVisible(true);
+            setVisibleKey(v => v + 1);
             playWelcomeSound();
-            const timer = setTimeout(() => setShowWelcomeBack(false), 2000);
-            return () => clearTimeout(timer);
         }
-    }, [name, settingsLoading, pathname]);
+    }, [name, settingsLoading, pathname, user]);
 
 
     const isIcon = (str: string) => str && (str.includes("-") || str === "person" || str === "person-circle" || str === "happy" || str === "glasses" || str === "woman" || str === "man" || str === "pricetag");
@@ -142,35 +151,7 @@ export default function Home() {
             </View>
 
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
-                {showWelcomeBack && name && (
-                    <Animated.View
-                        // @ts-ignore
-                        entering={new Keyframe({
-                            0: { transform: [{ translateY: -200 }] },
-                            100: { transform: [{ translateY: 0 }] },
-                        }).duration(800)}
-                        // @ts-ignore
-                        exiting={new Keyframe({
-                            0: { transform: [{ translateY: 0 }], opacity: 1 },
-                            100: { transform: [{ translateY: -200 }], opacity: 0 },
-                        }).duration(500)}
-                        style={{ position: Platform.OS === 'web' ? 'fixed' : 'absolute', top: Platform.OS === 'web' ? 20 : 64, left: 16, right: 16, zIndex: 100, alignItems: 'center' } as any}
-                    >
-                        <Pressable onPress={() => setShowWelcomeBack(false)}>
-                            <View className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-xl shadow-lg border border-blue-500/20 backdrop-blur-md flex-row items-center">
-                                <View className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center mr-2">
-                                    <Text style={{ fontSize: 12 }}>{isImage(avatar) || isIcon(avatar) ? "" : avatar}</Text>
-                                    {isImage(avatar) && <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />}
-                                    {isIcon(avatar) && <Ionicons name={avatar as any} size={12} color="#2563eb" />}
-                                </View>
-                                <View>
-                                    <Text className="text-gray-900 dark:text-white font-bold text-[12px]">{vibeData.title}</Text>
-                                    <Text className="text-blue-600 dark:text-blue-400 font-medium text-[10px]">{vibeData.vibe}</Text>
-                                </View>
-                            </View>
-                        </Pressable>
-                    </Animated.View>
-                )}
+
 
                 <View className="px-4">
                     <View className="flex-row justify-between items-center mb-2 pt-8">
@@ -379,7 +360,9 @@ export default function Home() {
             />
 
             <OnboardingTour
+                key={`onboarding-${visibleKey}`}
                 visible={isNicknameModalVisible && pathname === '/'}
+                isWelcomeBack={isOnboardingWelcomeBack}
                 onComplete={() => setIsNicknameModalVisible(false)}
             />
 
