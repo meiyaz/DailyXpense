@@ -29,11 +29,11 @@ const PROFILE_ICONS = [
 ];
 
 const CURRENCIES = [
-    { symbol: "₹", name: "INR" },
-    { symbol: "$", name: "USD" },
-    { symbol: "€", name: "EUR" },
-    { symbol: "£", name: "GBP" },
-    { symbol: "¥", name: "JPY" }
+    { symbol: "₹", name: "INR", locale: "en-IN" },
+    { symbol: "$", name: "USD", locale: "en-US" },
+    { symbol: "€", name: "EUR", locale: "de-DE" },
+    { symbol: "£", name: "GBP", locale: "en-GB" },
+    { symbol: "¥", name: "JPY", locale: "ja-JP" }
 ];
 
 export default function Settings() {
@@ -406,7 +406,7 @@ export default function Settings() {
                                 <Pressable
                                     key={curr.symbol}
                                     onPress={() => {
-                                        updateSettings({ currency: curr.symbol });
+                                        updateSettings({ currency: curr.symbol, locale: curr.locale });
                                         setShowCurrencyPicker(false);
                                     }}
                                     className={`w-[45%] flex-row items-center p-4 rounded-xl border ${currency === curr.symbol ? "bg-blue-50 dark:bg-blue-900/20 border-primary" : "bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700"

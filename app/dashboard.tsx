@@ -10,7 +10,7 @@ type Tab = "daily" | "monthly" | "annual";
 
 export default function Dashboard() {
     const { expenses } = useExpenses();
-    const { currency, categories, theme } = useSettings();
+    const { currency, categories, theme, locale } = useSettings();
     const systemScheme = useColorScheme();
     const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
     const [activeTab, setActiveTab] = useState<Tab>("daily");
@@ -324,7 +324,7 @@ export default function Dashboard() {
                     Net {activeTab} Balance
                 </Text>
                 <Text style={{ fontSize: 32, fontWeight: '800', color: financials.net >= 0 ? (isDark ? '#4ade80' : '#16a34a') : (isDark ? '#f87171' : '#dc2626') }}>
-                    {currency}{formatAmount(financials.net)}
+                    {currency}{formatAmount(financials.net, locale)}
                 </Text>
 
                 {/* Grid for Income / Expense */}
@@ -332,14 +332,14 @@ export default function Dashboard() {
                     <View style={{ alignItems: 'center' }}>
                         <Text style={{ fontSize: 10, textTransform: 'uppercase', color: '#6b7280', fontWeight: '600' }}>Income</Text>
                         <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#4ade80' : '#16a34a' }}>
-                            +{currency}{formatAmount(financials.income)}
+                            +{currency}{formatAmount(financials.income, locale)}
                         </Text>
                     </View>
                     <View style={{ width: 1, backgroundColor: isDark ? '#374151' : '#e5e7eb' }} />
                     <View style={{ alignItems: 'center' }}>
                         <Text style={{ fontSize: 10, textTransform: 'uppercase', color: '#6b7280', fontWeight: '600' }}>Expense</Text>
                         <Text style={{ fontSize: 16, fontWeight: '700', color: isDark ? '#f87171' : '#dc2626' }}>
-                            -{currency}{formatAmount(financials.expense)}
+                            -{currency}{formatAmount(financials.expense, locale)}
                         </Text>
                     </View>
                 </View>

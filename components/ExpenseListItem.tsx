@@ -19,7 +19,7 @@ interface ExpenseListItemProps {
 
 export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStart, onEditEnd }: ExpenseListItemProps) {
     const { deleteExpense, updateExpense } = useExpenses();
-    const { categories, maxAmount, theme } = useSettings();
+    const { categories, maxAmount, theme, locale } = useSettings();
     const systemScheme = useColorScheme();
     const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
     // Removed local isEditing state, relying on props or internal handle if optional.
@@ -323,7 +323,7 @@ export function ExpenseListItem({ expense, isLast, isEditing = false, onEditStar
             {/* Right: Amount */}
             <View className="items-end">
                 <Text className={`font-bold text-lg ${expense.type === 'income' ? 'text-green-600 dark:text-green-500' : 'text-gray-800 dark:text-white'}`}>
-                    {expense.type === 'income' ? '+' : ''}{formatAmount(expense.amount)}
+                    {expense.type === 'income' ? '+' : ''}{formatAmount(expense.amount, locale)}
                 </Text>
             </View>
 

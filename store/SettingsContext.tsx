@@ -19,6 +19,7 @@ export interface Category {
 
 interface SettingsContextType {
     currency: string;
+    locale: string;
     categories: Category[];
     name: string;
     avatar: string;
@@ -38,6 +39,7 @@ interface SettingsContextType {
     setIsAppUnlocked: (unlocked: boolean) => void;
     updateSettings: (settings: Partial<{
         currency: string;
+        locale: string;
         name: string;
         avatar: string;
         budget: number;
@@ -84,6 +86,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const userId = user?.id || "offline_user";
 
     const [currency, setCurrency] = useState("₹");
+    const [locale, setLocale] = useState("en-IN");
     const [name, setName] = useState("");
     const [avatar, setAvatar] = useState("👤");
     const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
@@ -191,6 +194,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const applySettings = (s: any) => {
         // Parse DB fields (snake_case from Supabase/SQLite usually, but Drizzle mapping might help)
         setCurrency(s.currency || "₹");
+        setLocale(s.locale || "en-IN");
         setName(s.name || "");
         setAvatar(s.avatar || "👤");
         setBudget(s.budget || 0);
@@ -271,6 +275,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             await db.insert(settingsSchema).values({
                 ...payload,
                 userId: userId, // Fix: Explicitly map userId for Drizzle
+                locale: payload.locale,
                 updatedAt: now,
                 notificationsEnabled: payload.notifications_enabled, // map back to camel for Drizzle
                 reminderTime: payload.reminder_time,
@@ -286,6 +291,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                 set: {
                     userId: userId, // Fix: Explicitly map userId for Drizzle
                     currency: payload.currency,
+                    locale: payload.locale,
                     name: payload.name,
                     avatar: payload.avatar,
                     budget: payload.budget,
@@ -316,6 +322,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             id: userId, // Ensure one row per user
             user_id: userId,
             currency: merged.currency,
+            locale: merged.locale,
             name: merged.name,
             avatar: merged.avatar,
             budget: merged.budget,
@@ -355,7 +362,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const saveSettings = async (newSettings: any) => {
         try {
             const merged = {
-                currency, name, avatar, categories,
+                currency, locale, name, avatar, categories,
                 budget, notificationsEnabled, reminderTime,
                 appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium,
                 ...newSettings
@@ -373,6 +380,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
     const updateSettings = (updates: any) => {
         if (updates.currency !== undefined) setCurrency(updates.currency);
+        if (updates.locale !== undefined) setLocale(updates.locale);
         if (updates.name !== undefined) setName(updates.name);
         if (updates.avatar !== undefined) setAvatar(updates.avatar);
         if (updates.budget !== undefined) setBudget(updates.budget);
@@ -428,7 +436,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <SettingsContext.Provider value={{
-            currency, name, avatar, categories,
+            currency, locale, name, avatar, categories,
             budget, notificationsEnabled, reminderTime,
             appLockEnabled, securityPin, biometricsEnabled, theme, accentColor, lastSyncTime, maxAmount, isPremium,
             isLoading, isAppUnlocked,

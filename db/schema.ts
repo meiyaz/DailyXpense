@@ -20,6 +20,7 @@ export const settings = sqliteTable('settings', {
   id: text('id').primaryKey(), // Usually user_id or 'local_settings'
   userId: text('user_id').notNull(), // To link to Supabase user
   currency: text('currency'),
+  locale: text('locale'),
   name: text('name'),
   avatar: text('avatar'),
   budget: real('budget'),
