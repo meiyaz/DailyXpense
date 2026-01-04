@@ -1,7 +1,8 @@
-import { View, Text, Pressable, Switch, Modal, ActivityIndicator, Alert, Share } from 'react-native';
+import { View, Text, Pressable, Switch, Modal, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../../store/SettingsContext";
 import { useState } from 'react';
+import ExportModal from '../ExportModal';
 
 interface PremiumSectionProps {
     showCustomAlert?: (title: string, message: string, icon: any, buttons: any[]) => void;
@@ -13,6 +14,7 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({ showCustomAlert 
     const isPremium = settings?.isPremium ?? false;
     const updateSettings = settings?.updateSettings ?? (() => { });
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showExportModal, setShowExportModal] = useState(false);
     // END: Hook Usage
 
     const handleActivatePro = () => {
@@ -23,18 +25,6 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({ showCustomAlert 
             updateSettings({ isPremium: true, automaticCloudSync: true });
             // Alert.alert("Welcome to Pro!", "You are now a DailyXpense Pro member for life! 💎🚀");
         }, 2000);
-    };
-
-    const handleExportData = async () => {
-        if (!isPremium) return;
-        try {
-            await Share.share({
-                message: 'Date,Category,Amount\n2025-01-01,Food,50.00\n2025-01-02,Transport,20.00\n2025-01-03,Entertainment,100.00',
-                title: 'DailyXpense_Report.csv'
-            });
-        } catch (error) {
-            Alert.alert("Error", "Could not share file.");
-        }
     };
 
     const handleDebugRevert = () => {
@@ -212,7 +202,7 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({ showCustomAlert 
 
                 {/* Data Export (CSV) */}
                 <Pressable
-                    onPress={handleExportData}
+                    onPress={() => setShowExportModal(true)}
                     disabled={!isPremium}
                     className={`flex-row items-center justify-between p-3 border-b border-amber-50 dark:border-amber-900/10 ${!isPremium ? 'opacity-60' : 'active:bg-gray-50 dark:active:bg-gray-800'}`}
                 >
@@ -251,6 +241,11 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({ showCustomAlert 
                     </View>
                 </View>
             </View>
+
+            <ExportModal
+                visible={showExportModal}
+                onClose={() => setShowExportModal(false)}
+            />
         </View>
     );
 };

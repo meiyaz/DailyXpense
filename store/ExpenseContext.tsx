@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { AppState } from "react-native";
 import { addEventListener } from '@react-native-community/netinfo';
 import { useSettings } from "./SettingsContext";
@@ -37,81 +37,8 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
 
     const userId = user?.id || "offline_user";
 
-
-    useEffect(() => {
-        const init = async () => {
-            // STEP 1: Handle Web-specific initialization (Direct cloud connection)
-            if (Platform.OS === 'web') {
-                await loadExpenses();
-                return;
-            }
-
-            try {
-                // STEP 2: Handle Native initialization (Local DB migration & Sync Service)
-                await migrateDb(); // Ensure table exists
-                // SyncService.init() removed; handled by useEffect below
-
-                // NATIVE MIGRATION: If we just logged in, move offline expenses to this user
-                if (userId !== "offline_user") {
-                    await db.update(expensesSchema)
-                        .set({
-                            userId: userId,
-                            syncStatus: 'PENDING', // Mark for push
-                            updatedAt: new Date()
-                        })
-                        .where(eq(expensesSchema.userId, "offline_user"));
-                }
-
-                await loadExpenses();
-
-                // Trigger an initial sync to pull latest cloud data
-                if (userId !== "offline_user") {
-                    await SyncService.sync();
-                    await loadExpenses(); // Refresh after sync
-                }
-            } catch (e: any) {
-                console.error("Failed to initialize database", e);
-            }
-        };
-        init();
-    }, [userId]);
-
-    // Network Listener & AppState/Unlock Listener
-    useEffect(() => {
-        // Network listener
-        if (Platform.OS !== 'web') {
-            const unsubscribeNet = addEventListener((state) => {
-                if (state.isConnected) {
-                    SyncService.sync().then(() => loadExpenses());
-                }
-            });
-            return () => unsubscribeNet();
-        }
-    }, []);
-
-    // AppState & Unlock Listener
-    useEffect(() => {
-        // Reload when app comes to foreground or unlocks
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (nextAppState === 'active') {
-                loadExpenses();
-            }
-        });
-
-        return () => {
-            subscription.remove();
-        };
-    }, []);
-
-    // Reload when explicitly unlocked (if handled within app lifecycle)
-    const { isAppUnlocked } = useSettings();
-    useEffect(() => {
-        if (isAppUnlocked) {
-            loadExpenses();
-        }
-    }, [isAppUnlocked]);
-
-    const loadExpenses = async () => {
+    // Define loadExpenses early so it can be used in useEffect hooks below
+    const loadExpenses = useCallback(async () => {
         try {
             // STEP 3: Load and format data based on current context
             setIsLoading(true);
@@ -189,7 +116,83 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [userId, categories]);
+
+
+    useEffect(() => {
+        const init = async () => {
+            // STEP 1: Handle Web-specific initialization (Direct cloud connection)
+            if (Platform.OS === 'web') {
+                await loadExpenses();
+                return;
+            }
+
+            try {
+                // STEP 2: Handle Native initialization (Local DB migration & Sync Service)
+                await migrateDb(); // Ensure table exists
+                // SyncService.init() removed; handled by useEffect below
+
+                // NATIVE MIGRATION: If we just logged in, move offline expenses to this user
+                if (userId !== "offline_user") {
+                    await db.update(expensesSchema)
+                        .set({
+                            userId: userId,
+                            syncStatus: 'PENDING', // Mark for push
+                            updatedAt: new Date()
+                        })
+                        .where(eq(expensesSchema.userId, "offline_user"));
+                }
+
+                await loadExpenses();
+
+                // Trigger an initial sync to pull latest cloud data
+                if (userId !== "offline_user") {
+                    await SyncService.sync();
+                    await loadExpenses(); // Refresh after sync
+                }
+            } catch (e: any) {
+                console.error("Failed to initialize database", e);
+            }
+        };
+        init();
+    }, [userId, loadExpenses]);
+
+    // Network Listener & AppState/Unlock Listener
+    useEffect(() => {
+        // Network listener
+        if (Platform.OS !== 'web') {
+            const unsubscribeNet = addEventListener((state) => {
+                if (state.isConnected) {
+                    SyncService.sync().then(() => loadExpenses());
+                }
+            });
+            return () => unsubscribeNet();
+        }
+    }, []);
+
+    // AppState & Unlock Listener
+    useEffect(() => {
+        // Reload when app comes to foreground or unlocks
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState === 'active') {
+                loadExpenses();
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [loadExpenses]);
+
+    // Reload when explicitly unlocked (if handled within app lifecycle)
+    const { isAppUnlocked } = useSettings();
+    useEffect(() => {
+        if (isAppUnlocked) {
+            loadExpenses();
+        }
+    }, [isAppUnlocked, loadExpenses]);
+
+
 
     const generateId = () => {
         return `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

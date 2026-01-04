@@ -54,11 +54,12 @@ export function CustomAlert({ visible, title, message, icon, buttons = [{ text: 
                         {message}
                     </Text>
 
-                    <View className="flex-row gap-3 w-full justify-center">
+                    <View className={`${buttons.length > 2 ? 'flex-col' : 'flex-row'} gap-3 w-full justify-center`}>
                         {buttons.map((btn, index) => {
                             const isCancel = btn.style === 'cancel';
                             const isDestructive = btn.style === 'destructive';
                             const isPrimary = !isCancel && !isDestructive || btn.style === 'default';
+                            const isVertical = buttons.length > 2;
 
                             return (
                                 <Pressable
@@ -67,7 +68,7 @@ export function CustomAlert({ visible, title, message, icon, buttons = [{ text: 
                                         if (btn.onPress) btn.onPress();
                                         if (onClose) onClose();
                                     }}
-                                    className={`flex-1 py-3 px-4 rounded-xl items-center justify-center active:opacity-80
+                                    className={`${isVertical ? 'w-full' : 'flex-1'} py-3 px-4 rounded-xl items-center justify-center active:opacity-80
                                         ${isPrimary ? 'bg-blue-600' : (isDestructive ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-100 dark:bg-gray-800')}
                                     `}
                                 >

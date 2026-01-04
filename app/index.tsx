@@ -375,6 +375,7 @@ export default function Home() {
             <ExportModal
                 visible={showExportModal}
                 onClose={() => setShowExportModal(false)}
+                allowedFormats={['whatsapp', 'pdf']}
             />
 
             <OnboardingTour
