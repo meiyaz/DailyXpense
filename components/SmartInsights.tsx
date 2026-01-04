@@ -34,11 +34,17 @@ export const SmartInsights = () => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Ionicons name="sparkles" size={16} color="#8b5cf6" />
+                <Ionicons name="sparkles" size={14} color="#8b5cf6" />
                 <Text style={[styles.title, isDark && styles.textLight]}>AI Insights</Text>
             </View>
 
-            <View style={styles.content}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+                snapToInterval={280 + 12}
+                decelerationRate="fast"
+            >
                 {insights.map((insight, index) => (
                     <View key={index} style={[styles.card, isDark && styles.cardDark]}>
                         <LinearGradient
@@ -49,68 +55,63 @@ export const SmartInsights = () => {
                         />
                         <View style={styles.cardContent}>
                             <View style={[styles.iconContainer, isDark && styles.iconContainerDark]}>
-                                <Ionicons name={insight.icon as any} size={24} color={getIconColor(insight)} />
+                                <Ionicons name={insight.icon as any} size={22} color={getIconColor(insight)} />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text style={[styles.cardTitle, isDark && styles.textLight]} numberOfLines={1}>{insight.title}</Text>
                                 <Text style={[styles.cardMessage, isDark && styles.subTextLight]} numberOfLines={2}>{insight.message}</Text>
-                                {!!insight.details && (
-                                    <View style={{ marginTop: 6, flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={{ fontSize: 10, fontWeight: '700', color: isDark ? '#9ca3af' : '#6b7280', opacity: 0.8 }}>
-                                            • {insight.details}
-                                        </Text>
-                                    </View>
-                                )}
                             </View>
                         </View>
                     </View>
                 ))}
-            </View>
+            </ScrollView>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        marginBottom: 20,
+        marginBottom: 24,
         width: '100%',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 12,
-        paddingHorizontal: 4,
+        paddingHorizontal: 20,
         gap: 6
     },
     title: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#6b7280',
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#94a3b8',
         textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 2,
     },
     textLight: {
-        color: '#f3f4f6',
+        color: '#94a3b8',
     },
     subTextLight: {
         color: '#9ca3af',
     },
-    content: {
+    scrollContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 4,
         gap: 12,
     },
     card: {
-        width: '100%',
-        borderRadius: 20,
+        width: 280,
+        borderRadius: 22,
         backgroundColor: 'white',
         overflow: 'hidden',
         position: 'relative',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
         elevation: 2,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.03)'
+        borderColor: 'rgba(0,0,0,0.02)'
     },
     cardDark: {
         backgroundColor: '#111827',
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        opacity: 0.6,
+        opacity: 0.5,
     },
     cardContent: {
         padding: 16,
@@ -131,30 +132,30 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 14,
+        width: 44,
+        height: 44,
+        borderRadius: 12,
         backgroundColor: '#ffffff',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 2,
+        shadowRadius: 4,
     },
     iconContainerDark: {
         backgroundColor: '#1f2937',
     },
     cardTitle: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#111827',
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#1e293b',
         marginBottom: 2,
     },
     cardMessage: {
-        fontSize: 13,
-        fontWeight: '500',
-        color: '#4b5563',
-        lineHeight: 18,
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#64748b',
+        lineHeight: 16,
     }
 });

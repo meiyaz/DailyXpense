@@ -77,17 +77,8 @@ function RootStack() {
                 }}>
                     <Stack.Screen name="index" options={{ title: "Home", headerShown: false }} />
                     <Stack.Screen name="login" options={{ headerShown: false }} />
-                    <Stack.Screen name="settings" options={{ presentation: "modal", title: "Settings" }} />
-                    <Stack.Screen name="dashboard" options={{
-                        title: "Dashboard",
-                        headerBackTitle: "Home",
-                        headerShadowVisible: false,
-                        // Dynamic styling handled via screenOptions or component if needed, 
-                        // but static options here are safer.
-                        // Note: accessing isDark here works because RootStack is inside SettingsProvider
-                        headerStyle: { backgroundColor: isDark ? '#000000' : '#f9fafb' },
-                        headerTintColor: isDark ? 'white' : 'black',
-                    }} />
+                    <Stack.Screen name="settings" options={{ presentation: "modal", headerShown: false }} />
+                    <Stack.Screen name="dashboard" options={{ headerShown: false }} />
                 </Stack>
                 <StatusBar style={isDark ? 'light' : 'dark'} />
             </View>

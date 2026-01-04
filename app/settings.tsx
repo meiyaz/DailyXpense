@@ -2,7 +2,8 @@ import * as LocalAuthentication from 'expo-local-authentication';
 
 import { Platform, Linking } from 'react-native';
 
-import { View, Text, Modal, TextInput, ScrollView, Pressable, TouchableOpacity, FlatList, useColorScheme as useRNColorScheme } from "react-native";
+import { View, Text, Modal, TextInput, ScrollView, Pressable, TouchableOpacity, FlatList, useColorScheme as useRNColorScheme, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
@@ -12,7 +13,6 @@ import { SyncService } from "../services/SyncService";
 import { registerForPushNotificationsAsync, isNotificationSupported } from "../lib/notifications";
 import { useState } from "react";
 
-import ExportModal from "../components/ExportModal";
 import { SafeTimePicker } from "../components/SafeTimePicker";
 import { ProfileSection } from "../components/settings/ProfileSection";
 import { CategoriesSection } from "../components/settings/CategoriesSection";
@@ -54,6 +54,7 @@ export default function Settings() {
     const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
 
     const [newName, setNewName] = useState(name);
+    const styles = createStyles(isDark);
     const [isEditingName, setIsEditingName] = useState(false);
     const [showAvatarPicker, setShowAvatarPicker] = useState(false);
     const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
@@ -78,7 +79,6 @@ export default function Settings() {
     const [newCategoryIcon, setNewCategoryIcon] = useState("pricetag");
     const [newCategoryType, setNewCategoryType] = useState<'expense' | 'income'>('expense');
 
-    const [showExportModal, setShowExportModal] = useState(false);
     const [showBudgetModal, setShowBudgetModal] = useState(false);
     const [tempBudget, setTempBudget] = useState("");
 
@@ -269,30 +269,18 @@ export default function Settings() {
     };
 
     return (
-        <View className="flex-1 bg-gray-50 dark:bg-black">
-            <Stack.Screen options={{
-                title: "Settings",
-                headerBackTitle: "Home",
-                headerShadowVisible: false,
-                headerStyle: { backgroundColor: isDark ? '#000000' : '#f9fafb' },
-                headerTintColor: isDark ? 'white' : 'black',
-                headerLeft: Platform.OS === 'web' ? () => (
-                    <Pressable
-                        onPress={() => {
-                            if (router.canGoBack()) {
-                                router.back();
-                            } else {
-                                router.replace('/');
-                            }
-                        }}
-                        className="active:opacity-50 pl-2"
-                    >
-                        <Ionicons name="arrow-back" size={24} color={isDark ? 'white' : 'black'} />
-                    </Pressable>
-                ) : undefined
-            }} />
+        <View style={styles.container}>
+            <SafeAreaView style={styles.headerSafeArea} edges={['top']}>
+                <View style={styles.customHeader}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                        <Ionicons name="chevron-back" size={24} color={isDark ? '#fff' : '#1e293b'} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Settings</Text>
+                    <View style={{ width: 40 }} />
+                </View>
+            </SafeAreaView>
 
-            <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
                 <View className="p-5">
                     <ProfileSection
                         isEditingName={isEditingName}
@@ -354,7 +342,7 @@ export default function Settings() {
                         }}
                     />
 
-                    <PremiumSection setShowExportModal={setShowExportModal} />
+                    <PremiumSection />
 
                     <AccountSection />
 
@@ -479,11 +467,6 @@ export default function Settings() {
                 handleSaveCategory={handleSaveCategory}
                 handleDeleteFromModal={handleDeleteFromModal}
                 isDark={isDark}
-            />
-
-            <ExportModal
-                visible={showExportModal}
-                onClose={() => setShowExportModal(false)}
             />
 
             <Modal
@@ -777,3 +760,29 @@ export default function Settings() {
         </View>
     );
 }
+
+const createStyles = (isDark: boolean) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: isDark ? '#000' : '#f8fafc' },
+    headerSafeArea: { backgroundColor: isDark ? '#000' : '#f8fafc' },
+    customHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingBottom: 8,
+        paddingTop: 10,
+    },
+    backBtn: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: -8,
+    },
+    headerTitle: {
+        fontSize: 17,
+        fontWeight: '900',
+        color: isDark ? '#fff' : '#1e293b',
+        letterSpacing: -0.5,
+    },
+});
