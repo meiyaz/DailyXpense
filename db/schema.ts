@@ -28,6 +28,7 @@ export const settings = sqliteTable('settings', {
   reminderTime: text('reminder_time'),
   appLockEnabled: integer('app_lock_enabled', { mode: 'boolean' }),
   securityPin: text('security_pin'),
+  biometricsEnabled: integer('biometrics_enabled', { mode: 'boolean' }),
   theme: text('theme'),
   accentColor: text('accent_color'),
   categories: text('categories'), // JSON string

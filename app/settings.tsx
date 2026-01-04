@@ -320,23 +320,27 @@ export default function Settings() {
                         }}
                         onAppLockSwitch={async (val) => {
                             if (!val) {
-                                // Don't auto-disable biometrics preference. It just won't be used while app lock is off.
-                                updateSettings({ appLockEnabled: false });
+                                // Require biometric auth to disable App Lock
+                                if (securityPin && Platform.OS !== 'web') {
+                                    const result = await LocalAuthentication.authenticateAsync({
+                                        promptMessage: 'Authenticate to disable App Lock',
+                                    });
+                                    if (result.success) {
+                                        updateSettings({ appLockEnabled: false });
+                                    }
+                                } else {
+                                    // Web or no PIN - allow direct disable
+                                    updateSettings({ appLockEnabled: false });
+                                }
                             } else {
+                                // Enable App Lock
                                 if (!securityPin) {
+                                    // No PIN set, show setup modal
                                     setTempPin("");
                                     setShowPinModal(true);
                                 } else {
-                                    if (Platform.OS !== 'web') {
-                                        const result = await LocalAuthentication.authenticateAsync({
-                                            promptMessage: 'Authenticate to enable App Lock',
-                                        });
-                                        if (result.success) {
-                                            updateSettings({ appLockEnabled: true });
-                                        }
-                                    } else {
-                                        updateSettings({ appLockEnabled: true });
-                                    }
+                                    // PIN already exists, just enable
+                                    updateSettings({ appLockEnabled: true });
                                 }
                             }
                         }}

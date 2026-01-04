@@ -128,14 +128,21 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
                             disabled={!securityPin || Platform.OS === 'web'}
                             onValueChange={async (val) => {
                                 if (val) {
+                                    // Enabling biometrics - require auth
                                     const result = await LocalAuthentication.authenticateAsync({
                                         promptMessage: 'Enable biometrics for DailyXpense',
                                     });
                                     if (result.success) {
-                                        updateSettings({ biometricsEnabled: true, appLockEnabled: true });
+                                        updateSettings({ biometricsEnabled: true });
                                     }
                                 } else {
-                                    updateSettings({ biometricsEnabled: false });
+                                    // Disabling biometrics - require auth
+                                    const result = await LocalAuthentication.authenticateAsync({
+                                        promptMessage: 'Authenticate to disable biometrics',
+                                    });
+                                    if (result.success) {
+                                        updateSettings({ biometricsEnabled: false });
+                                    }
                                 }
                             }}
                             trackColor={{ false: "#d1d5db", true: "#3b82f6" }}

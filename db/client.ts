@@ -80,6 +80,10 @@ if (Platform.OS === 'web') {
     try {
       await expoDb.execAsync("ALTER TABLE settings ADD COLUMN automatic_cloud_sync INTEGER DEFAULT 1");
     } catch (e) { }
+
+    try {
+      await expoDb.execAsync("ALTER TABLE settings ADD COLUMN biometrics_enabled INTEGER DEFAULT 0");
+    } catch (e) { }
   };
 }
 

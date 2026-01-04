@@ -256,8 +256,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         const alock = s.appLockEnabled ?? s.app_lock_enabled;
         const isEnabled = alock === true || alock === 1;
         setAppLockEnabled(isEnabled);
-        // Only set to true if lock is disabled. If enabled, it MUST be false initially to show lock screen
-        setIsAppUnlocked(!isEnabled);
+
+        const bio = s.biometricsEnabled ?? s.biometrics_enabled;
+        const bioEnabled = bio === true || bio === 1;
+        setBiometricsEnabled(bioEnabled);
+
+        // Only set to true if BOTH lock and biometrics are disabled. If either is enabled, app must be locked initially
+        setIsAppUnlocked(!isEnabled && !bioEnabled);
 
         const pin = s.securityPin ?? s.security_pin;
         if (pin && pin.length === 4) {
@@ -271,8 +276,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             setSecurityPin(pin || null);
         }
 
-        const bio = s.biometricsEnabled ?? s.biometrics_enabled;
-        setBiometricsEnabled(bio === true || bio === 1);
 
         const themeVal = s.theme || 'system';
         setTheme(themeVal);
@@ -325,6 +328,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                 reminderTime: payload.reminder_time,
                 appLockEnabled: payload.app_lock_enabled,
                 securityPin: payload.security_pin,
+                biometricsEnabled: payload.biometrics_enabled,
                 accentColor: payload.accent_color,
                 categories: payload.categories,
                 maxAmount: payload.max_amount,
@@ -344,6 +348,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                     reminderTime: payload.reminder_time,
                     appLockEnabled: payload.app_lock_enabled,
                     securityPin: payload.security_pin,
+                    biometricsEnabled: payload.biometrics_enabled,
                     theme: payload.theme,
                     accentColor: payload.accent_color,
                     categories: payload.categories,
@@ -376,6 +381,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             reminder_time: merged.reminderTime,
             app_lock_enabled: merged.appLockEnabled,
             security_pin: merged.securityPin,
+            biometrics_enabled: merged.biometricsEnabled,
             theme: merged.theme,
             accent_color: merged.accentColor,
             categories: JSON.stringify(merged.categories),

@@ -43,7 +43,7 @@ export default function LockScreen() {
     }, [biometricsEnabled]);
 
     useEffect(() => {
-        if (Platform.OS !== 'web' && appLockEnabled && biometricsEnabled && mode === 'entry') {
+        if (Platform.OS !== 'web' && (appLockEnabled || biometricsEnabled) && biometricsEnabled && mode === 'entry') {
             authenticateNative();
         }
     }, [biometricsEnabled, appLockEnabled, mode]);
