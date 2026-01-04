@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, StyleSheet, useColorScheme as useRNColorScheme } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, StyleSheet, useColorScheme as useRNColorScheme, Platform } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { Audio } from 'expo-av';
 import { Link, useRouter, usePathname } from "expo-router";
@@ -85,11 +85,10 @@ export default function Home() {
             hasShownWelcomeSession = true;
             setShowWelcomeBack(true);
             playWelcomeSound();
-            const timer = setTimeout(() => setShowWelcomeBack(false), 3000);
+            const timer = setTimeout(() => setShowWelcomeBack(false), 2000);
             return () => clearTimeout(timer);
         }
     }, [name, settingsLoading, pathname]);
-
 
 
     const isIcon = (str: string) => str && (str.includes("-") || str === "person" || str === "person-circle" || str === "happy" || str === "glasses" || str === "woman" || str === "man" || str === "pricetag");
@@ -147,8 +146,7 @@ export default function Home() {
                     <Animated.View
                         entering={FadeIn.delay(500).duration(800)}
                         exiting={FadeOut.duration(500)}
-                        style={{ zIndex: 100 }}
-                        className="absolute top-16 left-4 right-4 items-center"
+                        style={{ position: 'absolute', top: Platform.OS === 'web' ? 20 : 64, left: 16, right: 16, zIndex: 100, alignItems: 'center' }}
                     >
                         <View className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-xl shadow-lg border border-blue-500/20 backdrop-blur-md flex-row items-center">
                             <View className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center mr-2">
@@ -383,99 +381,192 @@ export default function Home() {
                 onClose={() => setShowExportModal(false)}
             />
 
-            <Modal
-                visible={isNicknameModalVisible && pathname === '/'}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => { }}
-            >
-                <View className="flex-1 justify-center items-center bg-black/80 px-4">
-                    <View className="bg-white p-8 rounded-3xl w-full max-w-xs items-center shadow-xl">
-                        {tourStep === 0 && (
-                            <>
-                                <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50 p-2">
-                                    <Image
-                                        source={require('../assets/logo_premium.jpg')}
-                                        style={{ width: '100%', height: '100%', borderRadius: 12 }}
-                                        resizeMode="contain"
-                                    />
-                                </View>
-                                <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Welcome aboard!</Text>
-                                <Text className="text-gray-500 mb-8 text-center leading-6">
-                                    I'm your new finance assistant. Let's get you set up in seconds.
-                                </Text>
-                                <Pressable
-                                    onPress={() => setTourStep(1)}
-                                    className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
-                                >
-                                    <Text className="font-bold text-white text-lg">Let's Go</Text>
-                                </Pressable>
-                            </>
-                        )}
-
-                        {tourStep === 1 && (
-                            <>
-                                <View className="w-full">
-                                    <View className="items-center mb-6">
-                                        <View className="w-16 h-16 bg-purple-100 rounded-full items-center justify-center mb-4">
-                                            <Ionicons name="person" size={30} color="#9333ea" />
-                                        </View>
-                                        <Text className="text-xl font-bold text-gray-900 mb-2 text-center">First things first</Text>
-                                        <Text className="text-gray-500 text-center">What should we call you?</Text>
+            {Platform.OS === 'web' ? (
+                (isNicknameModalVisible && pathname === '/') && (
+                    <View
+                        className="justify-center items-center bg-black/80 px-4"
+                        style={[StyleSheet.absoluteFill, { zIndex: 9999 }]}
+                    >
+                        <View className="bg-white p-8 rounded-3xl w-full max-w-xs items-center shadow-xl">
+                            {tourStep === 0 && (
+                                <>
+                                    <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50 p-2">
+                                        <Image
+                                            source={require('../assets/logo_premium.jpg')}
+                                            style={{ width: '100%', height: '100%', borderRadius: 12 }}
+                                            resizeMode="contain"
+                                        />
                                     </View>
-                                    <TextInput
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg mb-6 text-gray-900 text-center font-bold"
-                                        placeholder="Your Nickname"
-                                        value={newNickname}
-                                        onChangeText={setNewNickname}
-                                        autoFocus
-                                    />
+                                    <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Welcome aboard!</Text>
+                                    <Text className="text-gray-500 mb-8 text-center leading-6">
+                                        I'm your new finance assistant. Let's get you set up in seconds.
+                                    </Text>
                                     <Pressable
-                                        onPress={() => {
-                                            if (newNickname.trim().length > 0) {
-                                                updateSettings({ name: newNickname.trim() });
-                                                setTourStep(2);
-                                            } else {
-                                                showCustomAlert("Required", "Please enter a name", "alert-circle");
-                                            }
-                                        }}
+                                        onPress={() => setTourStep(1)}
                                         className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
                                     >
-                                        <Text className="font-bold text-white text-lg">Next</Text>
+                                        <Text className="font-bold text-white text-lg">Let's Go</Text>
                                     </Pressable>
-                                </View>
-                            </>
-                        )}
+                                </>
+                            )}
 
-                        {tourStep === 2 && (
-                            <>
-                                <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-6">
-                                    <Ionicons name="add" size={40} color="#059669" />
-                                </View>
-                                <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Quick Tip</Text>
-                                <Text className="text-gray-500 mb-8 text-center leading-6">
-                                    Tap the <Text className="font-bold text-blue-600">+</Text> button at the bottom anytime to track a new expense instantly.
-                                </Text>
-                                <Pressable
-                                    onPress={() => setIsNicknameModalVisible(false)}
-                                    className="w-full bg-gray-900 p-4 rounded-xl items-center active:bg-gray-800 shadow-lg"
-                                >
-                                    <Text className="font-bold text-white text-lg">Got it!</Text>
-                                </Pressable>
-                            </>
-                        )}
+                            {tourStep === 1 && (
+                                <>
+                                    <View className="w-full">
+                                        <View className="items-center mb-6">
+                                            <View className="w-16 h-16 bg-purple-100 rounded-full items-center justify-center mb-4">
+                                                <Ionicons name="person" size={30} color="#9333ea" />
+                                            </View>
+                                            <Text className="text-xl font-bold text-gray-900 mb-2 text-center">First things first</Text>
+                                            <Text className="text-gray-500 text-center">What should we call you?</Text>
+                                        </View>
+                                        <TextInput
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg mb-6 text-gray-900 text-center font-bold"
+                                            placeholder="Your Nickname"
+                                            value={newNickname}
+                                            onChangeText={setNewNickname}
+                                            autoFocus
+                                        />
+                                        <Pressable
+                                            onPress={() => {
+                                                if (newNickname.trim().length > 0) {
+                                                    updateSettings({ name: newNickname.trim() });
+                                                    setTourStep(2);
+                                                } else {
+                                                    showCustomAlert("Required", "Please enter a name", "alert-circle");
+                                                }
+                                            }}
+                                            className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
+                                        >
+                                            <Text className="font-bold text-white text-lg">Next</Text>
+                                        </Pressable>
+                                    </View>
+                                </>
+                            )}
 
-                        <View className="flex-row gap-2 mt-8">
-                            {[0, 1, 2].map(step => (
-                                <View
-                                    key={step}
-                                    className={`h-2 rounded-full transition-all duration-300 ${tourStep === step ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'}`}
-                                />
-                            ))}
+                            {tourStep === 2 && (
+                                <>
+                                    <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-6">
+                                        <Ionicons name="add" size={40} color="#059669" />
+                                    </View>
+                                    <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Quick Tip</Text>
+                                    <Text className="text-gray-500 mb-8 text-center leading-6">
+                                        Tap the <Text className="font-bold text-blue-600">+</Text> button at the bottom anytime to track a new expense instantly.
+                                    </Text>
+                                    <Pressable
+                                        onPress={() => setIsNicknameModalVisible(false)}
+                                        className="w-full bg-gray-900 p-4 rounded-xl items-center active:bg-gray-800 shadow-lg"
+                                    >
+                                        <Text className="font-bold text-white text-lg">Got it!</Text>
+                                    </Pressable>
+                                </>
+                            )}
+
+                            <View className="flex-row gap-2 mt-8">
+                                {[0, 1, 2].map(step => (
+                                    <View
+                                        key={step}
+                                        className={`h-2 rounded-full transition-all duration-300 ${tourStep === step ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'}`}
+                                    />
+                                ))}
+                            </View>
                         </View>
                     </View>
-                </View>
-            </Modal>
+                )) : (
+                <Modal
+                    visible={isNicknameModalVisible && pathname === '/'}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => { }}
+                >
+                    <View className="flex-1 justify-center items-center bg-black/80 px-4">
+                        <View className="bg-white p-8 rounded-3xl w-full max-w-xs items-center shadow-xl">
+                            {tourStep === 0 && (
+                                <>
+                                    <View className="w-24 h-24 bg-white/50 rounded-2xl items-center justify-center mb-6 shadow-sm overflow-hidden border border-gray-100/50 p-2">
+                                        <Image
+                                            source={require('../assets/logo_premium.jpg')}
+                                            style={{ width: '100%', height: '100%', borderRadius: 12 }}
+                                            resizeMode="contain"
+                                        />
+                                    </View>
+                                    <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Welcome aboard!</Text>
+                                    <Text className="text-gray-500 mb-8 text-center leading-6">
+                                        I'm your new finance assistant. Let's get you set up in seconds.
+                                    </Text>
+                                    <Pressable
+                                        onPress={() => setTourStep(1)}
+                                        className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
+                                    >
+                                        <Text className="font-bold text-white text-lg">Let's Go</Text>
+                                    </Pressable>
+                                </>
+                            )}
+
+                            {tourStep === 1 && (
+                                <>
+                                    <View className="w-full">
+                                        <View className="items-center mb-6">
+                                            <View className="w-16 h-16 bg-purple-100 rounded-full items-center justify-center mb-4">
+                                                <Ionicons name="person" size={30} color="#9333ea" />
+                                            </View>
+                                            <Text className="text-xl font-bold text-gray-900 mb-2 text-center">First things first</Text>
+                                            <Text className="text-gray-500 text-center">What should we call you?</Text>
+                                        </View>
+                                        <TextInput
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg mb-6 text-gray-900 text-center font-bold"
+                                            placeholder="Your Nickname"
+                                            value={newNickname}
+                                            onChangeText={setNewNickname}
+                                            autoFocus
+                                        />
+                                        <Pressable
+                                            onPress={() => {
+                                                if (newNickname.trim().length > 0) {
+                                                    updateSettings({ name: newNickname.trim() });
+                                                    setTourStep(2);
+                                                } else {
+                                                    showCustomAlert("Required", "Please enter a name", "alert-circle");
+                                                }
+                                            }}
+                                            className="w-full bg-blue-600 p-4 rounded-xl items-center active:bg-blue-700 shadow-lg shadow-blue-200"
+                                        >
+                                            <Text className="font-bold text-white text-lg">Next</Text>
+                                        </Pressable>
+                                    </View>
+                                </>
+                            )}
+
+                            {tourStep === 2 && (
+                                <>
+                                    <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-6">
+                                        <Ionicons name="add" size={40} color="#059669" />
+                                    </View>
+                                    <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">Quick Tip</Text>
+                                    <Text className="text-gray-500 mb-8 text-center leading-6">
+                                        Tap the <Text className="font-bold text-blue-600">+</Text> button at the bottom anytime to track a new expense instantly.
+                                    </Text>
+                                    <Pressable
+                                        onPress={() => setIsNicknameModalVisible(false)}
+                                        className="w-full bg-gray-900 p-4 rounded-xl items-center active:bg-gray-800 shadow-lg"
+                                    >
+                                        <Text className="font-bold text-white text-lg">Got it!</Text>
+                                    </Pressable>
+                                </>
+                            )}
+
+                            <View className="flex-row gap-2 mt-8">
+                                {[0, 1, 2].map(step => (
+                                    <View
+                                        key={step}
+                                        className={`h-2 rounded-full transition-all duration-300 ${tourStep === step ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'}`}
+                                    />
+                                ))}
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            )}
 
             <CustomAlert
                 visible={alertConfig.visible}

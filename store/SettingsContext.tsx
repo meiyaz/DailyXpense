@@ -7,6 +7,7 @@ import { useAuth } from "./AuthContext";
 import { db } from "../db/client";
 import { settings as settingsSchema } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { hashPin } from "../lib/crypto";
 
 export interface Category {
     id: string;
@@ -211,7 +212,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setIsAppUnlocked(!isEnabled);
 
         const pin = s.securityPin ?? s.security_pin;
-        setSecurityPin(pin || null);
+        if (pin && pin.length === 4) {
+            // Legacy PIN found, migrate to hash immediately
+            hashPin(pin).then(hashed => {
+                setSecurityPin(hashed);
+                // Persist the migration
+                updateSettings({ securityPin: hashed });
+            });
+        } else {
+            setSecurityPin(pin || null);
+        }
 
         const bio = s.biometricsEnabled ?? s.biometrics_enabled;
         setBiometricsEnabled(bio === true || bio === 1);

@@ -7,6 +7,7 @@ import { useSettings } from '../store/SettingsContext';
 import { useAuth } from '../store/AuthContext';
 
 import { CustomAlert } from './ui/CustomAlert';
+import { hashPin } from '../lib/crypto';
 
 const { width } = Dimensions.get('window');
 
@@ -82,13 +83,17 @@ export default function LockScreen() {
             setError(false);
 
             if (updatedPin.length === 4) {
-                if (updatedPin === securityPin) {
-                    setTimeout(() => setIsAppUnlocked(true), 100);
-                } else {
-                    setError(true);
-                    setPin('');
-                    showCustomAlert("Invalid PIN", "The PIN you entered is incorrect.", "close-circle");
-                }
+                // Hash input for verification
+                hashPin(updatedPin).then(hashedInput => {
+                    // Compare hash(input) == storedHash
+                    if (hashedInput === securityPin) {
+                        setTimeout(() => setIsAppUnlocked(true), 100);
+                    } else {
+                        setError(true);
+                        setPin('');
+                        showCustomAlert("Invalid PIN", "The PIN you entered is incorrect.", "close-circle");
+                    }
+                });
             }
         } else if (mode === 'reset_pin') {
             if (newPin.length >= 4) return;
@@ -96,9 +101,12 @@ export default function LockScreen() {
             setNewPin(updatedPin);
 
             if (updatedPin.length === 4) {
-                updateSettings({ securityPin: updatedPin, appLockEnabled: true });
-                setIsAppUnlocked(true);
-                showCustomAlert("Success", "Your security PIN has been reset.", "checkmark-circle");
+                // Hash new PIN before saving
+                hashPin(updatedPin).then(hashedNewPin => {
+                    updateSettings({ securityPin: hashedNewPin, appLockEnabled: true });
+                    setIsAppUnlocked(true);
+                    showCustomAlert("Success", "Your security PIN has been reset.", "checkmark-circle");
+                });
             }
         }
     };
