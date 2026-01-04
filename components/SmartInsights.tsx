@@ -35,7 +35,7 @@ export const SmartInsights = () => {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Ionicons name="sparkles" size={14} color="#8b5cf6" />
-                <Text style={[styles.title, isDark && styles.textLight]}>AI Insights</Text>
+                <Text style={[styles.title, isDark && styles.textLight]}>Spend Review</Text>
             </View>
 
             <ScrollView

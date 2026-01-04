@@ -8,12 +8,14 @@ import { useSettings } from "../store/SettingsContext";
 import { LineChart, PieChart } from "react-native-gifted-charts";
 import { useRouter } from "expo-router";
 import { formatAmount } from "../lib/format";
+import { BlurView } from "expo-blur";
+import { SmartInsights } from "../components/SmartInsights";
 
 type Tab = "today" | "weekly" | "monthly" | "yearly";
 
 export default function Dashboard() {
     const { expenses } = useExpenses();
-    const { categories, locale, currency, theme } = useSettings();
+    const { categories, locale, currency, theme, isPremium } = useSettings();
     const systemColorScheme = useRNColorScheme();
     const isDark = theme === 'dark' || (theme === 'system' && systemColorScheme === 'dark');
 
@@ -146,7 +148,7 @@ export default function Dashboard() {
                     <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
                         <Ionicons name="chevron-back" size={24} color={isDark ? '#fff' : '#1e293b'} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Dashboard</Text>
+                    <Text style={styles.headerTitle}>Spend Review</Text>
                     <View style={{ width: 40 }} />
                 </View>
             </SafeAreaView>
@@ -239,97 +241,123 @@ export default function Dashboard() {
                     </View>
                 </View>
 
-                {/* 4. Charts */}
-                <View style={styles.chartsGrid}>
-                    <View style={styles.chartCard}>
-                        <View style={styles.chartHeader}>
-                            <Text style={styles.chartTitle}>Spending Activity</Text>
-                        </View>
-                        {financials.expense > 0 ? (
-                            <LineChart
-                                areaChart
-                                curved
-                                data={chartData.trendData}
-                                width={windowWidth - 122}
-                                height={160}
-                                spacing={(windowWidth - 140) / Math.max(1, chartData.trendData.length - 1)}
-                                initialSpacing={15}
-                                color="#3b82f6"
-                                thickness={4}
-                                startFillColor="rgba(59, 130, 246, 0.25)"
-                                endFillColor="rgba(59, 130, 246, 0)"
-                                dataPointsColor="#3b82f6"
-                                dataPointsRadius={4}
-                                pointerConfig={{
-                                    pointerStripColor: '#3b82f6',
-                                    pointerColor: '#3b82f6',
-                                    radius: 6,
-                                    pointerLabelComponent: (items: any) => (
-                                        <View style={styles.pointerLabel}>
-                                            <Text style={styles.pointerText}>
-                                                {currency}{formatAmount(items[0].value, locale)}
-                                            </Text>
-                                        </View>
-                                    ),
-                                }}
-                                rulesType="solid"
-                                rulesColor={isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
-                                yAxisColor="transparent"
-                                xAxisColor="transparent"
-                                yAxisTextStyle={styles.axisText}
-                                xAxisLabelTextStyle={styles.axisText}
-                                yAxisLabelWidth={30}
-                                formatYLabel={(label: string) => {
-                                    const val = parseFloat(label);
-                                    if (val >= 1000) return `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k`;
-                                    return label;
-                                }}
-                            />
-                        ) : (
-                            <View style={styles.emptyView}>
-                                <Ionicons name="analytics" size={32} color="#94a3b8" opacity={0.3} />
-                                <Text style={styles.emptyText}>Activity will appear here</Text>
+
+
+                {/* 4. Spend Review Pro Section (Gated) */}
+                <View style={styles.proSectionContainer}>
+                    <View style={{ opacity: isPremium ? 1 : 0.5 }} pointerEvents={isPremium ? 'auto' : 'none'}>
+                        {/* Charts */}
+                        <View style={styles.chartsGrid}>
+                            <View style={styles.chartCard}>
+                                <View style={styles.chartHeader}>
+                                    <Text style={styles.chartTitle}>Spending Activity</Text>
+                                </View>
+                                {financials.expense > 0 ? (
+                                    <LineChart
+                                        areaChart
+                                        curved
+                                        data={chartData.trendData}
+                                        width={windowWidth - 122}
+                                        height={160}
+                                        spacing={(windowWidth - 140) / Math.max(1, chartData.trendData.length - 1)}
+                                        initialSpacing={15}
+                                        color="#3b82f6"
+                                        thickness={4}
+                                        startFillColor="rgba(59, 130, 246, 0.25)"
+                                        endFillColor="rgba(59, 130, 246, 0)"
+                                        dataPointsColor="#3b82f6"
+                                        dataPointsRadius={4}
+                                        pointerConfig={{
+                                            pointerStripColor: '#3b82f6',
+                                            pointerColor: '#3b82f6',
+                                            radius: 6,
+                                            pointerLabelComponent: (items: any) => (
+                                                <View style={styles.pointerLabel}>
+                                                    <Text style={styles.pointerText}>
+                                                        {currency}{formatAmount(items[0].value, locale)}
+                                                    </Text>
+                                                </View>
+                                            ),
+                                        }}
+                                        rulesType="solid"
+                                        rulesColor={isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
+                                        yAxisColor="transparent"
+                                        xAxisColor="transparent"
+                                        yAxisTextStyle={styles.axisText}
+                                        xAxisLabelTextStyle={styles.axisText}
+                                        yAxisLabelWidth={30}
+                                        formatYLabel={(label: string) => {
+                                            const val = parseFloat(label);
+                                            if (val >= 1000) return `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k`;
+                                            return label;
+                                        }}
+                                    />
+                                ) : (
+                                    <View style={styles.emptyView}>
+                                        <Ionicons name="analytics" size={32} color="#94a3b8" opacity={0.3} />
+                                        <Text style={styles.emptyText}>Activity will appear here</Text>
+                                    </View>
+                                )}
                             </View>
-                        )}
+
+                            <View style={styles.chartCard}>
+                                <View style={styles.chartHeader}>
+                                    <Text style={styles.chartTitle}>Category Mix</Text>
+                                </View>
+                                {chartData.pieData.length > 0 ? (
+                                    <View style={styles.pieContainer}>
+                                        <PieChart
+                                            donut
+                                            radius={65}
+                                            innerRadius={50}
+                                            data={chartData.pieData}
+                                            centerLabelComponent={() => (
+                                                <Text style={{ fontSize: 12, fontWeight: '900', color: isDark ? '#fff' : '#1e293b' }}>
+                                                    {Math.round((financials.expense / (financials.income || financials.expense || 1)) * 100)}%
+                                                </Text>
+                                            )}
+                                        />
+                                        <View style={styles.pieLegend}>
+                                            {chartData.pieData.slice(0, 3).map((item, idx) => (
+                                                <View key={idx} style={styles.legendRow}>
+                                                    <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                                                    <Text style={styles.legendName} numberOfLines={1}>{item.name}</Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <View style={styles.emptyView}>
+                                        <Text style={styles.emptyText}>Categorize your spending</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
                     </View>
 
-                    <View style={styles.chartCard}>
-                        <View style={styles.chartHeader}>
-                            <Text style={styles.chartTitle}>Category Mix</Text>
-                        </View>
-                        {chartData.pieData.length > 0 ? (
-                            <View style={styles.pieContainer}>
-                                <PieChart
-                                    donut
-                                    radius={65}
-                                    innerRadius={50}
-                                    data={chartData.pieData}
-                                    centerLabelComponent={() => (
-                                        <Text style={{ fontSize: 12, fontWeight: '900', color: isDark ? '#fff' : '#1e293b' }}>
-                                            {Math.round((financials.expense / (financials.income || financials.expense || 1)) * 100)}%
-                                        </Text>
-                                    )}
-                                />
-                                <View style={styles.pieLegend}>
-                                    {chartData.pieData.slice(0, 3).map((item, idx) => (
-                                        <View key={idx} style={styles.legendRow}>
-                                            <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                                            <Text style={styles.legendName} numberOfLines={1}>{item.name}</Text>
-                                        </View>
-                                    ))}
-                                </View>
+                    {/* Pro Gating Overlay */}
+                    {!isPremium && (
+                        <BlurView intensity={isDark ? 30 : 20} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill}>
+                            <View style={styles.proOverlay}>
+                                <LinearGradient
+                                    colors={isDark ? ['#1e3a8a', '#1e40af'] : ['#eff6ff', '#dbeafe']}
+                                    style={styles.proIconContainer}
+                                >
+                                    <Ionicons name="lock-closed" size={24} color="#3b82f6" />
+                                </LinearGradient>
+                                <Text style={styles.proTitle}>Spend Review Pro</Text>
+                                <Text style={styles.proDesc}>Unlock advanced charts & analysis.</Text>
+                                <TouchableOpacity style={styles.proBtn} onPress={() => router.push('/settings')}>
+                                    <Text style={styles.proBtnText}>Unlock Pro</Text>
+                                </TouchableOpacity>
                             </View>
-                        ) : (
-                            <View style={styles.emptyView}>
-                                <Text style={styles.emptyText}>Categorize your spending</Text>
-                            </View>
-                        )}
-                    </View>
+                        </BlurView>
+                    )}
                 </View>
 
                 <View style={{ height: 100 }} />
-            </ScrollView>
-        </View>
+            </ScrollView >
+        </View >
     );
 }
 
@@ -443,5 +471,13 @@ const createStyles = (isDark: boolean, windowWidth: number) => StyleSheet.create
     pieLegend: { flex: 1, marginLeft: 20, gap: 8 },
     legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     legendDot: { width: 8, height: 8, borderRadius: 4 },
-    legendName: { fontSize: 11, color: isDark ? '#94a3b8' : '#64748b', fontWeight: '700' }
+    legendName: { fontSize: 11, color: isDark ? '#94a3b8' : '#64748b', fontWeight: '700' },
+
+    proSectionContainer: { position: 'relative', overflow: 'hidden', borderRadius: 24 },
+    proOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+    proIconContainer: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+    proTitle: { fontSize: 18, fontWeight: '900', color: isDark ? '#fff' : '#1e293b' },
+    proDesc: { fontSize: 12, fontWeight: '600', color: isDark ? '#94a3b8' : '#64748b', textAlign: 'center' },
+    proBtn: { paddingHorizontal: 24, paddingVertical: 10, backgroundColor: '#3b82f6', borderRadius: 20, marginTop: 4 },
+    proBtnText: { color: '#fff', fontWeight: '800', fontSize: 13 },
 });

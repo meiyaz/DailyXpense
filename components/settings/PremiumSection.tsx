@@ -34,7 +34,7 @@ export const PremiumSection: React.FC = () => {
                     <View className="flex-row justify-between items-center z-10">
                         <View className="flex-1 mr-4">
                             <Text className="text-white font-black text-xl mb-1">Upgrade to Premium</Text>
-                            <Text className="text-white/80 text-xs font-semibold">Unlock PDF Reports, AI Insights, and Cloud Sync for life.</Text>
+                            <Text className="text-white/80 text-xs font-semibold">Unlock Spend Review Pro, PDF Reports, and Cloud Sync for life.</Text>
                         </View>
                         <View className="w-12 h-12 bg-white/20 rounded-full items-center justify-center">
                             <Ionicons name="sparkles" size={24} color="white" />
@@ -65,7 +65,7 @@ export const PremiumSection: React.FC = () => {
                             <Ionicons name="analytics-outline" size={14} color="#f59e0b" />
                         </View>
                         <View>
-                            <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">AI Smart Insights</Text>
+                            <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Spend Review Pro</Text>
                             <Text className="text-[10px] text-gray-400">Advanced spending analysis & trends</Text>
                         </View>
                     </View>
