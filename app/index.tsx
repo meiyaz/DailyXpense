@@ -13,6 +13,8 @@ import ExportModal from "../components/ExportModal";
 
 import { CustomAlert } from "../components/ui/CustomAlert";
 
+let hasShownWelcomeSession = false;
+
 export default function Home() {
     // Hooks & State
     const { expenses } = useExpenses();
@@ -77,6 +79,10 @@ export default function Home() {
         if (!hasName && pathname === '/') {
             if (!isNicknameModalVisible) setIsNicknameModalVisible(true);
         } else if (!isNicknameModalVisible && !showWelcomeBack && !isDND) {
+            if (hasShownWelcomeSession)
+                return;
+
+            hasShownWelcomeSession = true;
             setShowWelcomeBack(true);
             playWelcomeSound();
             const timer = setTimeout(() => setShowWelcomeBack(false), 3000);
