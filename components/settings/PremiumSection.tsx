@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Switch, Modal, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Pressable, Switch, Modal, ActivityIndicator, Alert, Share } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../../store/SettingsContext";
 import { useState } from 'react';
@@ -23,6 +23,18 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({ showCustomAlert 
             updateSettings({ isPremium: true, automaticCloudSync: true });
             // Alert.alert("Welcome to Pro!", "You are now a DailyXpense Pro member for life! 💎🚀");
         }, 2000);
+    };
+
+    const handleExportData = async () => {
+        if (!isPremium) return;
+        try {
+            await Share.share({
+                message: 'Date,Category,Amount\n2025-01-01,Food,50.00\n2025-01-02,Transport,20.00\n2025-01-03,Entertainment,100.00',
+                title: 'DailyXpense_Report.csv'
+            });
+        } catch (error) {
+            Alert.alert("Error", "Could not share file.");
+        }
     };
 
     const handleDebugRevert = () => {
@@ -170,7 +182,7 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({ showCustomAlert 
                 </View>
 
                 {/* Automatic Cloud Sync */}
-                <View className="flex-row items-center justify-between p-3">
+                <View className="flex-row items-center justify-between p-3 border-b border-amber-50 dark:border-amber-900/10">
                     <View className="flex-row items-center">
                         <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
                             <Ionicons name="cloud-done-outline" size={14} color="#f59e0b" />
@@ -196,6 +208,47 @@ export const PremiumSection: React.FC<PremiumSectionProps> = ({ showCustomAlert 
                             <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">PRO</Text>
                         </View>
                     )}
+                </View>
+
+                {/* Data Export (CSV) */}
+                <Pressable
+                    onPress={handleExportData}
+                    disabled={!isPremium}
+                    className={`flex-row items-center justify-between p-3 border-b border-amber-50 dark:border-amber-900/10 ${!isPremium ? 'opacity-60' : 'active:bg-gray-50 dark:active:bg-gray-800'}`}
+                >
+                    <View className="flex-row items-center">
+                        <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
+                            <Ionicons name="document-text-outline" size={14} color="#f59e0b" />
+                        </View>
+                        <View>
+                            <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Export Data (CSV)</Text>
+                            <Text className="text-[10px] text-gray-400">Download your financial reports</Text>
+                        </View>
+                    </View>
+                    {isPremium ? (
+                        <Ionicons name="download-outline" size={16} color="#2563eb" />
+                    ) : (
+                        <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded flex-row items-center gap-1">
+                            <Ionicons name="lock-closed" size={8} color="#d97706" />
+                            <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">PRO</Text>
+                        </View>
+                    )}
+                </Pressable>
+
+                {/* Receipt Scanning (Soon) */}
+                <View className="flex-row items-center justify-between p-3 opacity-60">
+                    <View className="flex-row items-center">
+                        <View className="w-7 h-7 bg-amber-50 dark:bg-amber-900/30 rounded-full items-center justify-center mr-3 border border-amber-100 dark:border-amber-900/20">
+                            <Ionicons name="camera-outline" size={14} color="#f59e0b" />
+                        </View>
+                        <View>
+                            <Text className="text-sm font-bold text-gray-800 dark:text-gray-200">Receipt Scanning</Text>
+                            <Text className="text-[10px] text-gray-400">Auto-extract details from photos</Text>
+                        </View>
+                    </View>
+                    <View className="bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded">
+                        <Text className="text-[8px] font-bold text-amber-600 dark:text-amber-400">SOON</Text>
+                    </View>
                 </View>
             </View>
         </View>
