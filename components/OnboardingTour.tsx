@@ -240,7 +240,10 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({ visible, onCompl
         return (
             <View
                 className="justify-center items-center bg-black/80 px-4"
-                style={[StyleSheet.absoluteFill, { zIndex: 9999 }]}
+                style={[
+                    StyleSheet.absoluteFill,
+                    { zIndex: 9999, position: 'fixed' as any } // Force fixed on web to cover viewport even on scroll
+                ]}
             >
                 {renderContent()}
             </View>

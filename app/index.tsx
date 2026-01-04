@@ -1,5 +1,5 @@
 import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, StyleSheet, useColorScheme as useRNColorScheme, Platform } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, { Keyframe } from "react-native-reanimated";
 import { Audio } from 'expo-av';
 import { Link, useRouter, usePathname } from "expo-router";
 import { useExpenses } from "../store/ExpenseContext";
@@ -21,7 +21,7 @@ export default function Home() {
     const { expenses } = useExpenses();
     const router = useRouter();
     const pathname = usePathname();
-    const { name, categories, updateSettings, theme, isLoading: settingsLoading, isPremium, avatar: settingsAvatar } = useSettings();
+    const { name, categories, theme, isLoading: settingsLoading, isPremium, avatar: settingsAvatar } = useSettings();
 
     const systemScheme = useRNColorScheme();
     const isDark = theme === 'dark' || (theme === 'system' && systemScheme === 'dark');
@@ -144,21 +144,31 @@ export default function Home() {
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 {showWelcomeBack && name && (
                     <Animated.View
-                        entering={FadeIn.delay(500).duration(800)}
-                        exiting={FadeOut.duration(500)}
-                        style={{ position: 'absolute', top: Platform.OS === 'web' ? 20 : 64, left: 16, right: 16, zIndex: 100, alignItems: 'center' }}
+                        // @ts-ignore
+                        entering={new Keyframe({
+                            0: { transform: [{ translateY: -200 }] },
+                            100: { transform: [{ translateY: 0 }] },
+                        }).duration(800)}
+                        // @ts-ignore
+                        exiting={new Keyframe({
+                            0: { transform: [{ translateY: 0 }], opacity: 1 },
+                            100: { transform: [{ translateY: -200 }], opacity: 0 },
+                        }).duration(500)}
+                        style={{ position: Platform.OS === 'web' ? 'fixed' : 'absolute', top: Platform.OS === 'web' ? 20 : 64, left: 16, right: 16, zIndex: 100, alignItems: 'center' } as any}
                     >
-                        <View className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-xl shadow-lg border border-blue-500/20 backdrop-blur-md flex-row items-center">
-                            <View className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center mr-2">
-                                <Text style={{ fontSize: 12 }}>{isImage(avatar) || isIcon(avatar) ? "" : avatar}</Text>
-                                {isImage(avatar) && <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />}
-                                {isIcon(avatar) && <Ionicons name={avatar as any} size={12} color="#2563eb" />}
+                        <Pressable onPress={() => setShowWelcomeBack(false)}>
+                            <View className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-xl shadow-lg border border-blue-500/20 backdrop-blur-md flex-row items-center">
+                                <View className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center mr-2">
+                                    <Text style={{ fontSize: 12 }}>{isImage(avatar) || isIcon(avatar) ? "" : avatar}</Text>
+                                    {isImage(avatar) && <Image source={{ uri: avatar }} className="w-full h-full rounded-full" />}
+                                    {isIcon(avatar) && <Ionicons name={avatar as any} size={12} color="#2563eb" />}
+                                </View>
+                                <View>
+                                    <Text className="text-gray-900 dark:text-white font-bold text-[12px]">{vibeData.title}</Text>
+                                    <Text className="text-blue-600 dark:text-blue-400 font-medium text-[10px]">{vibeData.vibe}</Text>
+                                </View>
                             </View>
-                            <View>
-                                <Text className="text-gray-900 dark:text-white font-bold text-[12px]">{vibeData.title}</Text>
-                                <Text className="text-blue-600 dark:text-blue-400 font-medium text-[10px]">{vibeData.vibe}</Text>
-                            </View>
-                        </View>
+                        </Pressable>
                     </Animated.View>
                 )}
 
