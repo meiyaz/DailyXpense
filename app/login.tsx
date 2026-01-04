@@ -6,14 +6,13 @@ import { useAuth } from "../store/AuthContext";
 import { Stack, useRouter } from "expo-router";
 import { useSettings } from "../store/SettingsContext";
 import * as LocalAuthentication from "expo-local-authentication";
-import { useColorScheme as useRNColorScheme, Platform } from "react-native";
+import { Platform } from "react-native";
 import { FloatingBackground } from "../components/FloatingBackground";
 import { CustomAlert } from "../components/ui/CustomAlert";
 
 export default function Login() {
     const { sendOtp, verifyOtp } = useAuth();
-    const { theme, securityPin, updateSettings, setIsAppUnlocked } = useSettings();
-    const systemScheme = useRNColorScheme();
+    const { securityPin, updateSettings, setIsAppUnlocked } = useSettings();
 
     const router = useRouter();
 
@@ -190,8 +189,6 @@ export default function Login() {
             setLoading(false);
         }
     };
-
-
 
     return (
         <View className="flex-1 bg-white">

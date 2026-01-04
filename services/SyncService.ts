@@ -2,7 +2,7 @@ import { addEventListener } from '@react-native-community/netinfo';
 import { db } from '../db/client';
 import { expenses } from '../db/schema';
 import { supabase } from '../lib/supabase';
-import { eq, gt } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LAST_PULL_KEY = 'last_pull_timestamp';
@@ -27,7 +27,6 @@ export const SyncService = {
             console.error('Sync failed:', e);
         }
     },
-
 
     async pushChanges() {
         // 1. Get pending changes

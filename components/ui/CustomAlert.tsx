@@ -1,6 +1,6 @@
-import { Modal, View, Text, Pressable, StyleSheet, Dimensions } from "react-native";
+import { Modal, View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from "react-native-reanimated";
+import Animated, { ZoomIn, ZoomOut } from "react-native-reanimated";
 
 interface AlertButton {
     text: string;

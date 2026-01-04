@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, Switch, Platform, Alert } from 'react-native';
+import { View, Text, Pressable, Switch, Platform } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../../store/SettingsContext";
 import * as LocalAuthentication from 'expo-local-authentication';

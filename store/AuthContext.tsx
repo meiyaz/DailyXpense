@@ -5,7 +5,6 @@ import { Platform } from 'react-native';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 
-// Handle deep links for OAuth (Native)
 WebBrowser.maybeCompleteAuthSession();
 
 interface AuthContextType {
@@ -27,8 +26,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // STEP 1: Initialize Auth State (Check for active session)
-        // STEP 1: Initialize Auth State (Check for active session)
         supabase.auth.getSession().then(({ data: { session }, error }) => {
             if (error) {
                 console.error("Error restoring session:", error.message);
@@ -42,9 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsLoading(false);
         });
 
-        // STEP 2: Listen for Live Auth Changes (Login/Logout/Session updates)
+
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            // Handle Token Refresh Failures (common cause of infinite loading or crashes on old tokens)
             if (event as string === 'TOKEN_REFRESH_FAILED') {
                 console.log("Token refresh failed, forcing sign out.");
                 await supabase.auth.signOut();
@@ -64,19 +61,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const sendOtp = async (email: string) => {
-        // Removed emailRedirectTo to force Supabase to send a code instead of a magic link.
-        // This relies on the "Magic Link" or "Signup" template in Supabase containing {{ .Token }}.
         const { error } = await supabase.auth.signInWithOtp({
             email,
-            // options: { emailRedirectTo: ... } // Commented out to force Code flow
         });
         return { error };
     };
 
     const verifyOtp = async (email: string, token: string) => {
-        // STEP 3: Handle Multi-step Verification (Email -> Signup Fallback)
 
-        // Try 'email' (Magic Link/OTP) first
         const { data, error: emailError } = await supabase.auth.verifyOtp({
             email,
             token,
@@ -100,7 +92,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
 
-        // Analyze errors to return the most helpful one
+        if (!signupError && signupData.session) {
+            return { error: null, session: signupData.session };
+        }
+
         const isSignupRelevant = emailError?.message?.includes("not found") || emailError?.message?.includes("Signups not allowed");
 
         if (isSignupRelevant) {
@@ -111,7 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signInWithGoogle = async () => {
         try {
-            // "dailyxpense://" for native, "http://localhost:8081" (or hosted url) for web
             const redirectUrl = makeRedirectUri({
                 scheme: 'dailyxpense',
                 path: 'auth/callback',

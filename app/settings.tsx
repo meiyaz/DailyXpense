@@ -1,5 +1,5 @@
 import * as LocalAuthentication from 'expo-local-authentication';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
+
 import { Platform } from 'react-native';
 
 import { View, Text, Modal, TextInput, ScrollView, Pressable, TouchableOpacity, FlatList, useColorScheme as useRNColorScheme } from "react-native";
@@ -8,9 +8,8 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useSettings } from "../store/SettingsContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-import { useAuth } from "../store/AuthContext";
 
 import ExportModal from "../components/ExportModal";
 import { SafeTimePicker } from "../components/SafeTimePicker";
@@ -22,28 +21,12 @@ import { PremiumSection } from "../components/settings/PremiumSection";
 import { AccountSection } from "../components/settings/AccountSection";
 import { CategoryModal } from "../components/settings/CategoryModal";
 import { CustomAlert } from "../components/ui/CustomAlert";
-// import * as Notifications from 'expo-notifications';
-// import * as Device from 'expo-device';
-
-const AVAILABLE_ICONS = [
-    "cart", "car", "fast-food", "game-controller",
-    "home", "receipt", "medkit", "airplane",
-    "bicycle", "book", "briefcase", "cafe",
-    "camera", "fitness", "flower", "gift", "globe",
-    "hammer", "heart", "key", "library",
-    "map", "musical-notes", "paw", "phone-portrait",
-    "restaurant", "school", "shirt", "ticket",
-    "trophy", "wallet", "watch", "wine",
-    "person", "person-circle", "happy", "glasses", "woman", "man"
-];
 
 const PROFILE_ICONS = [
     "person", "person-circle", "person-add", "people", "briefcase",
     "school", "business", "laptop", "easel", "library",
     "glasses", "shirt", "happy", "star", "heart"
 ];
-
-
 
 const CURRENCIES = [
     { symbol: "₹", name: "INR" },
@@ -55,10 +38,10 @@ const CURRENCIES = [
 
 export default function Settings() {
     const router = useRouter();
-    const { signOut, user } = useAuth();
+    // const { signOut, user } = useAuth(); // Unused
     const {
         currency, theme,
-        notificationsEnabled, reminderTime,
+        reminderTime,
         securityPin,
         avatar, name,
         updateSettings,
@@ -75,7 +58,6 @@ export default function Settings() {
     const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
     const [showThemePicker, setShowThemePicker] = useState(false);
 
-    // Custom Alert State
     const [alertConfig, setAlertConfig] = useState({
         visible: false,
         title: "",
@@ -89,14 +71,12 @@ export default function Settings() {
         setAlertConfig({ visible: true, title, message, icon, buttons });
     };
 
-    // Category Creator/Editor State
     const [showCategoryCreator, setShowCategoryCreator] = useState(false);
     const [editingCategory, setEditingCategory] = useState<any>(null); // Store category being edited
     const [newCategoryName, setNewCategoryName] = useState("");
     const [newCategoryIcon, setNewCategoryIcon] = useState("pricetag");
     const [newCategoryType, setNewCategoryType] = useState<'expense' | 'income'>('expense');
 
-    // Export State
     const [showExportModal, setShowExportModal] = useState(false);
     const [showBudgetModal, setShowBudgetModal] = useState(false);
     const [tempBudget, setTempBudget] = useState("");
@@ -138,13 +118,11 @@ export default function Settings() {
         }
     };
 
-
-
     const openCategoryCreator = () => {
         setEditingCategory(null);
         setNewCategoryName("");
         setNewCategoryIcon("pricetag");
-        setNewCategoryType("expense"); // Default for new
+        setNewCategoryType("expense");
         setShowCategoryCreator(true);
     };
 
@@ -159,12 +137,11 @@ export default function Settings() {
     const handleSaveCategory = () => {
         if (!newCategoryName.trim()) return;
 
+
+
         if (editingCategory) {
-            // Update existing
-            // Keep original color for now, or randomize if we wanted to change it (but better to keep consistency)
             updateCategory(editingCategory.id, newCategoryName.trim(), editingCategory.color, newCategoryIcon, newCategoryType);
         } else {
-            // Create new - Default to 'expense' for now, or add UI later
             const colors = ["#EF4444", "#F59E0B", "#10B981", "#8B5CF6", "#6366F1", "#EC4899", "#3B82F6", "#14B8A6"];
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
             addCategory(newCategoryName.trim(), randomColor, newCategoryIcon, newCategoryType);
@@ -197,19 +174,10 @@ export default function Settings() {
         );
     };
 
-
-
     const handleSaveName = () => {
         updateSettings({ name: newName });
         setIsEditingName(false);
     };
-
-
-
-
-
-
-    // Helper to determine if avatar is an icon or emoji
 
     const isImage = (str: string) => str && (str.startsWith('data:image') || str.startsWith('file://') || str.startsWith('http'));
 
@@ -258,8 +226,6 @@ export default function Settings() {
         }
     };
 
-
-
     return (
         <View className="flex-1 bg-gray-50 dark:bg-black">
             <Stack.Screen options={{
@@ -283,8 +249,6 @@ export default function Settings() {
                     </Pressable>
                 ) : undefined
             }} />
-
-
 
             <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
                 <View className="p-5">
@@ -329,12 +293,9 @@ export default function Settings() {
                         }}
                         onAppLockSwitch={async (val) => {
                             if (!val) {
-                                // Disable everything security related
                                 updateSettings({ appLockEnabled: false, biometricsEnabled: false });
                             } else {
-                                // Enabling
                                 if (!securityPin) {
-                                    // Must have a PIN first
                                     setTempPin("");
                                     setShowPinModal(true);
                                 } else {
@@ -360,9 +321,7 @@ export default function Settings() {
                     <Text className="text-center text-xs text-gray-400 pb-10 mt-auto">Developed with ❤️ by Mei</Text>
                 </View>
             </ScrollView>
-
-            {/* Modals Logic - Moved outside ScrollView for better Web compatibility */}
-            < Modal
+            <Modal
                 animationType="fade"
                 transparent={true}
                 visible={showAvatarPicker}
@@ -372,8 +331,6 @@ export default function Settings() {
                 <Pressable className="flex-1 bg-black/60 justify-center items-center" onPress={() => setShowAvatarPicker(false)}>
                     <View className="bg-white dark:bg-gray-900 p-6 rounded-3xl w-[90%] max-w-[400px] shadow-2xl">
                         <Text className="text-lg font-bold text-center mb-4 text-gray-800 dark:text-white">Choose Avatar</Text>
-
-                        {/* Photo Options */}
                         <View className="flex-row gap-2 mb-6">
                             <Pressable
                                 onPress={() => pickImage(true)}
@@ -676,7 +633,7 @@ export default function Settings() {
                             </View>
                         </View>
 
-                        {/* Quick Selection Grid */}
+
                         <View className="flex-row flex-wrap justify-center gap-3 mb-8">
                             {[1000, 10000, 50000, 100000, 500000, 1000000].map((limit) => (
                                 <Pressable
@@ -694,7 +651,7 @@ export default function Settings() {
                             ))}
                         </View>
 
-                        {/* Interactive Scale Indicator */}
+
                         <View className="mb-8 px-2">
                             <Text className="text-[10px] font-bold text-gray-400 mb-3 uppercase text-center tracking-widest">Selected Scale</Text>
                             <View className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full w-full overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -758,7 +715,6 @@ export default function Settings() {
                             updateSettings({ reminderTime: `${h}:${m}` });
                         }
                     } else {
-                        // iOS: just update temp state
                         if (date) setTempPickerDate(date);
                     }
                 }}
@@ -778,6 +734,6 @@ export default function Settings() {
                 buttons={alertConfig.buttons}
                 onClose={closeAlert}
             />
-        </View >
+        </View>
     );
 }

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Platform, StyleSheet, Dimensions, ActivityIndicator, TextInput, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSettings } from '../store/SettingsContext';
 import { useAuth } from '../store/AuthContext';
-import { useRouter } from 'expo-router';
+
 import { CustomAlert } from './ui/CustomAlert';
 
 const { width } = Dimensions.get('window');
@@ -12,7 +12,6 @@ const { width } = Dimensions.get('window');
 export default function LockScreen() {
     const { setIsAppUnlocked, securityPin, biometricsEnabled, appLockEnabled, updateSettings } = useSettings();
     const { user, sendOtp, verifyOtp, signOut } = useAuth();
-    const router = useRouter();
 
     const [alertConfig, setAlertConfig] = useState({
         visible: false,

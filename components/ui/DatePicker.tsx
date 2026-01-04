@@ -12,7 +12,7 @@ interface DatePickerProps {
 export function DatePicker({ value, onChange, className }: DatePickerProps) {
     const [show, setShow] = useState(false);
 
-    const handleChange = (event: any, selectedDate?: Date) => {
+    const handleChange = (_: any, selectedDate?: Date) => {
         const currentDate = selectedDate || value;
         if (Platform.OS === "android") {
             setShow(false);

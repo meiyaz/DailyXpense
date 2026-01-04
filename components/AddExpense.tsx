@@ -23,12 +23,9 @@ export function AddExpense() {
     const [type, setType] = useState<'expense' | 'income'>('expense');
 
     // UI State
-
-    // UI State
     const [isExpanded, setIsExpanded] = useState(false);
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
-    // Custom Alert State
     const [alertConfig, setAlertConfig] = useState({
         visible: false,
         title: "",
@@ -41,12 +38,10 @@ export function AddExpense() {
         setAlertConfig({ visible: true, title, message, icon, buttons });
     };
 
-    // MRU Logic
     const getMRUCategories = () => {
         // Filter categories by selected type
         const typeCategories = categories.filter(c => (c.type || 'expense') === type);
 
-        // Calculate frequency from expenses
         const recentExpenses = expenses.slice(0, 15);
         const frequency: Record<string, number> = {};
         recentExpenses.forEach(e => {
@@ -62,14 +57,12 @@ export function AddExpense() {
 
     const sortedCategories = getMRUCategories();
 
-    // Reset default category when opening
     useEffect(() => {
         if (isExpanded && !selectedCategory && sortedCategories.length > 0) {
             setSelectedCategory(sortedCategories[0].name);
         }
     }, [isExpanded]);
 
-    // AI Category Prediction
     useEffect(() => {
         if (!description.trim() || hasManuallySelected) return;
 
@@ -78,12 +71,11 @@ export function AddExpense() {
             if (predicted && predicted !== selectedCategory) {
                 setSelectedCategory(predicted);
             }
-        }, 50); // Fast response for 'as-you-type' feel
+        }, 50);
 
         return () => clearTimeout(timer);
     }, [description, categories, expenses, type, hasManuallySelected]);
 
-    // Reset category when type changes
     useEffect(() => {
         const typeCats = getMRUCategories();
         if (typeCats.length > 0) {
@@ -94,8 +86,6 @@ export function AddExpense() {
     }, [type]); // Dependency on 'type'
 
     const handleAmountChange = (text: string) => {
-        // Allow any number of digits in the input as long as it's below the maxAmount
-        // and has at most 2 decimal places.
         if (/^\d*(?:\.\d{0,2})?$/.test(text)) {
             const val = parseFloat(text);
             if (isNaN(val) || val <= maxAmount) {
@@ -132,7 +122,8 @@ export function AddExpense() {
 
     const inputRef = useRef<TextInput>(null);
 
-    // Auto-focus with delay to ensure keyboard opens after Modal animation
+
+
     useEffect(() => {
         if (isExpanded) {
             const timer = setTimeout(() => {
@@ -146,7 +137,6 @@ export function AddExpense() {
     // Return logic...
     return (
         <>
-            {/* ... FAB ... */}
             {!isExpanded && (
                 <Pressable
                     onPress={() => setIsExpanded(true)}
@@ -172,7 +162,6 @@ export function AddExpense() {
                     >
                         <Pressable onPress={e => e.stopPropagation()}>
                             <View className="bg-white dark:bg-gray-900 rounded-t-3xl p-5 shadow-xl border-t border-blue-50 dark:border-gray-800">
-                                {/* Header: Close Button and Type Toggle */}
                                 <View className="mb-4">
                                     <View className="flex-row justify-between items-center mb-4">
                                         <Text className="text-lg font-bold text-gray-800 dark:text-white">New Transaction</Text>
@@ -181,7 +170,7 @@ export function AddExpense() {
                                         </Pressable>
                                     </View>
 
-                                    {/* Type Toggle */}
+
                                     <View style={{
                                         flexDirection: 'row',
                                         backgroundColor: isDark ? '#1f2937' : '#e0e7ff',
@@ -229,7 +218,7 @@ export function AddExpense() {
                                     </View>
                                 </View>
 
-                                {/* ROW 1: Description */}
+
                                 <TextInput
                                     ref={inputRef}
                                     className="text-gray-900 dark:text-white font-semibold text-lg p-3 bg-gray-50 dark:bg-gray-800 rounded-xl mb-4"
@@ -240,13 +229,13 @@ export function AddExpense() {
                                     maxLength={50}
                                 />
 
-                                {/* ROW 2: Date | Amount */}
+
                                 <View className="flex-row items-center gap-3 mb-4">
                                     <View className="flex-1">
                                         <DatePicker value={date} onChange={setDate} />
                                     </View>
 
-                                    {/* Amount */}
+
                                     <View className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
                                         <View className="flex-row items-center px-3 py-2">
                                             <TextInput
@@ -270,7 +259,7 @@ export function AddExpense() {
                                     </View>
                                 </View>
 
-                                {/* ROW 3: Category | Checkmark */}
+
                                 <View className="flex-row items-center justify-between pt-2 mb-2">
                                     <Pressable
                                         onPress={() => setShowCategoryPicker(true)}
@@ -305,9 +294,7 @@ export function AddExpense() {
                         </Pressable>
                     </Pressable>
                 </KeyboardAvoidingView>
-                {/* Category Picker needs to be visible ABOVE this modal if it's open, 
-                    but since CategoryPicker is likely a Modal itself, it should stack fine.
-                */}
+
                 <CategoryPicker
                     visible={showCategoryPicker}
                     onClose={() => setShowCategoryPicker(false)}

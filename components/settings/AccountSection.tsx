@@ -6,7 +6,7 @@ import Constants from 'expo-constants';
 import { CustomAlert } from "../ui/CustomAlert";
 
 export const AccountSection: React.FC = () => {
-    const { signOut, user } = useAuth();
+    const { signOut } = useAuth();
 
     const [alertConfig, setAlertConfig] = useState({
         visible: false,

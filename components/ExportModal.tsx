@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Modal, Switch, Platform } from "react-native";
+import { View, Text, Pressable, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { useExpenses } from "../store/ExpenseContext";
@@ -177,7 +177,7 @@ export default function ExportModal({ visible, onClose }: ExportModalProps) {
         }
     };
 
-    const onDateChange = (event: any, selected?: Date) => {
+    const onDateChange = (_: any, selected?: Date) => {
         setShowDatePicker(false);
         if (selected) setSelectedDate(selected);
     };
