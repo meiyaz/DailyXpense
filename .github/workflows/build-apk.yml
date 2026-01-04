@@ -43,7 +43,7 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
-          NODE_OPTIONS: "--max-old-space-size=1024"
+          NODE_OPTIONS: "--max-old-space-size=4096"
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.workers.max=1 -Dorg.gradle.vfs.watch=false"
           EAS_NO_VCS: 1
           CI: true
@@ -53,17 +53,17 @@ jobs:
           BUILD_DIR=$(find . -name "build" -type d -path "*/android/app/build" | head -n 1)
           find . -name "*.apk" -exec cp {} DailyXpense.apk \; || echo "No APK found in root"
 
-
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: DailyXpense-APK
           path: "DailyXpense.apk"
           retention-days: 30
-              - name: Upload APK to Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: DailyXpense.apk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: DailyXpense.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
